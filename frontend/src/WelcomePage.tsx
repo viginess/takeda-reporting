@@ -10,11 +10,29 @@ import {
   Button,
   Card,
   CardBody,
+  SimpleGrid,
+  Link,
 } from '@chakra-ui/react';
+import { useState } from 'react';
 
 import takedaLogo from './assets/takeda-logo.png';
+import PatientForm from './PatientForm';
+import FamilyForm from './FamilyForm';
+import HcpForm from './HcpForm';
+
+type Step = 'select' | 'audience' | 'patient' | 'family' | 'hcp';
 
 function WelcomePage() {
+  const [step, setStep] = useState<Step>('select');
+  const [country, setCountry] = useState('');
+  const [language, setLanguage] = useState('');
+
+  const handleContinue = () => {
+    if (country && language) {
+      setStep('audience');
+    }
+  };
+
   return (
     <Flex
       direction="column"
@@ -29,122 +47,302 @@ function WelcomePage() {
         align="center"
         justify="space-between"
         px={12}
-        py={4}
+        py={5}
         bg="white"
         boxShadow="sm"
+        borderBottom="1px solid"
+        borderColor="gray.100"
       >
-        <Image src={takedaLogo} alt="Takeda" h="28px" />
-        <Heading as="h1" size="md" mx="auto" fontWeight={"semibold"}  letterSpacing="tight">
-        Let’s take the next step toward better health
+        <Link href="/">
+    <Image src={takedaLogo} alt="Takeda" h="32px" cursor="pointer" />
+  </Link>
+        <Heading
+          as="h1"
+          size="md"
+          mx="auto"
+          fontWeight="600"
+          letterSpacing="tight"
+          color="gray.800"
+        >
+          Let's take the next step toward better health
         </Heading>
       </Flex>
 
       {/* Main Content */}
-      <Flex flex="1" align="center" justify="center" px={4}  py={2}>
-        <Card maxW="900px" w="full" bg="white" boxShadow="lg" borderRadius="lg">
+      <Flex flex="1" align="center" justify="center" px={4} py={8}>
+        <Card
+          maxW="900px"
+          w="full"
+          bg="white"
+          boxShadow="xl"
+          borderRadius="xl"
+          overflow="hidden"
+        >
           <CardBody p={0}>
             <Flex direction={{ base: 'column', md: 'row' }}>
               {/* Left Side - Branding */}
               <Box
-  flex="0 0 300px"
-  p={8}
-  display="flex"
-  flexDirection="column"
-  alignItems="center"
-  justifyContent="center"
-  color="white"
-  bgGradient="linear(to-br, red.700, red.500, pink.500)"
-  boxShadow="inset 0 0 40px rgba(255,255,255,0.15)"
->
-
-                <Box 
-                  w="120px" 
-                  h="120px" 
-                  bg="white" 
+                flex="0 0 300px"
+                p={8}
+                display="flex"
+                flexDirection="column"
+                alignItems="center"
+                justifyContent="center"
+                color="white"
+                bgGradient="linear(to-br, #CE0037, #E31C5F)"
+                position="relative"
+                _before={{
+                  content: '""',
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  bgImage: 'radial-gradient(circle at 20% 80%, rgba(255,255,255,0.1) 0%, transparent 50%)',
+                }}
+              >
+                <Box
+                  w="120px"
+                  h="120px"
+                  bg="white"
                   borderRadius="full"
                   display="flex"
                   alignItems="center"
                   justifyContent="center"
                   mb={6}
-                  boxShadow="lg"
+                  boxShadow="0 10px 30px rgba(0,0,0,0.2)"
+                  position="relative"
+                  zIndex={1}
                 >
-                 <Image src={takedaLogo} alt="Takeda" h="28px" />
+                  <Image src={takedaLogo} alt="Takeda" h="32px" />
                 </Box>
-                <Heading as="h2" size="lg" mb={4} textAlign="center">
+                <Heading 
+                  as="h2" 
+                  size="xl" 
+                  mb={4} 
+                  textAlign="center"
+                  fontWeight="700"
+                  position="relative"
+                  zIndex={1}
+                >
                   Welcome
                 </Heading>
-                <Text fontSize="sm" textAlign="center" opacity={0.9}>
+                <Text
+                  fontSize="sm"
+                  textAlign="center"
+                  opacity={0.95}
+                  fontWeight="400"
+                  lineHeight="tall"
+                  position="relative"
+                  zIndex={1}
+                >
                   Better Health for People, Brighter Future for the World
                 </Text>
               </Box>
 
-              {/* Right Side - Form */}
-              <Box flex="1" p={8} >
-                {/* Country Field */}
-                <FormControl mb={6}>
-                  <FormLabel>Country</FormLabel>
-                  <Select
-                    placeholder="Select country"
-                    size="lg"
-                    focusBorderColor="red.600"
-                    _hover={{ borderColor: 'red.500' }}
-                    _focusVisible={{
-                      borderColor: 'red.600',
-                      boxShadow: '0 0 0 1px var(--chakra-colors-red-600)',
-                    }}
-                  >
-                    <option value="us">United States</option>
-                    <option value="uk">United Kingdom</option>
-                    <option value="ca">Canada</option>
-                    <option value="au">Australia</option>
-                    <option value="jp">Japan</option>
-                    <option value="de">Germany</option>
-                    <option value="fr">France</option>
-                    <option value="es">Spain</option>
-                    <option value="it">Italy</option>
-                    <option value="br">Brazil</option>
-                  </Select>
-                </FormControl>
+              {/* Right Side - Form / Audience / Role Pages */}
+              <Box flex="1" p={10}>
+                {step === 'select' ? (
+                  <>
+                    <Heading as="h2" size="lg" mb={2} color="gray.800" fontWeight="600">
+                      Get Started
+                    </Heading>
+                    <Text fontSize="sm" color="gray.600" mb={8}>
+                      Please select your country and preferred language
+                    </Text>
 
-                {/* Language Field */}
-                <FormControl mb={8}>
-                  <FormLabel>Language</FormLabel>
-                  <Select
-                    placeholder="Select language"
-                    size="lg"
-                    focusBorderColor="red.600"
-                    _hover={{ borderColor: 'red.500' }}
-                    _focusVisible={{
-                      borderColor: 'red.600',
-                      boxShadow: '0 0 0 1px var(--chakra-colors-red-600)',
-                    }}
-                  >
-                    <option value="en">English</option>
-                    <option value="es">Spanish</option>
-                    <option value="fr">French</option>
-                    <option value="de">German</option>
-                    <option value="it">Italian</option>
-                    <option value="pt">Portuguese</option>
-                    <option value="ja">Japanese</option>
-                    <option value="zh">Chinese</option>
-                    <option value="ar">Arabic</option>
-                  </Select>
-                </FormControl>
+                    {/* Country Field */}
+                    <FormControl mb={6}>
+                      <FormLabel fontWeight="600" color="gray.700" mb={2}>
+                        Country
+                      </FormLabel>
+                      <Select
+                        placeholder="Select country"
+                        size="lg"
+                        value={country}
+                        onChange={(e) => setCountry(e.target.value)}
+                        focusBorderColor="red.500"
+                        borderColor="gray.300"
+                        borderRadius="lg"
+                        _hover={{ borderColor: 'red.400' }}
+                        _focusVisible={{
+                          borderColor: 'red.500',
+                          boxShadow: '0 0 0 1px #E31C5F',
+                        }}
+                      >
+                        <option value="us">United States</option>
+                        <option value="uk">United Kingdom</option>
+                        <option value="ca">Canada</option>
+                        <option value="au">Australia</option>
+                        <option value="jp">Japan</option>
+                        <option value="de">Germany</option>
+                        <option value="fr">France</option>
+                        <option value="es">Spain</option>
+                        <option value="it">Italy</option>
+                        <option value="br">Brazil</option>
+                      </Select>
+                    </FormControl>
 
-                {/* Continue Button */}
-                <Button
-  size="lg"
-  width="full"
-  bgGradient="linear(to-r, red.600, pink.500)"
-  color="white"
-  _hover={{
-    bgGradient: 'linear(to-r, red.700, pink.600)',
-  }}
->
-  Continue
-</Button>
+                    {/* Language Field */}
+                    <FormControl mb={10}>
+                      <FormLabel fontWeight="600" color="gray.700" mb={2}>
+                        Language
+                      </FormLabel>
+                      <Select
+                        placeholder="Select language"
+                        size="lg"
+                        value={language}
+                        onChange={(e) => setLanguage(e.target.value)}
+                        focusBorderColor="red.500"
+                        borderColor="gray.300"
+                        borderRadius="lg"
+                        _hover={{ borderColor: 'red.400' }}
+                        _focusVisible={{
+                          borderColor: 'red.500',
+                          boxShadow: '0 0 0 1px #E31C5F',
+                        }}
+                      >
+                        <option value="en">English</option>
+                        <option value="es">Spanish</option>
+                        <option value="fr">French</option>
+                        <option value="de">German</option>
+                        <option value="it">Italian</option>
+                        <option value="pt">Portuguese</option>
+                        <option value="ja">Japanese</option>
+                        <option value="zh">Chinese</option>
+                        <option value="ar">Arabic</option>
+                      </Select>
+                    </FormControl>
 
-
+                    {/* Continue Button */}
+                    <Button
+                      size="lg"
+                      width="full"
+                      bg="#CE0037"
+                      color="white"
+                      onClick={handleContinue}
+                      isDisabled={!country || !language}
+                      borderRadius="lg"
+                      fontWeight="600"
+                      _hover={{
+                        bg: '#E31C5F',
+                        transform: 'translateY(-2px)',
+                        boxShadow: 'lg',
+                      }}
+                      _active={{
+                        bg: '#B3002F',
+                        transform: 'translateY(0)',
+                      }}
+                      _disabled={{
+                        bg: 'gray.300',
+                        cursor: 'not-allowed',
+                        _hover: {
+                          bg: 'gray.300',
+                          transform: 'none',
+                          boxShadow: 'none',
+                        }
+                      }}
+                      transition="all 0.2s"
+                    >
+                      Continue
+                    </Button>
+                  </>
+                ) : step === 'audience' ? (
+                  <>
+                    <Heading as="h2" size="lg" mb={2} color="gray.800" fontWeight="600">
+                      Who are you?
+                    </Heading>
+                    <Text fontSize="sm" color="gray.600" mb={8}>
+                      Your role helps us provide the most relevant and compliant experience.
+                    </Text>
+                    <SimpleGrid columns={{ base: 1, md: 3 }} spacing={4}>
+                      <Button
+                        variant="outline"
+                        borderColor="gray.300"
+                        borderWidth="2px"
+                        height="110px"
+                        borderRadius="xl"
+                        color="gray.700"
+                        onClick={() => setStep('patient')}
+                        _hover={{
+                          borderColor: '#CE0037',
+                          bg: 'red.50',
+                          color: '#CE0037',
+                          transform: 'translateY(-4px)',
+                          shadow: 'xl',
+                        }}
+                        transition="all 0.3s"
+                        fontSize="md"
+                        fontWeight="600"
+                        whiteSpace="normal"
+                        textAlign="center"
+                      >
+                        A Patient or Consumer
+                      </Button>
+                      <Button
+                        variant="outline"
+                        borderColor="gray.300"
+                        borderWidth="2px"
+                        height="110px"
+                        borderRadius="xl"
+                        color="gray.700"
+                        onClick={() => setStep('family')}
+                        _hover={{
+                          borderColor: '#CE0037',
+                          bg: 'red.50',
+                          color: '#CE0037',
+                          transform: 'translateY(-4px)',
+                          shadow: 'xl',
+                        }}
+                        transition="all 0.3s"
+                        fontSize="md"
+                        fontWeight="600"
+                        whiteSpace="normal"
+                        textAlign="center"
+                      >
+                        A Friend, Caregiver or Family
+                      </Button>
+                      <Button
+                        variant="outline"
+                        borderColor="gray.300"
+                        borderWidth="2px"
+                        height="110px"
+                        borderRadius="xl"
+                        color="gray.700"
+                        onClick={() => setStep('hcp')}
+                        _hover={{
+                          borderColor: '#CE0037',
+                          bg: 'red.50',
+                          color: '#CE0037',
+                          transform: 'translateY(-4px)',
+                          shadow: 'xl',
+                        }}
+                        transition="all 0.3s"
+                        fontSize="md"
+                        fontWeight="600"
+                        whiteSpace="normal"
+                        textAlign="center"
+                      >
+                        A Healthcare Professional
+                      </Button>
+                    </SimpleGrid>
+                  </>
+                ) : (
+                  <>
+                    <Button
+                      variant="ghost"
+                      color="gray.600"
+                      mb={4}
+                      onClick={() => setStep('audience')}
+                      fontSize="sm"
+                    >
+                      ← Back
+                    </Button>
+                    {step === 'patient' && <PatientForm />}
+                    {step === 'family' && <FamilyForm />}
+                    {step === 'hcp' && <HcpForm />}
+                  </>
+                )}
               </Box>
             </Flex>
           </CardBody>
@@ -152,18 +350,18 @@ function WelcomePage() {
       </Flex>
 
       {/* Footer */}
-      <Box 
-        as="footer" 
-        py={4} 
-        px={6} 
-        textAlign="center" 
-        fontSize="sm" 
+      <Box
+        as="footer"
+        py={5}
+        px={6}
+        textAlign="center"
+        fontSize="sm"
         color="gray.600"
         bg="white"
         borderTop="1px solid"
         borderColor="gray.200"
       >
-        <Text>
+        <Text lineHeight="tall">
           Thank you for helping us make our products safer and more effective for everyone,
           everywhere.
         </Text>
