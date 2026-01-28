@@ -3,11 +3,16 @@ import {
   Flex,
   Heading,
   Text,
-  Stack,
+  Image,
+  FormControl,
+  FormLabel,
   Select,
   Button,
-  Link,
+  Card,
+  CardBody,
 } from '@chakra-ui/react';
+
+import takedaLogo from './assets/takeda-logo.png';
 
 function WelcomePage() {
   return (
@@ -18,6 +23,7 @@ function WelcomePage() {
       color="gray.800"
       fontFamily="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
     >
+      {/* Header */}
       <Flex
         as="header"
         align="center"
@@ -27,84 +33,136 @@ function WelcomePage() {
         bg="white"
         boxShadow="sm"
       >
-        <Text fontWeight="bold" fontSize="lg" color="red.600">
-          Takeda
-        </Text>
-        <Heading as="h1" size="md" mx="auto">
-          Let&apos;s get started.
+        <Image src={takedaLogo} alt="Takeda" h="28px" />
+        <Heading as="h1" size="md" mx="auto" fontWeight={"semibold"}  letterSpacing="tight">
+        Let’s take the next step toward better health
         </Heading>
       </Flex>
 
-      <Flex
-        as="main"
-        flex="1"
-        align="center"
-        justify="center"
-        px={4}
-        pt={10}
-        pb={6}
-      >
-        <Box
-          w="100%"
-          maxW="560px"
-          bg="gray.800"
-          borderRadius="md"
-          boxShadow="2xl"
-          overflow="hidden"
-        >
-          <Box bg="gray.900" color="white" px={8} py={5}>
-            <Heading as="h2" size="md" fontWeight="medium">
-              Welcome to Reportum Public
-            </Heading>
-          </Box>
+      {/* Main Content */}
+      <Flex flex="1" align="center" justify="center" px={4}  py={2}>
+        <Card maxW="900px" w="full" bg="white" boxShadow="lg" borderRadius="lg">
+          <CardBody p={0}>
+            <Flex direction={{ base: 'column', md: 'row' }}>
+              {/* Left Side - Branding */}
+              <Box
+  flex="0 0 300px"
+  p={8}
+  display="flex"
+  flexDirection="column"
+  alignItems="center"
+  justifyContent="center"
+  color="white"
+  bgGradient="linear(to-br, red.700, red.500, pink.500)"
+  boxShadow="inset 0 0 40px rgba(255,255,255,0.15)"
+>
 
-          <Box bg="white" px={8} py={6}>
-            <Stack spacing={4}>
-              <Box>
-                <Text mb={1} fontSize="sm" color="gray.700">
-                  Please select your location
+                <Box 
+                  w="120px" 
+                  h="120px" 
+                  bg="white" 
+                  borderRadius="full"
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="center"
+                  mb={6}
+                  boxShadow="lg"
+                >
+                 <Image src={takedaLogo} alt="Takeda" h="28px" />
+                </Box>
+                <Heading as="h2" size="lg" mb={4} textAlign="center">
+                  Welcome
+                </Heading>
+                <Text fontSize="sm" textAlign="center" opacity={0.9}>
+                  Better Health for People, Brighter Future for the World
                 </Text>
-                <Select placeholder="Country" size="md" bg="white">
-                  <option value="us">United States</option>
-                  <option value="uk">United Kingdom</option>
-                  <option value="de">Germany</option>
-                  <option value="jp">Japan</option>
-                </Select>
               </Box>
 
-              <Box>
-                <Text mb={1} fontSize="sm" color="gray.700">
-                  Please select a language
-                </Text>
-                <Select placeholder="Language" size="md" bg="white">
-                  <option value="en">English</option>
-                  <option value="de">Deutsch</option>
-                  <option value="fr">Français</option>
-                  <option value="ja">日本語</option>
-                </Select>
+              {/* Right Side - Form */}
+              <Box flex="1" p={8} >
+                {/* Country Field */}
+                <FormControl mb={6}>
+                  <FormLabel>Country</FormLabel>
+                  <Select
+                    placeholder="Select country"
+                    size="lg"
+                    focusBorderColor="red.600"
+                    _hover={{ borderColor: 'red.500' }}
+                    _focusVisible={{
+                      borderColor: 'red.600',
+                      boxShadow: '0 0 0 1px var(--chakra-colors-red-600)',
+                    }}
+                  >
+                    <option value="us">United States</option>
+                    <option value="uk">United Kingdom</option>
+                    <option value="ca">Canada</option>
+                    <option value="au">Australia</option>
+                    <option value="jp">Japan</option>
+                    <option value="de">Germany</option>
+                    <option value="fr">France</option>
+                    <option value="es">Spain</option>
+                    <option value="it">Italy</option>
+                    <option value="br">Brazil</option>
+                  </Select>
+                </FormControl>
+
+                {/* Language Field */}
+                <FormControl mb={8}>
+                  <FormLabel>Language</FormLabel>
+                  <Select
+                    placeholder="Select language"
+                    size="lg"
+                    focusBorderColor="red.600"
+                    _hover={{ borderColor: 'red.500' }}
+                    _focusVisible={{
+                      borderColor: 'red.600',
+                      boxShadow: '0 0 0 1px var(--chakra-colors-red-600)',
+                    }}
+                  >
+                    <option value="en">English</option>
+                    <option value="es">Spanish</option>
+                    <option value="fr">French</option>
+                    <option value="de">German</option>
+                    <option value="it">Italian</option>
+                    <option value="pt">Portuguese</option>
+                    <option value="ja">Japanese</option>
+                    <option value="zh">Chinese</option>
+                    <option value="ar">Arabic</option>
+                  </Select>
+                </FormControl>
+
+                {/* Continue Button */}
+                <Button
+  size="lg"
+  width="full"
+  bgGradient="linear(to-r, red.600, pink.500)"
+  color="white"
+  _hover={{
+    bgGradient: 'linear(to-r, red.700, pink.600)',
+  }}
+>
+  Continue
+</Button>
+
+
               </Box>
-
-              <Button
-                mt={1}
-                colorScheme="green"
-                width="100%"
-                size="md"
-              >
-                Continue
-              </Button>
-
-              <Text fontSize="xs" color="gray.500" textAlign="center">
-                Can&apos;t find your country/language?{' '}
-                <Link as="button" color="blue.500" fontSize="xs">
-                  Click here.
-                </Link>
-              </Text>
-            </Stack>
-          </Box>
-        </Box>
+            </Flex>
+          </CardBody>
+        </Card>
       </Flex>
 
-      <Box as="footer" py={4} px={6} textAlign="center" fontSize="sm" color="gray.600">
+      {/* Footer */}
+      <Box 
+        as="footer" 
+        py={4} 
+        px={6} 
+        textAlign="center" 
+        fontSize="sm" 
+        color="gray.600"
+        bg="white"
+        borderTop="1px solid"
+        borderColor="gray.200"
+      >
         <Text>
           Thank you for helping us make our products safer and more effective for everyone,
           everywhere.
