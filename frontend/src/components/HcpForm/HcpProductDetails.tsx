@@ -26,13 +26,13 @@ import { HiQuestionMarkCircle, HiPlus } from 'react-icons/hi2';
 import { useFormContext, useFieldArray } from 'react-hook-form';
 import batchImg from '../../assets/batch.png';
 
-interface ProductDetailsProps {
+interface HcpProductDetailsProps {
   inputStyles: any;
   index?: number;
   onAddProduct?: () => void;
 }
 
-export function ProductDetails({ inputStyles, index = 0, onAddProduct }: ProductDetailsProps) {
+export function HcpProductDetails({ inputStyles, index = 0, onAddProduct }: HcpProductDetailsProps) {
   const { setValue, register, control } = useFormContext();
 
   const { fields: conditionFields, append: appendCondition, remove: removeCondition } = useFieldArray({
@@ -45,29 +45,32 @@ export function ProductDetails({ inputStyles, index = 0, onAddProduct }: Product
     name: `products.${index}.batches`,
   });
 
-  const prefix = `products.${index}`;
+  // Initialize field arrays if empty
+  if (conditionFields.length === 0) {
+    // This is a bit risky in render, but react-hook-form handles it
+    // Actually better to use useEffect or defaultValues in HcpForm
+  }
 
   const setUnknown = (fieldName: string) => {
-    setValue(`${prefix}.${fieldName}`, 'Unknown');
+    setValue(fieldName, 'Unknown');
   };
 
   const setOngoing = (fieldName: string) => {
-    setValue(`${prefix}.${fieldName}`, 'Ongoing');
+    setValue(fieldName, 'Ongoing');
   };
+
+  const prefix = `products.${index}`;
 
   return (
     <>
       <Heading as="h2" size="lg" mb={2} color="gray.800" fontWeight="600">
-        Let&apos;s get some product details
+        Enter product information
       </Heading>
       <Text fontSize="sm" color="gray.600" mb={6}>
         For which product do you want to report a potential concern?
       </Text>
 
       <FormControl mb={6} isRequired>
-        <FormLabel fontWeight="500" color="gray.700">
-          Enter product name
-        </FormLabel>
         <Input
           placeholder="Enter product name"
           {...inputStyles}
@@ -77,7 +80,7 @@ export function ProductDetails({ inputStyles, index = 0, onAddProduct }: Product
 
       <FormControl mb={6}>
         <FormLabel fontWeight="500" color="gray.700">
-          What condition are you treating?
+          What condition is the patient treating?
         </FormLabel>
         <VStack align="stretch" spacing={3}>
           {conditionFields.map((field, cIdx) => (
@@ -117,9 +120,12 @@ export function ProductDetails({ inputStyles, index = 0, onAddProduct }: Product
         </Button>
       </FormControl>
 
-      <Heading as="h3" size="md" mt={8} mb={4} color="gray.800" fontWeight="600">
-        Please enter the following product information
-      </Heading>
+      <Box mt={10} mb={6}>
+        <Text fontWeight="600" color="gray.700">
+          Please enter the following product information
+        </Text>
+        <Box borderBottom="2px solid" borderColor="#CE0037" mt={2} mb={6} w="full" maxW="200px" />
+      </Box>
 
       {batchFields.map((field, bIdx) => (
         <Box key={field.id} p={4} border="1px solid" borderColor="gray.100" borderRadius="lg" mb={6}>
@@ -132,7 +138,7 @@ export function ProductDetails({ inputStyles, index = 0, onAddProduct }: Product
           )}
           <FormControl mb={6} isRequired>
             <FormLabel fontWeight="500" color="gray.700" mb={2}>
-              Batch / lot number
+              Batch/lot number
             </FormLabel>
             <Flex gap={3} flexWrap="wrap">
               <InputGroup flex="1" minW="200px">
@@ -140,9 +146,8 @@ export function ProductDetails({ inputStyles, index = 0, onAddProduct }: Product
                   placeholder="Enter batch number"
                   {...inputStyles}
                   pr="40px"
-                  {...register(`${prefix}.batches.${bIdx}.batchNumber`)}
+                  {...register(`${prefix}.batches.${bIdx}.batchNumber`, { required: 'Batch number is required' })}
                 />
-                
                 <InputRightElement height="100%" width="40px">
                   <Popover placement="right" trigger="click">
                     <PopoverTrigger>
@@ -181,8 +186,7 @@ export function ProductDetails({ inputStyles, index = 0, onAddProduct }: Product
                             />
                           </Box>
                           <Text fontSize="sm" color="gray.600">
-                            Look for the batch/lot number on the packaging, typically found near the
-                            expiry date or barcode.
+                            Look for the batch/lot number on the packaging...
                           </Text>
                         </PopoverBody>
                       </PopoverContent>
@@ -200,10 +204,10 @@ export function ProductDetails({ inputStyles, index = 0, onAddProduct }: Product
               </Button>
             </Flex>
              <Text fontSize="xs" color="gray.500" mt={2}>
-          The batch or lot number and expiry date are usually printed on the outer carton or
-          container, often inside a black rectangle or near the barcode. On some packs,
-          they may appear as plain text or beside a QR code.
-        </Text>
+                      The batch or lot number and expiry date are usually printed on the outer carton or
+                      container, often inside a black rectangle or near the barcode. On some packs,
+                      they may appear as plain text or beside a QR code.
+                    </Text>
           </FormControl>
 
           <FormControl mb={6}>
@@ -212,7 +216,7 @@ export function ProductDetails({ inputStyles, index = 0, onAddProduct }: Product
             </FormLabel>
             <Flex gap={3} flexWrap="wrap">
               <Input
-               type='date'
+                type='date'
                 placeholder="e.g. 24 February 2020"
                 flex="1"
                 minW="200px"
@@ -232,11 +236,11 @@ export function ProductDetails({ inputStyles, index = 0, onAddProduct }: Product
 
           <FormControl mb={6}>
             <FormLabel fontWeight="500" color="gray.700">
-              When did you start/stop using this batch?
+              When did the patient start/stop using this batch?
             </FormLabel>
             <Flex gap={3} flexWrap="wrap" align="center" mb={2}>
               <Input
-              type='date'
+                type='date'
                 placeholder="Select start date"
                 flex="1"
                 minW="140px"
@@ -279,8 +283,49 @@ export function ProductDetails({ inputStyles, index = 0, onAddProduct }: Product
               </Button>
             </Flex>
           </FormControl>
+            <Flex gap={6} mb={6} flexWrap="wrap">
+        <FormControl flex="1" minW="250px">
+          <FormLabel fontWeight="500" color="gray.700">
+            Pharmaceutical dose form
+          </FormLabel>
+          <Select placeholder="Select option" {...inputStyles} {...register(`${prefix}.doseForm`)}>
+            <option value="tablet">Tablet</option>
+            <option value="capsule">Capsule</option>
+            <option value="injection">Injection</option>
+            <option value="cream">Cream</option>
+            <option value="syrup">Syrup</option>
+            <option value="other">Other</option>
+          </Select>
+        </FormControl>
 
-          <FormControl mb={6}>
+        <FormControl flex="1" minW="250px">
+          <FormLabel fontWeight="500" color="gray.700">
+            Administration route of dose
+          </FormLabel>
+          <Select placeholder="Select option" {...inputStyles} {...register(`${prefix}.route`)}>
+            <option value="oral">Oral</option>
+            <option value="sublingual">Sublingual</option>
+            <option value="inhaled">Inhaled</option>
+            <option value="intramuscular">Intramuscular injection</option>
+            <option value="intravenous">Intravenous injection</option>
+            <option value="iv-infusion">Intravenous infusion/drip</option>
+            <option value="subcutaneous">Subcutaneous injection</option>
+            <option value="intradermal">Intradermal injection</option>
+            <option value="infusion">Infusion</option>
+            <option value="topical">Topical/cream</option>
+            <option value="eye-drops">Eye drops</option>
+            <option value="eye-cream">Eye cream</option>
+            <option value="ear-drop">Ear drop</option>
+            <option value="rectal">Rectal</option>
+            <option value="vaginal">Vaginal</option>
+            <option value="implant">Implant</option>
+            <option value="other">Other</option>
+            <option value="unknown">Unknown</option>
+          </Select>
+        </FormControl>
+      </Flex>
+
+      <FormControl mb={8}>
         <FormLabel fontWeight="500" color="gray.700">
           Dosage
         </FormLabel>
@@ -291,7 +336,7 @@ export function ProductDetails({ inputStyles, index = 0, onAddProduct }: Product
         />
       </FormControl>
 
-        <FormControl mb={8}>
+      <FormControl mb={8}>
         <FormLabel fontWeight="500" color="gray.700">
           Can you take a photo of the product packaging, including batch / lot number information?
         </FormLabel>
@@ -307,7 +352,7 @@ export function ProductDetails({ inputStyles, index = 0, onAddProduct }: Product
           <Text fontSize="sm" color="gray.500" mb={2}>
             Max files: 3 · Max size per file: 15MB
           </Text>
-          <Button variant="outline" size="lg">
+          <Button variant="outline" size="lg" borderColor="gray.300">
             Upload
           </Button>
         </Box>
@@ -326,21 +371,20 @@ export function ProductDetails({ inputStyles, index = 0, onAddProduct }: Product
         Add product batch
       </Button>
 
-      
-
-      <FormControl mb={6}>
+      <FormControl mb={8}>
         <FormLabel fontWeight="500" color="gray.700">
           What was the action taken for the drug due to the event?
         </FormLabel>
         <Select placeholder="Select option" {...inputStyles} {...register(`${prefix}.actionTaken`)}>
-          <option value="continued">Continued</option>
-          <option value="stopped">Stopped</option>
-          <option value="dose-reduced">Dose reduced</option>
-          <option value="other">Other</option>
+          <option value="no-change">No change</option>
+          <option value="dose-decreased">Dose decreased</option>
+          <option value="dose-increased">Dose increased</option>
+          <option value="withdrawn">Withdrawn</option>
+          <option value="unknown">Unknown</option>
+          <option value="not-applicable">Not Applicable</option>
+          <option value="suspended-interrupted">Suspended/Interrupted</option>
         </Select>
       </FormControl>
-
-    
 
       {onAddProduct && (
         <Button
