@@ -9,7 +9,6 @@ import {
   Stack,
   Radio,
   Box,
-  Textarea,
   Text,
   CheckboxGroup,
   Checkbox,
@@ -17,7 +16,7 @@ import {
 import { useFormContext } from 'react-hook-form';
 import { HiPlus } from 'react-icons/hi2';
 
-interface EventDetailsProps {
+interface HcpEventDetailsProps {
   inputStyles: any;
   symptomTreated: string;
   setSymptomTreated: (val: string) => void;
@@ -25,13 +24,13 @@ interface EventDetailsProps {
   onAddSymptom?: () => void;
 }
 
-export function EventDetails({
+export function HcpEventDetails({
   inputStyles,
   symptomTreated,
   setSymptomTreated,
   index = 0,
   onAddSymptom,
-}: EventDetailsProps) {
+}: HcpEventDetailsProps) {
   const { setValue, register } = useFormContext();
 
   const prefix = `symptoms.${index}`;
@@ -47,12 +46,12 @@ export function EventDetails({
   return (
     <>
       <Heading as="h2" size="lg" mb={2} color="gray.800" fontWeight="600">
-        Okay, tell us more about the adverse event(s)
+        Enter adverse event(s) information
       </Heading>
 
       <FormControl mb={6} isRequired>
         <FormLabel fontWeight="500" color="gray.700">
-          What is the symptom?
+          What is the patient's symptom?
         </FormLabel>
         <Input
           placeholder="Enter symptom (e.g. nausea)"
@@ -63,7 +62,7 @@ export function EventDetails({
 
       <FormControl mb={6}>
         <FormLabel fontWeight="500" color="gray.700">
-          On which dates did you first/last experience the symptom?
+          What date did they first/last experience their symptom?
         </FormLabel>
         <Flex gap={3} flexWrap="wrap" align="center" mb={2}>
           <Input
@@ -131,28 +130,11 @@ export function EventDetails({
             </Radio>
           </Stack>
         </RadioGroup>
-        {symptomTreated === 'yes' && (
-          <Box mt={4}>
-            <FormLabel fontWeight="500" color="gray.700">
-              How was the symptom treated?
-            </FormLabel>
-            <Textarea
-              placeholder="Enter treatment type"
-              rows={4}
-              maxLength={100}
-              {...inputStyles}
-              {...register(`${prefix}.treatment`)}
-            />
-            <Text fontSize="xs" color="gray.500" mt={1}>
-              0/100
-            </Text>
-          </Box>
-        )}
       </FormControl>
 
       <FormControl mb={6}>
         <FormLabel fontWeight="500" color="gray.700">
-          Was the symptom serious?
+          How serious was the symptom?
         </FormLabel>
         <CheckboxGroup colorScheme="red" onChange={(val) => setValue(`${prefix}.seriousness`, val)}>
           <Stack direction="row" spacing={6} flexWrap="wrap">
@@ -163,6 +145,7 @@ export function EventDetails({
             <Checkbox value="disability">Persistent/Significant disability</Checkbox>
             <Checkbox value="congenital">Congenital anomaly/birth defect</Checkbox>
             <Checkbox value="medically-significant">Medically significant</Checkbox>
+            <Checkbox value="death">Death</Checkbox>
           </Stack>
         </CheckboxGroup>
       </FormControl>
@@ -188,6 +171,40 @@ export function EventDetails({
           </Stack>
         </RadioGroup>
       </FormControl>
+
+      <Box mt={10} mb={6}>
+        <Text fontWeight="600" color="gray.700" fontSize="sm">
+          In the reporter's medical opinion, is there a reasonable possibility this event is related
+          to this suspect product(s)?
+        </Text>
+      </Box>
+
+      <Box
+        p={5}
+        bg="gray.50"
+        borderRadius="xl"
+        mb={8}
+        border="1px solid"
+        borderColor="gray.100"
+        boxShadow="sm"
+      >
+        <Text fontWeight="700" mb={4} color="gray.800" fontSize="sm">
+          Suspect product: ww
+        </Text>
+        <RadioGroup onChange={(val) => setValue(`${prefix}.relatedToProduct`, val)}>
+          <Stack spacing={2}>
+            <Radio value="yes" colorScheme="red">
+              Yes
+            </Radio>
+            <Radio value="no" colorScheme="red">
+              No
+            </Radio>
+            <Radio value="unknown" colorScheme="red">
+              Unknown
+            </Radio>
+          </Stack>
+        </RadioGroup>
+      </Box>
 
       {onAddSymptom && (
         <Button

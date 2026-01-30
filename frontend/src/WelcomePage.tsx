@@ -37,6 +37,14 @@ function WelcomePage() {
     return <PatientForm onBack={() => setStep('audience')} />;
   }
 
+  if (step === 'family') {
+    return <FamilyForm onBack={() => setStep('audience')} />;
+  }
+
+  if (step === 'hcp') {
+    return <HcpForm onBack={() => setStep('audience')} />;
+  }
+
   return (
     <Flex
       direction="column"
@@ -342,11 +350,11 @@ function WelcomePage() {
                     >
                       ← Back
                     </Button>
-                    {step === 'family' && <FamilyForm />}
-                    {step === 'hcp' && <HcpForm />}
+                    {/* Redundant check removed as hcp is handled top-level */}
                   </>
                 )}
               </Box>
+
             </Flex>
           </CardBody>
         </Card>

@@ -7,6 +7,7 @@ import {
   Link,
   Spacer,
   ButtonGroup,
+  Button,
 } from '@chakra-ui/react';
 import {
   FormLayout,
@@ -27,6 +28,7 @@ import { PersonalDetails } from './components/PatientForm/PersonalDetails';
 import { AdditionalDetails } from './components/PatientForm/AdditionalDetails';
 import { ReviewConfirm } from './components/PatientForm/ReviewConfirm';
 import { useState } from 'react';
+import { useFieldArray, useFormContext } from 'react-hook-form';
 
 const inputStyles = {
   size: 'lg' as const,
@@ -52,6 +54,78 @@ const primaryButtonStyles = {
 type PatientFormProps = {
   onBack?: () => void;
 };
+
+// Wrapper component to provide field array functionality for products
+function ProductStep({ inputStyles }: { inputStyles: any }) {
+  const { control } = useFormContext();
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: 'products',
+  });
+
+  return (
+    <Box mt={12}>
+      {fields.map((field, index) => (
+        <Box key={field.id} mb={10} position="relative">
+          {index > 0 && (
+            <Flex justify="flex-end" mb={2}>
+              <Button size="sm" variant="ghost" colorScheme="red" onClick={() => remove(index)}>
+                Remove product
+              </Button>
+            </Flex>
+          )}
+          <ProductDetails
+            inputStyles={inputStyles}
+            index={index}
+            onAddProduct={() => append({ productName: '', condition: '' })}
+          />
+          {index < fields.length - 1 && <Box borderBottom="1px solid" borderColor="gray.100" my={10} />}
+        </Box>
+      ))}
+    </Box>
+  );
+}
+
+// Wrapper component to provide field array functionality for symptoms
+function EventStep({
+  inputStyles,
+  symptomTreated,
+  setSymptomTreated,
+}: {
+  inputStyles: any;
+  symptomTreated: string;
+  setSymptomTreated: (val: string) => void;
+}) {
+  const { control } = useFormContext();
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: 'symptoms',
+  });
+
+  return (
+    <Box mt={12}>
+      {fields.map((field, index) => (
+        <Box key={field.id} mb={10} position="relative">
+          {index > 0 && (
+            <Flex justify="flex-end" mb={2}>
+              <Button size="sm" variant="ghost" colorScheme="red" onClick={() => remove(index)}>
+                Remove symptom
+              </Button>
+            </Flex>
+          )}
+          <EventDetails
+            inputStyles={inputStyles}
+            index={index}
+            symptomTreated={symptomTreated}
+            setSymptomTreated={setSymptomTreated}
+            onAddSymptom={() => append({ name: '' })}
+          />
+          {index < fields.length - 1 && <Box borderBottom="1px solid" borderColor="gray.100" my={10} />}
+        </Box>
+      ))}
+    </Box>
+  );
+}
 
 function PatientForm({ onBack }: PatientFormProps) {
   const [additionalDetails, setAdditionalDetails] = useState('');
@@ -79,13 +153,7 @@ function PatientForm({ onBack }: PatientFormProps) {
   };
 
   return (
-    <Flex
-      direction="column"
-      minH="100vh"
-      bg="gray.50"
-      color="gray.800"
-      fontFamily="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
-    >
+    <Flex direction="column" minH="100vh" bg="gray.50" color="gray.800" w="full">
       {/* Header */}
       <Flex
         as="header"
@@ -118,27 +186,26 @@ function PatientForm({ onBack }: PatientFormProps) {
           <StepForm
             onSubmit={onSubmit}
             defaultValues={{
-              productName: '',
-              symptoms: '',
+              products: [{ productName: '', condition: '' }],
+              symptoms: [{ name: '' }],
+              otherMedications: [],
+              medicalHistory: [],
+              labTests: [],
             }}
           >
             {({ FormStep }) => (
               <FormLayout spacing={8}>
                 <FormStepper colorScheme="red" mb={10}>
                   <FormStep name="product" title="Product">
-                    <Box mt={12}>
-                      <ProductDetails inputStyles={inputStyles} />
-                    </Box>
+                    <ProductStep inputStyles={inputStyles} />
                   </FormStep>
 
                   <FormStep name="event" title="Event">
-                    <Box mt={12}>
-                      <EventDetails
-                        inputStyles={inputStyles}
-                        symptomTreated={symptomTreated}
-                        setSymptomTreated={setSymptomTreated}
-                      />
-                    </Box>
+                    <EventStep
+                      inputStyles={inputStyles}
+                      symptomTreated={symptomTreated}
+                      setSymptomTreated={setSymptomTreated}
+                    />
                   </FormStep>
 
                   <FormStep name="personal" title="You">
@@ -188,9 +255,7 @@ function PatientForm({ onBack }: PatientFormProps) {
                   <StepsCompleted>
                     <LoadingOverlay>
                       <LoadingSpinner />
-                      <LoadingText>
-                        Submitting your report, please wait...
-                      </LoadingText>
+                      <LoadingText>Submitting your report, please wait...</LoadingText>
                     </LoadingOverlay>
                   </StepsCompleted>
                 </FormStepper>

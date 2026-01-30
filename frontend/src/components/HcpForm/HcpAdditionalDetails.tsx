@@ -19,7 +19,7 @@ import {
 import { useFormContext, useFieldArray } from 'react-hook-form';
 import { HiPlus } from 'react-icons/hi2';
 
-interface AdditionalDetailsProps {
+interface HcpAdditionalDetailsProps {
   inputStyles: any;
   takingOtherMeds: string;
   setTakingOtherMeds: (val: string) => void;
@@ -31,7 +31,7 @@ interface AdditionalDetailsProps {
   setAdditionalDetails: (val: string) => void;
 }
 
-export function AdditionalDetails({
+export function HcpAdditionalDetails({
   inputStyles,
   takingOtherMeds,
   setTakingOtherMeds,
@@ -41,7 +41,7 @@ export function AdditionalDetails({
   setLabTestsPerformed,
   additionalDetails,
   setAdditionalDetails,
-}: AdditionalDetailsProps) {
+}: HcpAdditionalDetailsProps) {
   const { setValue, register, control } = useFormContext();
 
   const {
@@ -150,7 +150,7 @@ export function AdditionalDetails({
               </Flex>
               <FormControl mb={4}>
                 <FormLabel fontWeight="500" color="gray.700">
-                  Please tell us which product
+                  * Please tell us which product
                 </FormLabel>
                 <Input
                   placeholder="Enter product name"
