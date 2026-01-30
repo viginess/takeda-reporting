@@ -33,6 +33,10 @@ function WelcomePage() {
     }
   };
 
+  if (step === 'patient') {
+    return <PatientForm onBack={() => setStep('audience')} />;
+  }
+
   return (
     <Flex
       direction="column"
@@ -338,7 +342,6 @@ function WelcomePage() {
                     >
                       ← Back
                     </Button>
-                    {step === 'patient' && <PatientForm />}
                     {step === 'family' && <FamilyForm />}
                     {step === 'hcp' && <HcpForm />}
                   </>
