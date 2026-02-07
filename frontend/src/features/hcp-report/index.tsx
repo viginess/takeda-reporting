@@ -15,9 +15,7 @@ import {
   NextButton,
   FormStepper,
   StepsCompleted,
-  LoadingOverlay,
-  LoadingSpinner,
-  LoadingText,
+
 } from '@saas-ui/react';
 import { StepForm } from '@saas-ui/forms';
 
@@ -28,6 +26,7 @@ import { HcpPatientDetails } from './components/HcpPatientDetails';
 import { HcpReporterDetails } from './components/HcpReporterDetails';
 import { HcpAdditionalDetails } from './components/HcpAdditionalDetails';
 import { HcpReviewConfirm } from './components/HcpReviewConfirm';
+import { SuccessStep } from '../../components/SuccessStep';
 import { useState } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 
@@ -261,10 +260,9 @@ function HcpForm({ onBack }: HcpFormProps) {
                   </FormStep>
 
                   <StepsCompleted>
-                    <LoadingOverlay>
-                      <LoadingSpinner />
-                      <LoadingText>Submitting your report, please wait...</LoadingText>
-                    </LoadingOverlay>
+                    <SuccessStep 
+                        onSubmitAnother={() => window.location.reload()}
+                      />
                   </StepsCompleted>
                 </FormStepper>
 

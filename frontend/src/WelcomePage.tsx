@@ -19,6 +19,8 @@ import takedaLogo from './assets/takeda-logo.png';
 import PatientForm from './features/patient-report';
 import FamilyForm from './features/family-report';
 import HcpForm from './features/hcp-report';
+import { countries } from './utils/countries';
+import { languages } from './utils/languages';
 
 type Step = 'select' | 'audience' | 'patient' | 'family' | 'hcp';
 
@@ -182,16 +184,11 @@ function WelcomePage() {
                           boxShadow: '0 0 0 1px #E31C5F',
                         }}
                       >
-                        <option value="us">United States</option>
-                        <option value="uk">United Kingdom</option>
-                        <option value="ca">Canada</option>
-                        <option value="au">Australia</option>
-                        <option value="jp">Japan</option>
-                        <option value="de">Germany</option>
-                        <option value="fr">France</option>
-                        <option value="es">Spain</option>
-                        <option value="it">Italy</option>
-                        <option value="br">Brazil</option>
+                        {countries.map((c) => (
+                                  <option key={c.code} value={c.code}>
+                                    {c.name}
+                                  </option>
+                                ))}
                       </Select>
                     </FormControl>
 
@@ -213,16 +210,12 @@ function WelcomePage() {
                           borderColor: 'red.500',
                           boxShadow: '0 0 0 1px #E31C5F',
                         }}
-                      >
-                        <option value="en">English</option>
-                        <option value="es">Spanish</option>
-                        <option value="fr">French</option>
-                        <option value="de">German</option>
-                        <option value="it">Italian</option>
-                        <option value="pt">Portuguese</option>
-                        <option value="ja">Japanese</option>
-                        <option value="zh">Chinese</option>
-                        <option value="ar">Arabic</option>
+                      >   
+                         {languages.map((l) => (
+                            <option key={l.code} value={l.code}>
+                              {l.name}
+                            </option>
+                          ))}
                       </Select>
                     </FormControl>
 

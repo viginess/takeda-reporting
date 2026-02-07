@@ -8,6 +8,7 @@ import {
   Spacer,
   ButtonGroup,
   Button,
+
 } from '@chakra-ui/react';
 import {
   FormLayout,
@@ -15,9 +16,6 @@ import {
   NextButton,
   FormStepper,
   StepsCompleted,
-  LoadingOverlay,
-  LoadingSpinner,
-  LoadingText,
 } from '@saas-ui/react';
 import { StepForm } from '@saas-ui/forms';
 
@@ -27,6 +25,7 @@ import { EventDetails } from './components/EventDetails';
 import { PersonalDetails } from './components/PersonalDetails';
 import { AdditionalDetails } from './components/AdditionalDetails';
 import { ReviewConfirm } from './components/ReviewConfirm';
+import { SuccessStep } from '../../components/SuccessStep';
 import { useState } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 
@@ -253,10 +252,9 @@ function PatientForm({ onBack }: PatientFormProps) {
                   </FormStep>
 
                   <StepsCompleted>
-                    <LoadingOverlay>
-                      <LoadingSpinner />
-                      <LoadingText>Submitting your report, please wait...</LoadingText>
-                    </LoadingOverlay>
+<SuccessStep 
+                        onSubmitAnother={() => window.location.reload()}
+                      />
                   </StepsCompleted>
                 </FormStepper>
 

@@ -14,9 +14,7 @@ import {
   NextButton,
   FormStepper,
   StepsCompleted,
-  LoadingOverlay,
-  LoadingSpinner,
-  LoadingText,
+
 } from '@saas-ui/react';
 import { StepForm } from '@saas-ui/forms';
 
@@ -27,6 +25,7 @@ import { PatientDetails } from '../patient-report/components/PatientDetails';
 import { ReporterDetails } from '../patient-report/components/ReporterDetails';
 import { AdditionalDetails } from '../patient-report/components/AdditionalDetails';
 import { FamilyReviewConfirm } from './components/FamilyReviewConfirm';
+import { SuccessStep } from '../../components/SuccessStep';
 import { useState } from 'react';
 
 const inputStyles = {
@@ -192,12 +191,9 @@ function FamilyForm({ onBack }: FamilyFormProps) {
                   </FormStep>
 
                   <StepsCompleted>
-                    <LoadingOverlay>
-                      <LoadingSpinner />
-                      <LoadingText>
-                        Submitting your report, please wait...
-                      </LoadingText>
-                    </LoadingOverlay>
+                    <SuccessStep 
+                        onSubmitAnother={() => window.location.reload()}
+                      />
                   </StepsCompleted>
                 </FormStepper>
 
