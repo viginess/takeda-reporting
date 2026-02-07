@@ -24,7 +24,7 @@ import {
 } from '@chakra-ui/react';
 import { HiQuestionMarkCircle, HiPlus } from 'react-icons/hi2';
 import { useFormContext, useFieldArray } from 'react-hook-form';
-import batchImg from '../../assets/batch.png';
+import batchImg from '../../../assets/batch.png';
 
 interface ProductDetailsProps {
   inputStyles: any;
@@ -47,13 +47,8 @@ export function ProductDetails({ inputStyles, index = 0, onAddProduct }: Product
 
   const prefix = `products.${index}`;
 
-  const setUnknown = (fieldName: string) => {
-    setValue(`${prefix}.${fieldName}`, 'Unknown');
-  };
 
-  const setOngoing = (fieldName: string) => {
-    setValue(`${prefix}.${fieldName}`, 'Ongoing');
-  };
+
 
   return (
     <>

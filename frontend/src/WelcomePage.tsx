@@ -16,9 +16,9 @@ import {
 import { useState } from 'react';
 
 import takedaLogo from './assets/takeda-logo.png';
-import PatientForm from './PatientForm';
-import FamilyForm from './FamilyForm';
-import HcpForm from './HcpForm';
+import PatientForm from './features/patient-report';
+import FamilyForm from './features/family-report';
+import HcpForm from './features/hcp-report';
 
 type Step = 'select' | 'audience' | 'patient' | 'family' | 'hcp';
 

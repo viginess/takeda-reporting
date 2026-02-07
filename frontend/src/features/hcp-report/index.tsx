@@ -7,6 +7,7 @@ import {
   Link,
   Spacer,
   ButtonGroup,
+  Button,
 } from '@chakra-ui/react';
 import {
   FormLayout,
@@ -20,14 +21,15 @@ import {
 } from '@saas-ui/react';
 import { StepForm } from '@saas-ui/forms';
 
-import takedaLogo from './assets/takeda-logo.png';
-import { ProductDetails } from './components/PatientForm/ProductDetails';
-import { EventDetails } from './components/PatientForm/EventDetails';
-import { PatientDetails } from './components/PatientForm/PatientDetails';
-import { ReporterDetails } from './components/PatientForm/ReporterDetails';
-import { AdditionalDetails } from './components/PatientForm/AdditionalDetails';
-import { FamilyReviewConfirm } from './components/FamilyForm/FamilyReviewConfirm';
+import takedaLogo from '../../assets/takeda-logo.png';
+import { HcpProductDetails } from './components/HcpProductDetails';
+import { HcpEventDetails } from './components/HcpEventDetails';
+import { HcpPatientDetails } from './components/HcpPatientDetails';
+import { HcpReporterDetails } from './components/HcpReporterDetails';
+import { HcpAdditionalDetails } from './components/HcpAdditionalDetails';
+import { HcpReviewConfirm } from './components/HcpReviewConfirm';
 import { useState } from 'react';
+import { useFieldArray, useFormContext } from 'react-hook-form';
 
 const inputStyles = {
   size: 'lg' as const,
@@ -50,11 +52,83 @@ const primaryButtonStyles = {
   _active: { bg: '#B3002F', transform: 'translateY(0)' },
 };
 
-type FamilyFormProps = {
+type HcpFormProps = {
   onBack?: () => void;
 };
 
-function FamilyForm({ onBack }: FamilyFormProps) {
+// Wrapper component to provide field array functionality for products
+function ProductStep({ inputStyles }: { inputStyles: any }) {
+  const { control } = useFormContext();
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: 'products',
+  });
+
+  return (
+    <Box mt={12}>
+      {fields.map((field, index) => (
+        <Box key={field.id} mb={10} position="relative">
+          {index > 0 && (
+            <Flex justify="flex-end" mb={2}>
+              <Button size="sm" variant="ghost" colorScheme="red" onClick={() => remove(index)}>
+                Remove product
+              </Button>
+            </Flex>
+          )}
+          <HcpProductDetails
+            inputStyles={inputStyles}
+            index={index}
+            onAddProduct={() => append({ productName: '', condition: '' })}
+          />
+          {index < fields.length - 1 && <Box borderBottom="1px solid" borderColor="gray.100" my={10} />}
+        </Box>
+      ))}
+    </Box>
+  );
+}
+
+// Wrapper component to provide field array functionality for symptoms
+function EventStep({
+  inputStyles,
+  symptomTreated,
+  setSymptomTreated,
+}: {
+  inputStyles: any;
+  symptomTreated: string;
+  setSymptomTreated: (val: string) => void;
+}) {
+  const { control } = useFormContext();
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: 'symptoms',
+  });
+
+  return (
+    <Box mt={12}>
+      {fields.map((field, index) => (
+        <Box key={field.id} mb={10} position="relative">
+          {index > 0 && (
+            <Flex justify="flex-end" mb={2}>
+              <Button size="sm" variant="ghost" colorScheme="red" onClick={() => remove(index)}>
+                Remove symptom
+              </Button>
+            </Flex>
+          )}
+          <HcpEventDetails
+            inputStyles={inputStyles}
+            index={index}
+            symptomTreated={symptomTreated}
+            setSymptomTreated={setSymptomTreated}
+            onAddSymptom={() => append({ name: '' })}
+          />
+          {index < fields.length - 1 && <Box borderBottom="1px solid" borderColor="gray.100" my={10} />}
+        </Box>
+      ))}
+    </Box>
+  );
+}
+
+function HcpForm({ onBack }: HcpFormProps) {
   const [additionalDetails, setAdditionalDetails] = useState('');
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [accordionIndex, setAccordionIndex] = useState<number[]>([0, 1, 2, 3]);
@@ -62,7 +136,6 @@ function FamilyForm({ onBack }: FamilyFormProps) {
   // Step state
   const [ageType, setAgeType] = useState<'dob' | 'age' | ''>('');
   const [contactPermission, setContactPermission] = useState('');
-  const [hcpContactPermission, setHcpContactPermission] = useState('');
   const [symptomTreated, setSymptomTreated] = useState('');
   const [takingOtherMeds, setTakingOtherMeds] = useState('');
   const [hasRelevantHistory, setHasRelevantHistory] = useState('');
@@ -106,7 +179,7 @@ function FamilyForm({ onBack }: FamilyFormProps) {
           </Link>
         )}
         <Heading as="h1" size="md" fontWeight="600" color="gray.800">
-          Family Reporting Form
+          HCP Reporting Form
         </Heading>
         <Box w="32px" />
       </Flex>
@@ -116,32 +189,31 @@ function FamilyForm({ onBack }: FamilyFormProps) {
           <StepForm
             onSubmit={onSubmit}
             defaultValues={{
-              productName: '',
-              symptoms: '',
+              products: [{ productName: '', condition: '' }],
+              symptoms: [{ name: '' }],
+              otherMedications: [],
+              medicalHistory: [],
+              labTests: [],
             }}
           >
             {({ FormStep }) => (
               <FormLayout spacing={8}>
                 <FormStepper colorScheme="red" mb={10}>
                   <FormStep name="product" title="Product">
-                    <Box mt={12}>
-                      <ProductDetails inputStyles={inputStyles} />
-                    </Box>
+                    <ProductStep inputStyles={inputStyles} />
                   </FormStep>
 
                   <FormStep name="event" title="Event">
-                    <Box mt={12}>
-                      <EventDetails
-                        inputStyles={inputStyles}
-                        symptomTreated={symptomTreated}
-                        setSymptomTreated={setSymptomTreated}
-                      />
-                    </Box>
+                    <EventStep
+                      inputStyles={inputStyles}
+                      symptomTreated={symptomTreated}
+                      setSymptomTreated={setSymptomTreated}
+                    />
                   </FormStep>
 
                   <FormStep name="patient" title="Patient">
                     <Box mt={12}>
-                      <PatientDetails
+                      <HcpPatientDetails
                         inputStyles={inputStyles}
                         ageType={ageType}
                         setAgeType={setAgeType}
@@ -151,19 +223,17 @@ function FamilyForm({ onBack }: FamilyFormProps) {
 
                   <FormStep name="you" title="You">
                     <Box mt={12}>
-                      <ReporterDetails
+                      <HcpReporterDetails
                         inputStyles={inputStyles}
                         contactPermission={contactPermission}
                         setContactPermission={setContactPermission}
-                        hcpContactPermission={hcpContactPermission}
-                        setHcpContactPermission={setHcpContactPermission}
                       />
                     </Box>
                   </FormStep>
 
                   <FormStep name="additional" title="Additional">
                     <Box mt={12}>
-                      <AdditionalDetails
+                      <HcpAdditionalDetails
                         inputStyles={inputStyles}
                         takingOtherMeds={takingOtherMeds}
                         setTakingOtherMeds={setTakingOtherMeds}
@@ -179,12 +249,11 @@ function FamilyForm({ onBack }: FamilyFormProps) {
 
                   <FormStep name="confirm" title="Confirm">
                     <Box mt={12}>
-                      <FamilyReviewConfirm
+                      <HcpReviewConfirm
                         accordionIndex={accordionIndex}
                         setAccordionIndex={setAccordionIndex}
                         agreedToTerms={agreedToTerms}
                         setAgreedToTerms={setAgreedToTerms}
-                        setCurrentStep={() => {}} 
                         onBack={onBack}
                         primaryButtonStyles={primaryButtonStyles}
                       />
@@ -194,9 +263,7 @@ function FamilyForm({ onBack }: FamilyFormProps) {
                   <StepsCompleted>
                     <LoadingOverlay>
                       <LoadingSpinner />
-                      <LoadingText>
-                        Submitting your report, please wait...
-                      </LoadingText>
+                      <LoadingText>Submitting your report, please wait...</LoadingText>
                     </LoadingOverlay>
                   </StepsCompleted>
                 </FormStepper>
@@ -236,6 +303,5 @@ function FamilyForm({ onBack }: FamilyFormProps) {
   );
 }
 
-export default FamilyForm;
-
+export default HcpForm;
 

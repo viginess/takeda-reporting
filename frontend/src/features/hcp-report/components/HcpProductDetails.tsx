@@ -24,7 +24,7 @@ import {
 } from '@chakra-ui/react';
 import { HiQuestionMarkCircle, HiPlus } from 'react-icons/hi2';
 import { useFormContext, useFieldArray } from 'react-hook-form';
-import batchImg from '../../assets/batch.png';
+import batchImg from '../../../assets/batch.png';
 
 interface HcpProductDetailsProps {
   inputStyles: any;
@@ -51,13 +51,8 @@ export function HcpProductDetails({ inputStyles, index = 0, onAddProduct }: HcpP
     // Actually better to use useEffect or defaultValues in HcpForm
   }
 
-  const setUnknown = (fieldName: string) => {
-    setValue(fieldName, 'Unknown');
-  };
 
-  const setOngoing = (fieldName: string) => {
-    setValue(fieldName, 'Ongoing');
-  };
+
 
   const prefix = `products.${index}`;
 
