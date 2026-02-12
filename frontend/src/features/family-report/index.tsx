@@ -25,7 +25,7 @@ import { PatientDetails } from '../patient-report/components/PatientDetails';
 import { ReporterDetails } from '../patient-report/components/ReporterDetails';
 import { AdditionalDetails } from '../patient-report/components/AdditionalDetails';
 import { FamilyReviewConfirm } from './components/FamilyReviewConfirm';
-import { SuccessStep } from '../../components/SuccessStep';
+import { SuccessStep } from '../../shared/components/SuccessStep';
 import { useState } from 'react';
 
 const inputStyles = {
@@ -183,7 +183,6 @@ function FamilyForm({ onBack }: FamilyFormProps) {
                         setAccordionIndex={setAccordionIndex}
                         agreedToTerms={agreedToTerms}
                         setAgreedToTerms={setAgreedToTerms}
-                        setCurrentStep={() => {}} 
                         onBack={onBack}
                         primaryButtonStyles={primaryButtonStyles}
                       />

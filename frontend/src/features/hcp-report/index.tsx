@@ -26,7 +26,7 @@ import { HcpPatientDetails } from './components/HcpPatientDetails';
 import { HcpReporterDetails } from './components/HcpReporterDetails';
 import { HcpAdditionalDetails } from './components/HcpAdditionalDetails';
 import { HcpReviewConfirm } from './components/HcpReviewConfirm';
-import { SuccessStep } from '../../components/SuccessStep';
+import { SuccessStep } from '../../shared/components/SuccessStep';
 import { useState } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 
@@ -188,7 +188,13 @@ function HcpForm({ onBack }: HcpFormProps) {
           <StepForm
             onSubmit={onSubmit}
             defaultValues={{
-              products: [{ productName: '', condition: '' }],
+              products: [
+                {
+                  productName: '',
+                  condition: '',
+                  batches: [{ batchNumber: '', expiryDate: '', startDate: '', endDate: '', dosage: '' }],
+                },
+              ],
               symptoms: [{ name: '' }],
               otherMedications: [],
               medicalHistory: [],

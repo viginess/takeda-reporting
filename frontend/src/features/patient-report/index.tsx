@@ -25,7 +25,7 @@ import { EventDetails } from './components/EventDetails';
 import { PersonalDetails } from './components/PersonalDetails';
 import { AdditionalDetails } from './components/AdditionalDetails';
 import { ReviewConfirm } from './components/ReviewConfirm';
-import { SuccessStep } from '../../components/SuccessStep';
+import { SuccessStep } from '../../shared/components/SuccessStep';
 import { useState } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 
@@ -185,7 +185,13 @@ function PatientForm({ onBack }: PatientFormProps) {
           <StepForm
             onSubmit={onSubmit}
             defaultValues={{
-              products: [{ productName: '', condition: '' }],
+              products: [
+                {
+                  productName: '',
+                  condition: '',
+                  batches: [{ batchNumber: '', expiryDate: '', startDate: '', endDate: '', dosage: '' }],
+                },
+              ],
               symptoms: [{ name: '' }],
               otherMedications: [],
               medicalHistory: [],
@@ -244,7 +250,6 @@ function PatientForm({ onBack }: PatientFormProps) {
                         setAccordionIndex={setAccordionIndex}
                         agreedToTerms={agreedToTerms}
                         setAgreedToTerms={setAgreedToTerms}
-                        setCurrentStep={() => {}} // Stepper handles this now
                         onBack={onBack}
                         primaryButtonStyles={primaryButtonStyles}
                       />

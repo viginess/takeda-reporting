@@ -9,7 +9,9 @@ import {
   AccordionPanel,
   Box,
   Checkbox,
+  Link,
 } from '@chakra-ui/react';
+import { useStepperContext } from '@saas-ui/react';
 import { useFormContext } from 'react-hook-form';
 
 interface ReviewRowProps {
@@ -52,6 +54,7 @@ export function HcpReviewConfirm({
   setAgreedToTerms,
   onBack,
 }: HcpReviewConfirmProps) {
+  const { setStep } = useStepperContext();
   const { watch } = useFormContext();
   const formData = watch();
 
@@ -123,6 +126,17 @@ export function HcpReviewConfirm({
             justifyContent="space-between"
           >
             <Text>Product details {formData.products?.length > 1 && `(${formData.products.length} products)`}</Text>
+            <Button
+              size="sm"
+              variant="ghost"
+              leftIcon={<span>✎</span>}
+              onClick={(e) => {
+                e.stopPropagation();
+                setStep('product');
+              }}
+            >
+              Edit
+            </Button>
           </AccordionButton>
           <AccordionPanel pb={4} bg="white">
             <ReviewRow label="Product name" value={primaryProduct.productName} />
@@ -141,6 +155,17 @@ export function HcpReviewConfirm({
             justifyContent="space-between"
           >
             <Text>Adverse event details {formData.symptoms?.length > 1 && `(${formData.symptoms.length} symptoms)`}</Text>
+            <Button
+              size="sm"
+              variant="ghost"
+              leftIcon={<span>✎</span>}
+              onClick={(e) => {
+                e.stopPropagation();
+                setStep('event');
+              }}
+            >
+              Edit
+            </Button>
           </AccordionButton>
           <AccordionPanel pb={4} bg="white">
             <ReviewRow label="Symptom" value={firstSymptom.name} />
@@ -160,6 +185,17 @@ export function HcpReviewConfirm({
             justifyContent="space-between"
           >
             <Text>Patient details</Text>
+            <Button
+              size="sm"
+              variant="ghost"
+              leftIcon={<span>✎</span>}
+              onClick={(e) => {
+                e.stopPropagation();
+                setStep('patient');
+              }}
+            >
+              Edit
+            </Button>
           </AccordionButton>
           <AccordionPanel pb={4} bg="white">
             <ReviewRow label="Patient ID" value={formData.patientId} />
@@ -178,6 +214,17 @@ export function HcpReviewConfirm({
             justifyContent="space-between"
           >
             <Text>Reporter information</Text>
+            <Button
+              size="sm"
+              variant="ghost"
+              leftIcon={<span>✎</span>}
+              onClick={(e) => {
+                e.stopPropagation();
+                setStep('you');
+              }}
+            >
+              Edit
+            </Button>
           </AccordionButton>
           <AccordionPanel pb={4} bg="white">
             <ReviewRow label="Name" value={`${formData.firstName} ${formData.lastName}`} />
@@ -210,7 +257,16 @@ export function HcpReviewConfirm({
           isChecked={agreedToTerms}
           onChange={(e) => setAgreedToTerms(e.target.checked)}
         >
-          I agree to the processing of my information by Takeda for the purposes of managing this report, in accordance with the Privacy Policy.
+          I agree to the processing of my information as described in the{' '}
+          <Link href="https://www.takeda.com/privacy-notice/" isExternal color="#CE0037" textDecoration="underline">
+            Privacy Notice
+          </Link>{' '}
+          and{' '}
+          <Link href="https://www.takeda.com/terms-and-conditions/" isExternal color="#CE0037" textDecoration="underline">
+            Terms and Conditions
+          </Link>
+          . I consent to Takeda sharing this report with regulatory authorities and
+          other parties as required by law.
         </Checkbox>
       </Box>
     </>

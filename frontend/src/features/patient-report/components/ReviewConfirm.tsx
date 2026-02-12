@@ -11,6 +11,7 @@ import {
   Checkbox,
   Link,
 } from '@chakra-ui/react';
+import { useStepperContext } from '@saas-ui/react';
 
 interface ReviewRowProps {
   label: string;
@@ -51,9 +52,9 @@ export function ReviewConfirm({
   setAccordionIndex,
   agreedToTerms,
   setAgreedToTerms,
-  setCurrentStep,
   onBack,
 }: ReviewConfirmProps) {
+  const { setStep } = useStepperContext();
   return (
     <>
       <Heading as="h2" size="lg" mb={4} color="gray.800" fontWeight="600">
@@ -124,7 +125,7 @@ export function ReviewConfirm({
               leftIcon={<span>✎</span>}
               onClick={(e) => {
                 e.stopPropagation();
-                setCurrentStep(1);
+                setStep('product');
               }}
             >
               Edit
@@ -154,7 +155,7 @@ export function ReviewConfirm({
               leftIcon={<span>✎</span>}
               onClick={(e) => {
                 e.stopPropagation();
-                setCurrentStep(2);
+                setStep('event');
               }}
             >
               Edit
@@ -182,7 +183,7 @@ export function ReviewConfirm({
               leftIcon={<span>✎</span>}
               onClick={(e) => {
                 e.stopPropagation();
-                setCurrentStep(3);
+                setStep('personal');
               }}
             >
               Edit
@@ -227,12 +228,12 @@ export function ReviewConfirm({
           onChange={(e) => setAgreedToTerms(e.target.checked)}
         >
           I agree to the processing of my information as described in the{' '}
-          <Link href="#" color="#CE0037" textDecoration="underline">
-            Privacy Statement
+          <Link href="https://www.takeda.com/privacy-notice/" isExternal color="#CE0037" textDecoration="underline">
+            Privacy Notice
           </Link>{' '}
           and{' '}
-          <Link href="#" color="#CE0037" textDecoration="underline">
-            Consumer Health Notice
+          <Link href="https://www.takeda.com/terms-and-conditions/" isExternal color="#CE0037" textDecoration="underline">
+            Terms and Conditions
           </Link>
           . I consent to Takeda sharing this report with regulatory authorities and
           other parties as required by law.
