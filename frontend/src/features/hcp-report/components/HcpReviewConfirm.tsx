@@ -11,6 +11,8 @@ import {
   Checkbox,
   Link,
 } from '@chakra-ui/react';
+import { useStepperContext } from '@saas-ui/react';
+import { useFormContext } from 'react-hook-form';
 
 interface ReviewRowProps {
   label: string;
@@ -30,30 +32,36 @@ function ReviewRow({ label, value }: ReviewRowProps) {
         {label}
       </Text>
       <Text fontWeight="500" fontSize="sm">
-        {value}
+        {value || '—'}
       </Text>
     </Flex>
   );
 }
 
-interface FamilyReviewConfirmProps {
+interface HcpReviewConfirmProps {
   accordionIndex: number[];
   setAccordionIndex: (val: number[]) => void;
   agreedToTerms: boolean;
   setAgreedToTerms: (val: boolean) => void;
-  setCurrentStep: (val: 1 | 2 | 3 | 4 | 5) => void;
   onBack?: () => void;
   primaryButtonStyles: any;
 }
 
-export function FamilyReviewConfirm({
+export function HcpReviewConfirm({
   accordionIndex,
   setAccordionIndex,
   agreedToTerms,
   setAgreedToTerms,
-  setCurrentStep,
   onBack,
-}: FamilyReviewConfirmProps) {
+}: HcpReviewConfirmProps) {
+  const { setStep } = useStepperContext();
+  const { watch } = useFormContext();
+  const formData = watch();
+
+  const primaryProduct = formData.products?.[0] || {};
+  const firstBatch = primaryProduct.batches?.[0] || {};
+  const firstSymptom = formData.symptoms?.[0] || {};
+
   return (
     <>
       <Heading as="h2" size="lg" mb={4} color="gray.800" fontWeight="600">
@@ -105,7 +113,7 @@ export function FamilyReviewConfirm({
           <AccordionPanel pb={4} bg="white">
             <Flex justify="space-between" py={2} borderBottom="1px solid" borderColor="gray.100">
               <Text color="gray.600">I am...</Text>
-              <Text fontWeight="500">A Friend, Caregiver or Family</Text>
+              <Text fontWeight="500">A Healthcare Professional</Text>
             </Flex>
           </AccordionPanel>
         </AccordionItem>
@@ -117,26 +125,25 @@ export function FamilyReviewConfirm({
             _expanded={{ bg: 'gray.50' }}
             justifyContent="space-between"
           >
-            <Text>Product details</Text>
+            <Text>Product details {formData.products?.length > 1 && `(${formData.products.length} products)`}</Text>
             <Button
               size="sm"
               variant="ghost"
               leftIcon={<span>✎</span>}
               onClick={(e) => {
                 e.stopPropagation();
-                setCurrentStep(1);
+                setStep('product');
               }}
             >
               Edit
             </Button>
           </AccordionButton>
           <AccordionPanel pb={4} bg="white">
-            <ReviewRow label="For which product do you want to report a potential concern?" value="—" />
-            <ReviewRow label="What condition are you treating?" value="—" />
-            <ReviewRow label="Batch/lot number" value="—" />
-            <ReviewRow label="Expiry date" value="—" />
-            <ReviewRow label="When did you start using this batch?" value="—" />
-            <ReviewRow label="When did you stop using this batch?" value="—" />
+            <ReviewRow label="Product name" value={primaryProduct.productName} />
+            <ReviewRow label="Condition" value={primaryProduct.conditions?.[0]?.name} />
+            <ReviewRow label="Batch/lot number" value={firstBatch.batchNumber} />
+            <ReviewRow label="Pharmaceutical dose form" value={primaryProduct.doseForm} />
+            <ReviewRow label="Administration route" value={primaryProduct.route} />
           </AccordionPanel>
         </AccordionItem>
 
@@ -147,24 +154,26 @@ export function FamilyReviewConfirm({
             _expanded={{ bg: 'gray.50' }}
             justifyContent="space-between"
           >
-            <Text>Adverse event details</Text>
+            <Text>Adverse event details {formData.symptoms?.length > 1 && `(${formData.symptoms.length} symptoms)`}</Text>
             <Button
               size="sm"
               variant="ghost"
               leftIcon={<span>✎</span>}
               onClick={(e) => {
                 e.stopPropagation();
-                setCurrentStep(2);
+                setStep('event');
               }}
             >
               Edit
             </Button>
           </AccordionButton>
           <AccordionPanel pb={4} bg="white">
-            <ReviewRow label="What are your symptoms?" value="—" />
-            <ReviewRow label="On which date did you first experience your symptom?" value="—" />
-            <ReviewRow label="On which date did you last experience your symptom?" value="—" />
-            <ReviewRow label="Was the symptom treated?" value="—" />
+            <ReviewRow label="Symptom" value={firstSymptom.name} />
+            <ReviewRow
+              label="Dates"
+              value={firstSymptom.eventStartDate ? `${firstSymptom.eventStartDate} to ${firstSymptom.eventEndDate || 'Ongoing'}` : ''}
+            />
+            <ReviewRow label="Relationship to product" value={firstSymptom.relationship} />
           </AccordionPanel>
         </AccordionItem>
 
@@ -182,15 +191,18 @@ export function FamilyReviewConfirm({
               leftIcon={<span>✎</span>}
               onClick={(e) => {
                 e.stopPropagation();
-                setCurrentStep(3);
+                setStep('patient');
               }}
             >
               Edit
             </Button>
           </AccordionButton>
           <AccordionPanel pb={4} bg="white">
-            <ReviewRow label="Initials" value="—" />
-            <ReviewRow label="Age (Select one)" value="—" />
+            <ReviewRow label="Patient ID" value={formData.patientId} />
+            <ReviewRow label="Age/DOB" value={formData.age || formData.dob} />
+            <ReviewRow label="Sex" value={formData.gender} />
+            <ReviewRow label="Height" value={formData.height} />
+            <ReviewRow label="Weight" value={formData.weight} />
           </AccordionPanel>
         </AccordionItem>
 
@@ -201,25 +213,23 @@ export function FamilyReviewConfirm({
             _expanded={{ bg: 'gray.50' }}
             justifyContent="space-between"
           >
-            <Text>Your details</Text>
+            <Text>Reporter information</Text>
             <Button
               size="sm"
               variant="ghost"
               leftIcon={<span>✎</span>}
               onClick={(e) => {
                 e.stopPropagation();
-                setCurrentStep(4);
+                setStep('you');
               }}
             >
               Edit
             </Button>
           </AccordionButton>
           <AccordionPanel pb={4} bg="white">
-            <ReviewRow label="Do we have permission to contact you?" value="—" />
-            <Text fontWeight="600" mt={3} mb={2} color="gray.700">
-              Your contact information
-            </Text>
-            <ReviewRow label="Email address" value="—" />
+            <ReviewRow label="Name" value={`${formData.firstName} ${formData.lastName}`} />
+            <ReviewRow label="Hospital/Institution" value={formData.hospital} />
+            <ReviewRow label="Country" value={formData.country} />
           </AccordionPanel>
         </AccordionItem>
       </Accordion>
@@ -234,14 +244,11 @@ export function FamilyReviewConfirm({
       >
         <Checkbox
           colorScheme="red"
-          isChecked={false}
-          onChange={() => {}}
+          isChecked={true}
+          readOnly
         >
           I&apos;m not a robot
         </Checkbox>
-        <Text fontSize="xs" color="gray.500" mt={2}>
-          reCAPTCHA placeholder
-        </Text>
       </Box>
 
       <Box mb={6} fontSize="sm" color="gray.600">
@@ -251,12 +258,12 @@ export function FamilyReviewConfirm({
           onChange={(e) => setAgreedToTerms(e.target.checked)}
         >
           I agree to the processing of my information as described in the{' '}
-          <Link href="#" color="#CE0037" textDecoration="underline">
-            Privacy Statement
+          <Link href="https://www.takeda.com/privacy-notice/" isExternal color="#CE0037" textDecoration="underline">
+            Privacy Notice
           </Link>{' '}
           and{' '}
-          <Link href="#" color="#CE0037" textDecoration="underline">
-            Consumer Health Notice
+          <Link href="https://www.takeda.com/terms-and-conditions/" isExternal color="#CE0037" textDecoration="underline">
+            Terms and Conditions
           </Link>
           . I consent to Takeda sharing this report with regulatory authorities and
           other parties as required by law.

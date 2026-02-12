@@ -8,6 +8,7 @@ import {
   Spacer,
   ButtonGroup,
   Button,
+
 } from '@chakra-ui/react';
 import {
   FormLayout,
@@ -15,19 +16,16 @@ import {
   NextButton,
   FormStepper,
   StepsCompleted,
-  LoadingOverlay,
-  LoadingSpinner,
-  LoadingText,
 } from '@saas-ui/react';
 import { StepForm } from '@saas-ui/forms';
 
-import takedaLogo from './assets/takeda-logo.png';
-import { HcpProductDetails } from './components/HcpForm/HcpProductDetails';
-import { HcpEventDetails } from './components/HcpForm/HcpEventDetails';
-import { HcpPatientDetails } from './components/HcpForm/HcpPatientDetails';
-import { HcpReporterDetails } from './components/HcpForm/HcpReporterDetails';
-import { HcpAdditionalDetails } from './components/HcpForm/HcpAdditionalDetails';
-import { HcpReviewConfirm } from './components/HcpForm/HcpReviewConfirm';
+import takedaLogo from '../../assets/takeda-logo.png';
+import { ProductDetails } from './components/ProductDetails';
+import { EventDetails } from './components/EventDetails';
+import { PersonalDetails } from './components/PersonalDetails';
+import { AdditionalDetails } from './components/AdditionalDetails';
+import { ReviewConfirm } from './components/ReviewConfirm';
+import { SuccessStep } from '../../shared/components/SuccessStep';
 import { useState } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 
@@ -52,7 +50,7 @@ const primaryButtonStyles = {
   _active: { bg: '#B3002F', transform: 'translateY(0)' },
 };
 
-type HcpFormProps = {
+type PatientFormProps = {
   onBack?: () => void;
 };
 
@@ -75,7 +73,7 @@ function ProductStep({ inputStyles }: { inputStyles: any }) {
               </Button>
             </Flex>
           )}
-          <HcpProductDetails
+          <ProductDetails
             inputStyles={inputStyles}
             index={index}
             onAddProduct={() => append({ productName: '', condition: '' })}
@@ -114,7 +112,7 @@ function EventStep({
               </Button>
             </Flex>
           )}
-          <HcpEventDetails
+          <EventDetails
             inputStyles={inputStyles}
             index={index}
             symptomTreated={symptomTreated}
@@ -128,15 +126,20 @@ function EventStep({
   );
 }
 
-function HcpForm({ onBack }: HcpFormProps) {
+function PatientForm({ onBack }: PatientFormProps) {
   const [additionalDetails, setAdditionalDetails] = useState('');
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [accordionIndex, setAccordionIndex] = useState<number[]>([0, 1, 2, 3]);
 
-  // Step state
+  // Step 3 state
   const [ageType, setAgeType] = useState<'dob' | 'age' | ''>('');
   const [contactPermission, setContactPermission] = useState('');
+  const [hcpContactPermission, setHcpContactPermission] = useState('');
+
+  // Step 2 state
   const [symptomTreated, setSymptomTreated] = useState('');
+
+  // Step 4 state
   const [takingOtherMeds, setTakingOtherMeds] = useState('');
   const [hasRelevantHistory, setHasRelevantHistory] = useState('');
   const [labTestsPerformed, setLabTestsPerformed] = useState('');
@@ -149,14 +152,7 @@ function HcpForm({ onBack }: HcpFormProps) {
   };
 
   return (
-    <Flex
-      direction="column"
-      minH="100vh"
-      bg="gray.50"
-      color="gray.800"
-      fontFamily="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
-      w="full"
-    >
+    <Flex direction="column" minH="100vh" bg="gray.50" color="gray.800" w="full">
       {/* Header */}
       <Flex
         as="header"
@@ -179,7 +175,7 @@ function HcpForm({ onBack }: HcpFormProps) {
           </Link>
         )}
         <Heading as="h1" size="md" fontWeight="600" color="gray.800">
-          HCP Reporting Form
+          Patient Reporting Form
         </Heading>
         <Box w="32px" />
       </Flex>
@@ -189,7 +185,13 @@ function HcpForm({ onBack }: HcpFormProps) {
           <StepForm
             onSubmit={onSubmit}
             defaultValues={{
-              products: [{ productName: '', condition: '' }],
+              products: [
+                {
+                  productName: '',
+                  condition: '',
+                  batches: [{ batchNumber: '', expiryDate: '', startDate: '', endDate: '', dosage: '' }],
+                },
+              ],
               symptoms: [{ name: '' }],
               otherMedications: [],
               medicalHistory: [],
@@ -211,29 +213,23 @@ function HcpForm({ onBack }: HcpFormProps) {
                     />
                   </FormStep>
 
-                  <FormStep name="patient" title="Patient">
+                  <FormStep name="personal" title="You">
                     <Box mt={12}>
-                      <HcpPatientDetails
+                      <PersonalDetails
                         inputStyles={inputStyles}
                         ageType={ageType}
                         setAgeType={setAgeType}
-                      />
-                    </Box>
-                  </FormStep>
-
-                  <FormStep name="you" title="You">
-                    <Box mt={12}>
-                      <HcpReporterDetails
-                        inputStyles={inputStyles}
                         contactPermission={contactPermission}
                         setContactPermission={setContactPermission}
+                        hcpContactPermission={hcpContactPermission}
+                        setHcpContactPermission={setHcpContactPermission}
                       />
                     </Box>
                   </FormStep>
 
                   <FormStep name="additional" title="Additional">
                     <Box mt={12}>
-                      <HcpAdditionalDetails
+                      <AdditionalDetails
                         inputStyles={inputStyles}
                         takingOtherMeds={takingOtherMeds}
                         setTakingOtherMeds={setTakingOtherMeds}
@@ -249,7 +245,7 @@ function HcpForm({ onBack }: HcpFormProps) {
 
                   <FormStep name="confirm" title="Confirm">
                     <Box mt={12}>
-                      <HcpReviewConfirm
+                      <ReviewConfirm
                         accordionIndex={accordionIndex}
                         setAccordionIndex={setAccordionIndex}
                         agreedToTerms={agreedToTerms}
@@ -261,10 +257,9 @@ function HcpForm({ onBack }: HcpFormProps) {
                   </FormStep>
 
                   <StepsCompleted>
-                    <LoadingOverlay>
-                      <LoadingSpinner />
-                      <LoadingText>Submitting your report, please wait...</LoadingText>
-                    </LoadingOverlay>
+<SuccessStep 
+                        onSubmitAnother={() => window.location.reload()}
+                      />
                   </StepsCompleted>
                 </FormStepper>
 
@@ -303,5 +298,4 @@ function HcpForm({ onBack }: HcpFormProps) {
   );
 }
 
-export default HcpForm;
-
+export default PatientForm;

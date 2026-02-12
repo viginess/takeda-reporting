@@ -18,8 +18,9 @@ import {
 } from '@chakra-ui/react';
 import { useFormContext, useFieldArray } from 'react-hook-form';
 import { HiPlus } from 'react-icons/hi2';
+import { ProductImageUpload } from '../../../shared/components/ProductImageUpload';
 
-interface AdditionalDetailsProps {
+interface HcpAdditionalDetailsProps {
   inputStyles: any;
   takingOtherMeds: string;
   setTakingOtherMeds: (val: string) => void;
@@ -31,7 +32,7 @@ interface AdditionalDetailsProps {
   setAdditionalDetails: (val: string) => void;
 }
 
-export function AdditionalDetails({
+export function HcpAdditionalDetails({
   inputStyles,
   takingOtherMeds,
   setTakingOtherMeds,
@@ -41,7 +42,7 @@ export function AdditionalDetails({
   setLabTestsPerformed,
   additionalDetails,
   setAdditionalDetails,
-}: AdditionalDetailsProps) {
+}: HcpAdditionalDetailsProps) {
   const { setValue, register, control } = useFormContext();
 
   const {
@@ -88,28 +89,7 @@ export function AdditionalDetails({
         Just a few more details (Optional)
       </Heading>
 
-      <FormControl mb={6}>
-        <FormLabel fontWeight="500" color="gray.700">
-          Is there any additional documentation or evidence you would like to attach?
-        </FormLabel>
-        <Box
-          border="2px dashed"
-          borderColor="gray.300"
-          borderRadius="lg"
-          p={8}
-          textAlign="center"
-          bg="gray.50"
-          _hover={{ borderColor: 'gray.400', bg: 'gray.50' }}
-          mb={2}
-        >
-          <Text fontSize="sm" color="gray.500" mb={2}>
-            Max files: 3 · Max size per file: 15MB
-          </Text>
-          <Button variant="outline" size="lg" borderColor="gray.300">
-            Upload
-          </Button>
-        </Box>
-      </FormControl>
+      <ProductImageUpload label="Is there any additional documentation or evidence you would like to attach?" />
 
       <FormControl mb={6}>
         <FormLabel fontWeight="500" color="gray.700">
@@ -150,7 +130,7 @@ export function AdditionalDetails({
               </Flex>
               <FormControl mb={4}>
                 <FormLabel fontWeight="500" color="gray.700">
-                  Please tell us which product
+                  * Please tell us which product
                 </FormLabel>
                 <Input
                   placeholder="Enter product name"

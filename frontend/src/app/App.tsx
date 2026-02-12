@@ -1,4 +1,4 @@
-import WelcomePage from './WelcomePage';
+import WelcomePage from '../WelcomePage';
 
 function App() {
   return <WelcomePage />;

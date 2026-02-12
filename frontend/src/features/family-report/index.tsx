@@ -7,7 +7,6 @@ import {
   Link,
   Spacer,
   ButtonGroup,
-  Button,
 } from '@chakra-ui/react';
 import {
   FormLayout,
@@ -15,20 +14,19 @@ import {
   NextButton,
   FormStepper,
   StepsCompleted,
-  LoadingOverlay,
-  LoadingSpinner,
-  LoadingText,
+
 } from '@saas-ui/react';
 import { StepForm } from '@saas-ui/forms';
 
-import takedaLogo from './assets/takeda-logo.png';
-import { ProductDetails } from './components/PatientForm/ProductDetails';
-import { EventDetails } from './components/PatientForm/EventDetails';
-import { PersonalDetails } from './components/PatientForm/PersonalDetails';
-import { AdditionalDetails } from './components/PatientForm/AdditionalDetails';
-import { ReviewConfirm } from './components/PatientForm/ReviewConfirm';
+import takedaLogo from '../../assets/takeda-logo.png';
+import { ProductDetails } from '../patient-report/components/ProductDetails';
+import { EventDetails } from '../patient-report/components/EventDetails';
+import { PatientDetails } from '../patient-report/components/PatientDetails';
+import { ReporterDetails } from '../patient-report/components/ReporterDetails';
+import { AdditionalDetails } from '../patient-report/components/AdditionalDetails';
+import { FamilyReviewConfirm } from './components/FamilyReviewConfirm';
+import { SuccessStep } from '../../shared/components/SuccessStep';
 import { useState } from 'react';
-import { useFieldArray, useFormContext } from 'react-hook-form';
 
 const inputStyles = {
   size: 'lg' as const,
@@ -51,96 +49,20 @@ const primaryButtonStyles = {
   _active: { bg: '#B3002F', transform: 'translateY(0)' },
 };
 
-type PatientFormProps = {
+type FamilyFormProps = {
   onBack?: () => void;
 };
 
-// Wrapper component to provide field array functionality for products
-function ProductStep({ inputStyles }: { inputStyles: any }) {
-  const { control } = useFormContext();
-  const { fields, append, remove } = useFieldArray({
-    control,
-    name: 'products',
-  });
-
-  return (
-    <Box mt={12}>
-      {fields.map((field, index) => (
-        <Box key={field.id} mb={10} position="relative">
-          {index > 0 && (
-            <Flex justify="flex-end" mb={2}>
-              <Button size="sm" variant="ghost" colorScheme="red" onClick={() => remove(index)}>
-                Remove product
-              </Button>
-            </Flex>
-          )}
-          <ProductDetails
-            inputStyles={inputStyles}
-            index={index}
-            onAddProduct={() => append({ productName: '', condition: '' })}
-          />
-          {index < fields.length - 1 && <Box borderBottom="1px solid" borderColor="gray.100" my={10} />}
-        </Box>
-      ))}
-    </Box>
-  );
-}
-
-// Wrapper component to provide field array functionality for symptoms
-function EventStep({
-  inputStyles,
-  symptomTreated,
-  setSymptomTreated,
-}: {
-  inputStyles: any;
-  symptomTreated: string;
-  setSymptomTreated: (val: string) => void;
-}) {
-  const { control } = useFormContext();
-  const { fields, append, remove } = useFieldArray({
-    control,
-    name: 'symptoms',
-  });
-
-  return (
-    <Box mt={12}>
-      {fields.map((field, index) => (
-        <Box key={field.id} mb={10} position="relative">
-          {index > 0 && (
-            <Flex justify="flex-end" mb={2}>
-              <Button size="sm" variant="ghost" colorScheme="red" onClick={() => remove(index)}>
-                Remove symptom
-              </Button>
-            </Flex>
-          )}
-          <EventDetails
-            inputStyles={inputStyles}
-            index={index}
-            symptomTreated={symptomTreated}
-            setSymptomTreated={setSymptomTreated}
-            onAddSymptom={() => append({ name: '' })}
-          />
-          {index < fields.length - 1 && <Box borderBottom="1px solid" borderColor="gray.100" my={10} />}
-        </Box>
-      ))}
-    </Box>
-  );
-}
-
-function PatientForm({ onBack }: PatientFormProps) {
+function FamilyForm({ onBack }: FamilyFormProps) {
   const [additionalDetails, setAdditionalDetails] = useState('');
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [accordionIndex, setAccordionIndex] = useState<number[]>([0, 1, 2, 3]);
 
-  // Step 3 state
+  // Step state
   const [ageType, setAgeType] = useState<'dob' | 'age' | ''>('');
   const [contactPermission, setContactPermission] = useState('');
   const [hcpContactPermission, setHcpContactPermission] = useState('');
-
-  // Step 2 state
   const [symptomTreated, setSymptomTreated] = useState('');
-
-  // Step 4 state
   const [takingOtherMeds, setTakingOtherMeds] = useState('');
   const [hasRelevantHistory, setHasRelevantHistory] = useState('');
   const [labTestsPerformed, setLabTestsPerformed] = useState('');
@@ -153,7 +75,14 @@ function PatientForm({ onBack }: PatientFormProps) {
   };
 
   return (
-    <Flex direction="column" minH="100vh" bg="gray.50" color="gray.800" w="full">
+    <Flex
+      direction="column"
+      minH="100vh"
+      bg="gray.50"
+      color="gray.800"
+      fontFamily="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+      w="full"
+    >
       {/* Header */}
       <Flex
         as="header"
@@ -176,7 +105,7 @@ function PatientForm({ onBack }: PatientFormProps) {
           </Link>
         )}
         <Heading as="h1" size="md" fontWeight="600" color="gray.800">
-          Patient Reporting Form
+          Family Reporting Form
         </Heading>
         <Box w="32px" />
       </Flex>
@@ -186,34 +115,43 @@ function PatientForm({ onBack }: PatientFormProps) {
           <StepForm
             onSubmit={onSubmit}
             defaultValues={{
-              products: [{ productName: '', condition: '' }],
-              symptoms: [{ name: '' }],
-              otherMedications: [],
-              medicalHistory: [],
-              labTests: [],
+              productName: '',
+              symptoms: '',
             }}
           >
             {({ FormStep }) => (
               <FormLayout spacing={8}>
                 <FormStepper colorScheme="red" mb={10}>
                   <FormStep name="product" title="Product">
-                    <ProductStep inputStyles={inputStyles} />
+                    <Box mt={12}>
+                      <ProductDetails inputStyles={inputStyles} />
+                    </Box>
                   </FormStep>
 
                   <FormStep name="event" title="Event">
-                    <EventStep
-                      inputStyles={inputStyles}
-                      symptomTreated={symptomTreated}
-                      setSymptomTreated={setSymptomTreated}
-                    />
+                    <Box mt={12}>
+                      <EventDetails
+                        inputStyles={inputStyles}
+                        symptomTreated={symptomTreated}
+                        setSymptomTreated={setSymptomTreated}
+                      />
+                    </Box>
                   </FormStep>
 
-                  <FormStep name="personal" title="You">
+                  <FormStep name="patient" title="Patient">
                     <Box mt={12}>
-                      <PersonalDetails
+                      <PatientDetails
                         inputStyles={inputStyles}
                         ageType={ageType}
                         setAgeType={setAgeType}
+                      />
+                    </Box>
+                  </FormStep>
+
+                  <FormStep name="you" title="You">
+                    <Box mt={12}>
+                      <ReporterDetails
+                        inputStyles={inputStyles}
                         contactPermission={contactPermission}
                         setContactPermission={setContactPermission}
                         hcpContactPermission={hcpContactPermission}
@@ -240,12 +178,11 @@ function PatientForm({ onBack }: PatientFormProps) {
 
                   <FormStep name="confirm" title="Confirm">
                     <Box mt={12}>
-                      <ReviewConfirm
+                      <FamilyReviewConfirm
                         accordionIndex={accordionIndex}
                         setAccordionIndex={setAccordionIndex}
                         agreedToTerms={agreedToTerms}
                         setAgreedToTerms={setAgreedToTerms}
-                        setCurrentStep={() => {}} // Stepper handles this now
                         onBack={onBack}
                         primaryButtonStyles={primaryButtonStyles}
                       />
@@ -253,10 +190,9 @@ function PatientForm({ onBack }: PatientFormProps) {
                   </FormStep>
 
                   <StepsCompleted>
-                    <LoadingOverlay>
-                      <LoadingSpinner />
-                      <LoadingText>Submitting your report, please wait...</LoadingText>
-                    </LoadingOverlay>
+                    <SuccessStep 
+                        onSubmitAnother={() => window.location.reload()}
+                      />
                   </StepsCompleted>
                 </FormStepper>
 
@@ -295,4 +231,6 @@ function PatientForm({ onBack }: PatientFormProps) {
   );
 }
 
-export default PatientForm;
+export default FamilyForm;
+
+

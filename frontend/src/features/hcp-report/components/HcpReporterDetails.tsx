@@ -135,7 +135,7 @@ export function HcpReporterDetails({
 
           <FormControl mb={8}>
             <FormLabel fontWeight="500" color="gray.700">
-              * Country
+              Country
             </FormLabel>
             <Select placeholder="Enter country" {...inputStyles} {...register('country')}>
               <option value="us">United States</option>
