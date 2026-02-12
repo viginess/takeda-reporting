@@ -11,6 +11,7 @@ import {
   Checkbox,
   Link,
 } from '@chakra-ui/react';
+import { useStepperContext } from '@saas-ui/react';
 
 interface ReviewRowProps {
   label: string;
@@ -36,24 +37,23 @@ function ReviewRow({ label, value }: ReviewRowProps) {
   );
 }
 
-interface ReviewConfirmProps {
+interface FamilyReviewConfirmProps {
   accordionIndex: number[];
   setAccordionIndex: (val: number[]) => void;
   agreedToTerms: boolean;
   setAgreedToTerms: (val: boolean) => void;
-  setCurrentStep: (val: 1 | 2 | 3 | 4 | 5) => void;
   onBack?: () => void;
   primaryButtonStyles: any;
 }
 
-export function ReviewConfirm({
+export function FamilyReviewConfirm({
   accordionIndex,
   setAccordionIndex,
   agreedToTerms,
   setAgreedToTerms,
-  setCurrentStep,
   onBack,
-}: ReviewConfirmProps) {
+}: FamilyReviewConfirmProps) {
+  const { setStep } = useStepperContext();
   return (
     <>
       <Heading as="h2" size="lg" mb={4} color="gray.800" fontWeight="600">
@@ -105,7 +105,7 @@ export function ReviewConfirm({
           <AccordionPanel pb={4} bg="white">
             <Flex justify="space-between" py={2} borderBottom="1px solid" borderColor="gray.100">
               <Text color="gray.600">I am...</Text>
-              <Text fontWeight="500">A Patient or Consumer</Text>
+              <Text fontWeight="500">A Friend, Caregiver or Family</Text>
             </Flex>
           </AccordionPanel>
         </AccordionItem>
@@ -124,7 +124,7 @@ export function ReviewConfirm({
               leftIcon={<span>✎</span>}
               onClick={(e) => {
                 e.stopPropagation();
-                setCurrentStep(1);
+                setStep('product');
               }}
             >
               Edit
@@ -154,7 +154,7 @@ export function ReviewConfirm({
               leftIcon={<span>✎</span>}
               onClick={(e) => {
                 e.stopPropagation();
-                setCurrentStep(2);
+                setStep('event');
               }}
             >
               Edit
@@ -175,14 +175,14 @@ export function ReviewConfirm({
             _expanded={{ bg: 'gray.50' }}
             justifyContent="space-between"
           >
-            <Text>Personal details</Text>
+            <Text>Patient details</Text>
             <Button
               size="sm"
               variant="ghost"
               leftIcon={<span>✎</span>}
               onClick={(e) => {
                 e.stopPropagation();
-                setCurrentStep(3);
+                setStep('patient');
               }}
             >
               Edit
@@ -191,6 +191,30 @@ export function ReviewConfirm({
           <AccordionPanel pb={4} bg="white">
             <ReviewRow label="Initials" value="—" />
             <ReviewRow label="Age (Select one)" value="—" />
+          </AccordionPanel>
+        </AccordionItem>
+
+        <AccordionItem>
+          <AccordionButton
+            fontWeight="600"
+            color="gray.800"
+            _expanded={{ bg: 'gray.50' }}
+            justifyContent="space-between"
+          >
+            <Text>Your details</Text>
+            <Button
+              size="sm"
+              variant="ghost"
+              leftIcon={<span>✎</span>}
+              onClick={(e) => {
+                e.stopPropagation();
+                setStep('you');
+              }}
+            >
+              Edit
+            </Button>
+          </AccordionButton>
+          <AccordionPanel pb={4} bg="white">
             <ReviewRow label="Do we have permission to contact you?" value="—" />
             <Text fontWeight="600" mt={3} mb={2} color="gray.700">
               Your contact information
@@ -227,12 +251,12 @@ export function ReviewConfirm({
           onChange={(e) => setAgreedToTerms(e.target.checked)}
         >
           I agree to the processing of my information as described in the{' '}
-          <Link href="#" color="#CE0037" textDecoration="underline">
-            Privacy Statement
+          <Link href="https://www.takeda.com/privacy-notice/" isExternal color="#CE0037" textDecoration="underline">
+            Privacy Notice
           </Link>{' '}
           and{' '}
-          <Link href="#" color="#CE0037" textDecoration="underline">
-            Consumer Health Notice
+          <Link href="https://www.takeda.com/terms-and-conditions/" isExternal color="#CE0037" textDecoration="underline">
+            Terms and Conditions
           </Link>
           . I consent to Takeda sharing this report with regulatory authorities and
           other parties as required by law.

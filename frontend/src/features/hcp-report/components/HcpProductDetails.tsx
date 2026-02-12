@@ -22,9 +22,10 @@ import {
   Portal,
   VStack,
 } from '@chakra-ui/react';
+import { ProductImageUpload } from '../../../shared/components/ProductImageUpload';
 import { HiQuestionMarkCircle, HiPlus } from 'react-icons/hi2';
 import { useFormContext, useFieldArray } from 'react-hook-form';
-import batchImg from '../../assets/batch.png';
+import batchImg from '../../../assets/batch.png';
 
 interface HcpProductDetailsProps {
   inputStyles: any;
@@ -45,19 +46,19 @@ export function HcpProductDetails({ inputStyles, index = 0, onAddProduct }: HcpP
     name: `products.${index}.batches`,
   });
 
+  // Initialize batch array if empty
+  if (batchFields.length === 0) {
+    appendBatch({ batchNumber: '', expiryDate: '', startDate: '', endDate: '', dosage: '' });
+  }
+
   // Initialize field arrays if empty
   if (conditionFields.length === 0) {
     // This is a bit risky in render, but react-hook-form handles it
     // Actually better to use useEffect or defaultValues in HcpForm
   }
 
-  const setUnknown = (fieldName: string) => {
-    setValue(fieldName, 'Unknown');
-  };
 
-  const setOngoing = (fieldName: string) => {
-    setValue(fieldName, 'Ongoing');
-  };
+
 
   const prefix = `products.${index}`;
 
@@ -336,27 +337,7 @@ export function HcpProductDetails({ inputStyles, index = 0, onAddProduct }: HcpP
         />
       </FormControl>
 
-      <FormControl mb={8}>
-        <FormLabel fontWeight="500" color="gray.700">
-          Can you take a photo of the product packaging, including batch / lot number information?
-        </FormLabel>
-        <Box
-          border="2px dashed"
-          borderColor="gray.300"
-          borderRadius="lg"
-          p={8}
-          textAlign="center"
-          bg="gray.50"
-          _hover={{ borderColor: 'gray.400', bg: 'gray.50' }}
-        >
-          <Text fontSize="sm" color="gray.500" mb={2}>
-            Max files: 3 · Max size per file: 15MB
-          </Text>
-          <Button variant="outline" size="lg" borderColor="gray.300">
-            Upload
-          </Button>
-        </Box>
-      </FormControl>
+      <ProductImageUpload />
         </Box>
       ))}
 

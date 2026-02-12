@@ -22,9 +22,10 @@ import {
   Portal,
   VStack,
 } from '@chakra-ui/react';
+import { ProductImageUpload } from '../../../shared/components/ProductImageUpload';
 import { HiQuestionMarkCircle, HiPlus } from 'react-icons/hi2';
 import { useFormContext, useFieldArray } from 'react-hook-form';
-import batchImg from '../../assets/batch.png';
+import batchImg from '../../../assets/batch.png';
 
 interface ProductDetailsProps {
   inputStyles: any;
@@ -47,13 +48,13 @@ export function ProductDetails({ inputStyles, index = 0, onAddProduct }: Product
 
   const prefix = `products.${index}`;
 
-  const setUnknown = (fieldName: string) => {
-    setValue(`${prefix}.${fieldName}`, 'Unknown');
-  };
 
-  const setOngoing = (fieldName: string) => {
-    setValue(`${prefix}.${fieldName}`, 'Ongoing');
-  };
+
+
+  // Initialize batch array if empty
+  if (batchFields.length === 0) {
+    appendBatch({ batchNumber: '', expiryDate: '', startDate: '', endDate: '', dosage: '' });
+  }
 
   return (
     <>
@@ -291,27 +292,7 @@ export function ProductDetails({ inputStyles, index = 0, onAddProduct }: Product
         />
       </FormControl>
 
-        <FormControl mb={8}>
-        <FormLabel fontWeight="500" color="gray.700">
-          Can you take a photo of the product packaging, including batch / lot number information?
-        </FormLabel>
-        <Box
-          border="2px dashed"
-          borderColor="gray.300"
-          borderRadius="lg"
-          p={8}
-          textAlign="center"
-          bg="gray.50"
-          _hover={{ borderColor: 'gray.400', bg: 'gray.50' }}
-        >
-          <Text fontSize="sm" color="gray.500" mb={2}>
-            Max files: 3 · Max size per file: 15MB
-          </Text>
-          <Button variant="outline" size="lg">
-            Upload
-          </Button>
-        </Box>
-      </FormControl>
+      <ProductImageUpload />
         </Box>
       ))}
 

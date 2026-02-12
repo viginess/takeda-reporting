@@ -145,7 +145,7 @@ export function PersonalDetails({
           </Text>
           <FormControl mb={4}>
             <FormLabel fontWeight="500" color="gray.700">
-              * Email address
+              Email address
             </FormLabel>
             <Input
               placeholder="client@gmail.com"
@@ -272,7 +272,7 @@ export function PersonalDetails({
           </FormControl>
           <FormControl>
             <FormLabel fontWeight="500" color="gray.700">
-              * Country
+              Country
             </FormLabel>
             <Input placeholder="Enter country" {...inputStyles} {...register('hcpCountry')} />
           </FormControl>
