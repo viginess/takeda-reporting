@@ -5,50 +5,51 @@ on:
     types: [opened, synchronize]
 
 permissions:
-  pull-requests: write   # allows posting comments back to PRs
+  pull-requests: write
+  contents: read
 
 jobs:
   review:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0   # ensures full history for diffs
-          token: ${{ secrets.GITHUB_TOKEN }} # or use GH_PAT if private/fork
+          fetch-depth: 0
+          token: ${{ secrets.GH_PAT }}
 
       - name: Install GitHub CLI
         run: sudo apt update && sudo apt install gh -y
 
       - name: Get PR diff
         run: |
-          git diff origin/${{ github.event.pull_request.base.ref }} > pr.diff
+          git diff origin/${{ github.event.pull_request.base.ref }}...HEAD > pr.diff
 
       - name: Send diff to Claude
         run: |
+          PAYLOAD=$(jq -n \
+            --arg diff "$(cat pr.diff)" \
+            '{
+              model: "claude-sonnet-4-6",
+              max_tokens: 1200,
+              messages: [{
+                role: "user",
+                content: ("You are a senior software engineer. Review this pull request diff and provide bugs, risks, and improvements:\n\n" + $diff)
+              }]
+            }')
+
           RESPONSE=$(curl https://api.anthropic.com/v1/messages \
-          -H "Content-Type: application/json" \
-          -H "x-api-key: ${{ secrets.ANTHROPIC_API_KEY }}" \
-          -H "anthropic-version: 2023-06-01" \
-          -d '{
-            "model": "claude-3-5-sonnet-20241022",
-            "max_tokens": 1200,
-            "messages": [
-              {
-                "role": "user",
-                "content": "You are a senior software engineer. Review this pull request diff and provide bugs, risks, and improvements:\n\n'"$(cat pr.diff | sed 's/"/\\"/g')"'" 
-              }
-            ]
-          }')
+            -H "Content-Type: application/json" \
+            -H "x-api-key: ${{ secrets.ANTHROPIC_API_KEY }}" \
+            -H "anthropic-version: 2023-06-01" \
+            -d "$PAYLOAD")
 
           echo "$RESPONSE" > review.json
 
       - name: Post PR comment
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_PAT }}
         run: |
-          COMMENT=$(cat review.json | jq -r '.content[0].text')
-
+          COMMENT=$(cat review.json | jq -r '.content[0].text // "Claude review failed. Check Actions logs."')
           gh api repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments \
             -f body="$COMMENT"
