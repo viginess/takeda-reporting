@@ -110,7 +110,9 @@ export function PersonalDetails({
         <FormLabel fontWeight="500" color="gray.700">
           Sex assigned at birth
         </FormLabel>
-        <RadioGroup defaultValue="">
+        <RadioGroup
+          onChange={(val) => setValue('gender', val)}
+        >
           <Stack direction="row" spacing={6}>
             <Radio value="male" colorScheme="red">
               Male

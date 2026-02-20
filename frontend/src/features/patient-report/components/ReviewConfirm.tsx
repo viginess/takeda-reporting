@@ -10,31 +10,39 @@ import {
   Box,
   Checkbox,
   Link,
+  Badge,
+  Divider,
 } from '@chakra-ui/react';
 import { useStepperContext } from '@saas-ui/react';
+import { useFormContext, useWatch } from 'react-hook-form';
 
-interface ReviewRowProps {
-  label: string;
-  value: string;
+function EditLink({ onClick }: { onClick: () => void }) {
+  return (
+    <Box
+      as="span"
+      ml={2} px={2} py={1}
+      fontSize="xs" fontWeight="500" color="gray.500"
+      cursor="pointer" borderRadius="md"
+      _hover={{ color: '#CE0037', bg: 'red.50' }}
+      onClick={(e: React.MouseEvent) => { e.stopPropagation(); onClick(); }}
+    >
+      ✎ Edit
+    </Box>
+  );
 }
 
-function ReviewRow({ label, value }: ReviewRowProps) {
+function ReviewRow({ label, value }: { label: string; value: string }) {
+  const empty = !value || value === '—';
   return (
-    <Flex
-      justify="space-between"
-      py={2}
-      borderBottom="1px solid"
-      borderColor="gray.100"
-      align="center"
-    >
-      <Text color="gray.600" fontSize="sm">
-        {label}
-      </Text>
-      <Text fontWeight="500" fontSize="sm">
-        {value}
-      </Text>
+    <Flex justify="space-between" py={2} borderBottom="1px solid" borderColor="gray.100" align="flex-start" gap={4}>
+      <Text color="gray.600" fontSize="sm" flex="1">{label}</Text>
+      <Text fontWeight="500" fontSize="sm" textAlign="right" color={empty ? 'gray.400' : 'gray.800'}>{value}</Text>
     </Flex>
   );
+}
+
+function SectionTitle({ children }: { children: React.ReactNode }) {
+  return <Text fontWeight="600" fontSize="sm" color="gray.700" mt={3} mb={1}>{children}</Text>;
 }
 
 interface ReviewConfirmProps {
@@ -42,7 +50,8 @@ interface ReviewConfirmProps {
   setAccordionIndex: (val: number[]) => void;
   agreedToTerms: boolean;
   setAgreedToTerms: (val: boolean) => void;
-  setCurrentStep: (val: 1 | 2 | 3 | 4 | 5) => void;
+  captchaChecked: boolean;
+  setCaptchaChecked: (val: boolean) => void;
   onBack?: () => void;
   primaryButtonStyles: any;
 }
@@ -52,21 +61,35 @@ export function ReviewConfirm({
   setAccordionIndex,
   agreedToTerms,
   setAgreedToTerms,
-  onBack,
+  captchaChecked,
+  setCaptchaChecked,
 }: ReviewConfirmProps) {
   const { setStep } = useStepperContext();
+  const { control } = useFormContext();
+
+  const products = useWatch({ control, name: 'products' }) ?? [];
+  const symptoms = useWatch({ control, name: 'symptoms' }) ?? [];
+  const otherMedications = useWatch({ control, name: 'otherMedications' }) ?? [];
+  const medicalHistory = useWatch({ control, name: 'medicalHistory' }) ?? [];
+  const labTests = useWatch({ control, name: 'labTests' }) ?? [];
+  const name = useWatch({ control, name: 'name' });
+  const initials = useWatch({ control, name: 'initials' });
+  const gender = useWatch({ control, name: 'gender' });
+  const dob = useWatch({ control, name: 'dob' });
+  const ageValue = useWatch({ control, name: 'ageValue' });
+  const email = useWatch({ control, name: 'email' });
+
+  const v = (val: any) => (val && String(val).trim() ? String(val) : '—');
+  const arr = (val: any) => Array.isArray(val) ? val.join(', ') : '—';
+  const ageDisplay = dob ? `DOB: ${dob}` : ageValue ? `${ageValue} years` : '—';
+
   return (
     <>
       <Heading as="h2" size="lg" mb={4} color="gray.800" fontWeight="600">
-        Review and confirm all sections of the report
+        Review and confirm your report
       </Heading>
       <Flex justify="flex-end" mb={4}>
-        <Button
-          variant="ghost"
-          size="sm"
-          color="gray.600"
-          onClick={() => setAccordionIndex([])}
-        >
+        <Button variant="ghost" size="sm" color="gray.600" onClick={() => setAccordionIndex([])}>
           Hide all
         </Button>
       </Flex>
@@ -74,159 +97,171 @@ export function ReviewConfirm({
       <Accordion
         allowMultiple
         index={accordionIndex}
-        onChange={(expanded) =>
-          setAccordionIndex(Array.isArray(expanded) ? expanded : [expanded])
-        }
-        borderWidth="1px"
-        borderColor="gray.200"
-        borderRadius="lg"
-        overflow="hidden"
-        mb={6}
+        onChange={(exp) => setAccordionIndex(Array.isArray(exp) ? exp : [exp])}
+        borderWidth="1px" borderColor="gray.200" borderRadius="lg" overflow="hidden" mb={6}
       >
+        {/* ── PRODUCTS ── */}
         <AccordionItem>
-          <AccordionButton
-            fontWeight="600"
-            color="gray.800"
-            _expanded={{ bg: 'gray.50' }}
-            justifyContent="space-between"
-          >
-            <Text>Please select who you are.</Text>
-            <Button
-              size="sm"
-              variant="ghost"
-              leftIcon={<span>✎</span>}
-              onClick={(e) => {
-                e.stopPropagation();
-                onBack?.();
-              }}
-            >
-              Edit
-            </Button>
-          </AccordionButton>
-          <AccordionPanel pb={4} bg="white">
-            <Flex justify="space-between" py={2} borderBottom="1px solid" borderColor="gray.100">
-              <Text color="gray.600">I am...</Text>
-              <Text fontWeight="500">A Patient or Consumer</Text>
+          <AccordionButton fontWeight="600" color="gray.800" _expanded={{ bg: 'gray.50' }} justifyContent="space-between">
+            <Flex align="center" gap={2}>
+              <Text>Product details</Text>
+              {products.length > 0 && <Badge colorScheme="red" fontSize="xs">{products.length}</Badge>}
             </Flex>
-          </AccordionPanel>
-        </AccordionItem>
-
-        <AccordionItem>
-          <AccordionButton
-            fontWeight="600"
-            color="gray.800"
-            _expanded={{ bg: 'gray.50' }}
-            justifyContent="space-between"
-          >
-            <Text>Product details</Text>
-            <Button
-              size="sm"
-              variant="ghost"
-              leftIcon={<span>✎</span>}
-              onClick={(e) => {
-                e.stopPropagation();
-                setStep('product');
-              }}
-            >
-              Edit
-            </Button>
+            <EditLink onClick={() => setStep('product')} />
           </AccordionButton>
           <AccordionPanel pb={4} bg="white">
-            <ReviewRow label="For which product do you want to report a potential concern?" value="—" />
-            <ReviewRow label="What condition are you treating?" value="—" />
-            <ReviewRow label="Batch/lot number" value="—" />
-            <ReviewRow label="Expiry date" value="—" />
-            <ReviewRow label="When did you start using this batch?" value="—" />
-            <ReviewRow label="When did you stop using this batch?" value="—" />
+            {products.length === 0 && <Text fontSize="sm" color="gray.400">No products added.</Text>}
+            {products.map((p: any, i: number) => (
+              <Box key={i} mb={i < products.length - 1 ? 4 : 0}>
+                {products.length > 1 && <SectionTitle>Product {i + 1}</SectionTitle>}
+                <ReviewRow label="Product name" value={v(p?.productName)} />
+                {/* conditions array */}
+                {(p?.conditions ?? []).length > 0 && (
+                  <ReviewRow
+                    label="Conditions"
+                    value={(p.conditions as any[]).map((c: any) => c?.name).filter(Boolean).join(', ') || '—'}
+                  />
+                )}
+                <ReviewRow label="Action taken" value={v(p?.actionTaken)} />
+                {/* batches */}
+                {(p?.batches ?? []).map((b: any, bi: number) => (
+                  <Box key={bi} pl={3} borderLeft="2px solid" borderColor="gray.100" mt={2}>
+                    <Text fontSize="xs" fontWeight="600" color="gray.500" mb={1}>Batch {bi + 1}</Text>
+                    <ReviewRow label="Batch / lot number" value={v(b?.batchNumber)} />
+                    <ReviewRow label="Expiry date" value={v(b?.expiryDate)} />
+                    <ReviewRow label="Start date" value={v(b?.startDate)} />
+                    <ReviewRow label="End date" value={v(b?.endDate)} />
+                    <ReviewRow label="Dosage" value={v(b?.dosage)} />
+                  </Box>
+                ))}
+                {i < products.length - 1 && <Divider my={3} />}
+              </Box>
+            ))}
           </AccordionPanel>
         </AccordionItem>
 
+        {/* ── SYMPTOMS / EVENTS ── */}
         <AccordionItem>
-          <AccordionButton
-            fontWeight="600"
-            color="gray.800"
-            _expanded={{ bg: 'gray.50' }}
-            justifyContent="space-between"
-          >
-            <Text>Adverse event details</Text>
-            <Button
-              size="sm"
-              variant="ghost"
-              leftIcon={<span>✎</span>}
-              onClick={(e) => {
-                e.stopPropagation();
-                setStep('event');
-              }}
-            >
-              Edit
-            </Button>
+          <AccordionButton fontWeight="600" color="gray.800" _expanded={{ bg: 'gray.50' }} justifyContent="space-between">
+            <Flex align="center" gap={2}>
+              <Text>Adverse event details</Text>
+              {symptoms.length > 0 && <Badge colorScheme="orange" fontSize="xs">{symptoms.length}</Badge>}
+            </Flex>
+            <EditLink onClick={() => setStep('event')} />
           </AccordionButton>
           <AccordionPanel pb={4} bg="white">
-            <ReviewRow label="What are your symptoms?" value="—" />
-            <ReviewRow label="On which date did you first experience your symptom?" value="—" />
-            <ReviewRow label="On which date did you last experience your symptom?" value="—" />
-            <ReviewRow label="Was the symptom treated?" value="—" />
+            {symptoms.length === 0 && <Text fontSize="sm" color="gray.400">No symptoms added.</Text>}
+            {symptoms.map((s: any, i: number) => (
+              <Box key={i} mb={i < symptoms.length - 1 ? 4 : 0}>
+                {symptoms.length > 1 && <SectionTitle>Symptom {i + 1}</SectionTitle>}
+                <ReviewRow label="Symptom" value={v(s?.name)} />
+                <ReviewRow label="Start date" value={v(s?.eventStartDate)} />
+                <ReviewRow label="End date" value={v(s?.eventEndDate)} />
+                <ReviewRow label="Was it treated?" value={v(s?.symptomTreated)} />
+                {s?.symptomTreated === 'yes' && <ReviewRow label="Treatment" value={v(s?.treatment)} />}
+                <ReviewRow label="Seriousness" value={arr(s?.seriousness)} />
+                <ReviewRow label="Outcome" value={v(s?.outcome)} />
+                {i < symptoms.length - 1 && <Divider my={3} />}
+              </Box>
+            ))}
           </AccordionPanel>
         </AccordionItem>
 
+        {/* ── PERSONAL ── */}
         <AccordionItem>
-          <AccordionButton
-            fontWeight="600"
-            color="gray.800"
-            _expanded={{ bg: 'gray.50' }}
-            justifyContent="space-between"
-          >
+          <AccordionButton fontWeight="600" color="gray.800" _expanded={{ bg: 'gray.50' }} justifyContent="space-between">
             <Text>Personal details</Text>
-            <Button
-              size="sm"
-              variant="ghost"
-              leftIcon={<span>✎</span>}
-              onClick={(e) => {
-                e.stopPropagation();
-                setStep('personal');
-              }}
-            >
-              Edit
-            </Button>
+            <EditLink onClick={() => setStep('personal')} />
           </AccordionButton>
           <AccordionPanel pb={4} bg="white">
-            <ReviewRow label="Initials" value="—" />
-            <ReviewRow label="Age (Select one)" value="—" />
-            <ReviewRow label="Do we have permission to contact you?" value="—" />
-            <Text fontWeight="600" mt={3} mb={2} color="gray.700">
-              Your contact information
-            </Text>
-            <ReviewRow label="Email address" value="—" />
+            <ReviewRow label="Full name" value={v(name)} />
+            <ReviewRow label="Initials" value={v(initials)} />
+            <ReviewRow label="Gender" value={v(gender)} />
+            <ReviewRow label="Age / Date of birth" value={ageDisplay} />
+            <ReviewRow label="Email" value={v(email)} />
+          </AccordionPanel>
+        </AccordionItem>
+
+        {/* ── ADDITIONAL ── */}
+        <AccordionItem>
+          <AccordionButton fontWeight="600" color="gray.800" _expanded={{ bg: 'gray.50' }} justifyContent="space-between">
+            <Text>Additional details</Text>
+            <EditLink onClick={() => setStep('additional')} />
+          </AccordionButton>
+          <AccordionPanel pb={4} bg="white">
+            {/* Other medications */}
+            {otherMedications.length > 0 ? (
+              <>
+                <SectionTitle>Other medications ({otherMedications.length})</SectionTitle>
+                {otherMedications.map((m: any, i: number) => (
+                  <Box key={i} mb={2}>
+                    <ReviewRow label={`Medication ${i + 1}`} value={v(m?.product)} />
+                    <ReviewRow label="Condition" value={v(m?.condition)} />
+                  </Box>
+                ))}
+              </>
+            ) : (
+              <ReviewRow label="Other medications" value="None" />
+            )}
+
+            {/* Medical history */}
+            {medicalHistory.length > 0 ? (
+              <>
+                <SectionTitle>Medical history ({medicalHistory.length})</SectionTitle>
+                {medicalHistory.map((h: any, i: number) => (
+                  <Box key={i} mb={2}>
+                    <ReviewRow label={`Condition ${i + 1}`} value={v(h?.conditionName)} />
+                    {h?.info && <ReviewRow label="Additional info" value={v(h?.info)} />}
+                  </Box>
+                ))}
+              </>
+            ) : (
+              <ReviewRow label="Medical history" value="None" />
+            )}
+
+            {/* Lab tests */}
+            {labTests.length > 0 ? (
+              <>
+                <SectionTitle>Lab tests ({labTests.length})</SectionTitle>
+                {labTests.map((t: any, i: number) => (
+                  <Box key={i} mb={2}>
+                    <ReviewRow label={`Test ${i + 1}`} value={v(t?.testName)} />
+                    <ReviewRow label="Result" value={[v(t?.testQualifier), v(t?.testValue)].filter(x => x !== '—').join(' ') || '—'} />
+                    {t?.outcome?.length > 0 && <ReviewRow label="Outcome" value={arr(t?.outcome)} />}
+                    {t?.testComments && <ReviewRow label="Comments" value={v(t?.testComments)} />}
+                  </Box>
+                ))}
+              </>
+            ) : (
+              <ReviewRow label="Lab tests" value="None" />
+            )}
           </AccordionPanel>
         </AccordionItem>
       </Accordion>
 
+      {/* Captcha */}
       <Box
-        p={4}
-        mb={6}
+        p={4} mb={6}
         borderWidth="1px"
-        borderColor="gray.200"
+        borderColor={captchaChecked ? 'green.300' : 'gray.200'}
         borderRadius="lg"
-        bg="gray.50"
+        bg={captchaChecked ? 'green.50' : 'gray.50'}
+        transition="all 0.2s"
       >
         <Checkbox
-          colorScheme="red"
-          isChecked={false}
-          onChange={() => {}}
+          colorScheme="green"
+          isChecked={captchaChecked}
+          onChange={(e) => setCaptchaChecked(e.target.checked)}
+          fontWeight="500"
         >
-          I&apos;m not a robot
+          I'm not a robot
         </Checkbox>
-        <Text fontSize="xs" color="gray.500" mt={2}>
-          reCAPTCHA placeholder
-        </Text>
+        <Text fontSize="xs" color="gray.500" mt={1}>Please confirm you are a human before submitting.</Text>
       </Box>
 
+      {/* Terms */}
       <Box mb={6} fontSize="sm" color="gray.600">
-        <Checkbox
-          colorScheme="red"
-          isChecked={agreedToTerms}
-          onChange={(e) => setAgreedToTerms(e.target.checked)}
-        >
+        <Checkbox colorScheme="red" isChecked={agreedToTerms} onChange={(e) => setAgreedToTerms(e.target.checked)}>
           I agree to the processing of my information as described in the{' '}
           <Link href="https://www.takeda.com/privacy-notice/" isExternal color="#CE0037" textDecoration="underline">
             Privacy Notice
@@ -235,10 +270,19 @@ export function ReviewConfirm({
           <Link href="https://www.takeda.com/terms-and-conditions/" isExternal color="#CE0037" textDecoration="underline">
             Terms and Conditions
           </Link>
-          . I consent to Takeda sharing this report with regulatory authorities and
-          other parties as required by law.
+          . I consent to Takeda sharing this report with regulatory authorities and other parties as required by law.
         </Checkbox>
       </Box>
+
+      {(!agreedToTerms || !captchaChecked) && (
+        <Text fontSize="xs" color="red.400" mb={2}>
+          {!captchaChecked && !agreedToTerms
+            ? 'Please confirm you are not a robot and agree to the terms to submit.'
+            : !captchaChecked
+            ? 'Please confirm you are not a robot.'
+            : 'Please agree to the terms to submit.'}
+        </Text>
+      )}
     </>
   );
 }
