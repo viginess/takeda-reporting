@@ -4,6 +4,9 @@ on:
   pull_request:
     types: [opened, synchronize]
 
+permissions:
+  pull-requests: write   # 👈 This line is critical
+
 jobs:
   review:
     runs-on: ubuntu-latest
