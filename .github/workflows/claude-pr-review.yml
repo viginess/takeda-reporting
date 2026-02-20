@@ -5,10 +5,7 @@ on:
     types: [opened, synchronize]
 
 permissions:
-  pull-requests: write   
-
-permissions:
-  pull-requests: write   # 👈 This line is critical
+  pull-requests: write   # 👈 allows posting comments back to PRs
 
 jobs:
   review:
@@ -18,7 +15,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  
+          fetch-depth: 0   # ensures full history for diffs
 
       - name: Install GitHub CLI
         run: sudo apt update && sudo apt install gh -y
@@ -52,5 +49,5 @@ jobs:
         run: |
           COMMENT=$(cat review.json | jq -r '.content[0].text')
 
-          gh pr comment ${{ github.event.pull_request.number }} \
-          --body "$COMMENT"
+          gh api repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments \
+            -f body="$COMMENT"
