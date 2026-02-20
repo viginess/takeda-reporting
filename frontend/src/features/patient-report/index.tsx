@@ -28,6 +28,8 @@ import { ReviewConfirm } from './components/ReviewConfirm';
 import { SuccessStep } from '../../shared/components/SuccessStep';
 import { useState } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
+import { useToast } from '@chakra-ui/react';
+import { trpc } from '../../utils/trpc';
 
 const inputStyles = {
   size: 'lg' as const,
@@ -129,6 +131,8 @@ function EventStep({
 function PatientForm({ onBack }: PatientFormProps) {
   const [additionalDetails, setAdditionalDetails] = useState('');
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [captchaChecked, setCaptchaChecked] = useState(false);
+  const [reportId, setReportId] = useState<string | undefined>(undefined);
   const [accordionIndex, setAccordionIndex] = useState<number[]>([0, 1, 2, 3]);
 
   // Step 3 state
@@ -144,11 +148,63 @@ function PatientForm({ onBack }: PatientFormProps) {
   const [hasRelevantHistory, setHasRelevantHistory] = useState('');
   const [labTestsPerformed, setLabTestsPerformed] = useState('');
 
-  const onSubmit = (params: any) => {
-    console.log(params);
-    return new Promise((resolve) => {
-      setTimeout(resolve, 1000);
+  const toast = useToast();
+  const createPatient = trpc.patient.create.useMutation({
+    onError(err) {
+      toast({
+        title: 'Submission failed',
+        description: err.message,
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
+    },
+  });
+
+  const onSubmit = async (params: any) => {
+    const result = await createPatient.mutateAsync({
+      // Personal
+      name: params.name || undefined,
+      gender: params.gender || undefined,
+      initials: params.initials || undefined,
+      dob: params.dob || undefined,
+      ageValue: params.ageValue ? Number(params.ageValue) : undefined,
+      contactPermission: contactPermission || undefined,
+      email: params.email || undefined,
+
+      // HCP
+      hcpContactPermission: hcpContactPermission || undefined,
+      hcpFirstName: params.hcpFirstName || undefined,
+      hcpLastName: params.hcpLastName || undefined,
+      hcpEmail: params.hcpEmail || undefined,
+      hcpPhone: params.hcpPhone || undefined,
+      hcpInstitution: params.hcpInstitution || undefined,
+      hcpAddress: params.hcpAddress || undefined,
+      hcpCity: params.hcpCity || undefined,
+      hcpState: params.hcpState || undefined,
+      hcpZipCode: params.hcpZipCode || undefined,
+      hcpCountry: params.hcpCountry || undefined,
+
+      // Medical flags (from local state)
+      takingOtherMeds: takingOtherMeds || undefined,
+      hasRelevantHistory: hasRelevantHistory || undefined,
+      labTestsPerformed: labTestsPerformed || undefined,
+      additionalDetails: additionalDetails || undefined,
+
+      // Full JSONB arrays — pass exactly as-is from form (rich nested data)
+      products: params.products ?? [],
+      symptoms: params.symptoms ?? [],
+      otherMedications: params.otherMedications ?? [],
+      medicalHistory: params.medicalHistory ?? [],
+      labTests: params.labTests ?? [],
+
+      // Consent & Meta
+      agreedToTerms: agreedToTerms,
+      reporterType: 'patient',
+      status: 'pending',
     });
+    // Store the real report UUID returned from Supabase
+    if (result?.data?.id) setReportId(result.data.id);
   };
 
   return (
@@ -250,6 +306,8 @@ function PatientForm({ onBack }: PatientFormProps) {
                         setAccordionIndex={setAccordionIndex}
                         agreedToTerms={agreedToTerms}
                         setAgreedToTerms={setAgreedToTerms}
+                        captchaChecked={captchaChecked}
+                        setCaptchaChecked={setCaptchaChecked}
                         onBack={onBack}
                         primaryButtonStyles={primaryButtonStyles}
                       />
@@ -257,9 +315,10 @@ function PatientForm({ onBack }: PatientFormProps) {
                   </FormStep>
 
                   <StepsCompleted>
-<SuccessStep 
-                        onSubmitAnother={() => window.location.reload()}
-                      />
+                    <SuccessStep
+                      reportId={reportId}
+                      onSubmitAnother={() => window.location.reload()}
+                    />
                   </StepsCompleted>
                 </FormStepper>
 
