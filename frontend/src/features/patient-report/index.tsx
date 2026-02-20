@@ -8,7 +8,7 @@ import {
   Spacer,
   ButtonGroup,
   Button,
-
+  useToast,
 } from '@chakra-ui/react';
 import {
   FormLayout,
@@ -28,6 +28,7 @@ import { ReviewConfirm } from './components/ReviewConfirm';
 import { SuccessStep } from '../../shared/components/SuccessStep';
 import { useState } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
+import { trpc } from '../../utils/trpc';
 
 const inputStyles = {
   size: 'lg' as const,
@@ -144,11 +145,57 @@ function PatientForm({ onBack }: PatientFormProps) {
   const [hasRelevantHistory, setHasRelevantHistory] = useState('');
   const [labTestsPerformed, setLabTestsPerformed] = useState('');
 
-  const onSubmit = (params: any) => {
-    console.log(params);
-    return new Promise((resolve) => {
-      setTimeout(resolve, 1000);
-    });
+  const toast = useToast();
+  const createReport = trpc.patient.create.useMutation();
+
+  const onSubmit = async (params: any) => {
+    try {
+      await createReport.mutateAsync({
+        products: params.products,
+        symptoms: params.symptoms,
+        initials: params.initials,
+        dob: params.dob,
+        ageValue: params.ageValue ? String(params.ageValue) : undefined,
+        sex: params.sex,
+        contactPermission,
+        email: params.email,
+        name: params.name,
+        hcpContactPermission,
+        hcpFirstName: params.hcpFirstName,
+        hcpLastName: params.hcpLastName,
+        hcpEmail: params.hcpEmail,
+        hcpPhone: params.hcpPhone,
+        hcpInstitution: params.hcpInstitution,
+        hcpAddress: params.hcpAddress,
+        hcpCity: params.hcpCity,
+        hcpState: params.hcpState,
+        hcpZipCode: params.hcpZipCode,
+        hcpCountry: params.hcpCountry,
+        otherMedications: params.otherMedications,
+        medicalHistory: params.medicalHistory,
+        labTests: params.labTests,
+        additionalDetails,
+      });
+      toast({
+        title: 'Report submitted',
+        description: 'Your adverse event report has been saved successfully.',
+        status: 'success',
+        duration: 5000,
+        isClosable: true,
+        position: 'top',
+      });
+    } catch (err) {
+      console.error('Failed to submit report:', err);
+      toast({
+        title: 'Submission failed',
+        description: 'There was a problem saving your report. Please try again.',
+        status: 'error',
+        duration: 7000,
+        isClosable: true,
+        position: 'top',
+      });
+      throw err; // re-throw so StepForm does not advance to success
+    }
   };
 
   return (

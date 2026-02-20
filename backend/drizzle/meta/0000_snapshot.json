@@ -1,0 +1,242 @@
+{
+  "id": "89de4429-e73b-4ea7-8284-b2fa7ea82f48",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "version": "5",
+  "dialect": "pg",
+  "tables": {
+    "patients": {
+      "name": "patients",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "products": {
+          "name": "products",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "symptoms": {
+          "name": "symptoms",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "initials": {
+          "name": "initials",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "dob": {
+          "name": "dob",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "age_value": {
+          "name": "age_value",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "sex": {
+          "name": "sex",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "contact_permission": {
+          "name": "contact_permission",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "hcp_contact_permission": {
+          "name": "hcp_contact_permission",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "hcp_first_name": {
+          "name": "hcp_first_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "hcp_last_name": {
+          "name": "hcp_last_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "hcp_email": {
+          "name": "hcp_email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "hcp_phone": {
+          "name": "hcp_phone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "hcp_institution": {
+          "name": "hcp_institution",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "hcp_address": {
+          "name": "hcp_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "hcp_city": {
+          "name": "hcp_city",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "hcp_state": {
+          "name": "hcp_state",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "hcp_zip_code": {
+          "name": "hcp_zip_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "hcp_country": {
+          "name": "hcp_country",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "other_medications": {
+          "name": "other_medications",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "medical_history": {
+          "name": "medical_history",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "lab_tests": {
+          "name": "lab_tests",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "additional_details": {
+          "name": "additional_details",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "report_status",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'pending'"
+        },
+        "submitted_at": {
+          "name": "submitted_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "users": {
+      "name": "users",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    }
+  },
+  "enums": {
+    "report_status": {
+      "name": "report_status",
+      "values": {
+        "pending": "pending",
+        "under_review": "under_review",
+        "completed": "completed",
+        "closed": "closed"
+      }
+    }
+  },
+  "schemas": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

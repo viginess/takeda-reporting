@@ -8,14 +8,15 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate"
+    "db:generate": "drizzle-kit generate:pg",
+    "db:migrate": "drizzle-kit push:pg"
   },
   "engines": {
     "node": ">=20"
   },
   "dependencies": {
     "@trpc/server": "11.0.0",
+    "dotenv": "^17.3.1",
     "drizzle-orm": "^0.29.3",
     "pg": "^8.11.3",
     "zod": "^3.22.4"
