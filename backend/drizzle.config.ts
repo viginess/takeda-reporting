@@ -1,12 +1,12 @@
+/// <reference types="node" />
 import { defineConfig } from "drizzle-kit";
+import "dotenv/config";
 
 export default defineConfig({
   schema: "./src/db/schema.ts",
-  out: "./drizzle",
-  driver: "pg",
+  out: "./src/db/migrations",
+  dialect: "postgresql",
   dbCredentials: {
-    connectionString: process.env.DATABASE_URL || "postgres://postgres:postgres@localhost:5432/takeda_db",
+    url: process.env.DATABASE_URL!,
   },
-  verbose: true,
-  strict: true,
 });
