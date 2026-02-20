@@ -23,7 +23,19 @@ jobs:
 
       - name: Get PR diff
         run: |
+          git fetch origin ${{ github.event.pull_request.base.ref }}
           git diff origin/${{ github.event.pull_request.base.ref }}...HEAD > pr.diff
+          echo "=== DIFF SIZE ==="
+          wc -l pr.diff
+          echo "=== DIFF PREVIEW ==="
+          head -50 pr.diff
+
+      - name: Check diff is not empty
+        run: |
+          if [ ! -s pr.diff ]; then
+            echo "ERROR: pr.diff is empty — no changes detected between branches."
+            exit 1
+          fi
 
       - name: Send diff to Claude
         run: |
@@ -44,6 +56,8 @@ jobs:
             -H "anthropic-version: 2023-06-01" \
             -d "$PAYLOAD")
 
+          echo "=== CLAUDE RESPONSE ==="
+          echo "$RESPONSE"
           echo "$RESPONSE" > review.json
 
       - name: Post PR comment
@@ -51,5 +65,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GH_PAT }}
         run: |
           COMMENT=$(cat review.json | jq -r '.content[0].text // "Claude review failed. Check Actions logs."')
+          echo "=== COMMENT TO POST ==="
+          echo "$COMMENT"
           gh api repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments \
             -f body="$COMMENT"
