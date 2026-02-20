@@ -7,6 +7,9 @@ on:
 permissions:
   pull-requests: write   
 
+permissions:
+  pull-requests: write   # 👈 This line is critical
+
 jobs:
   review:
     runs-on: ubuntu-latest
