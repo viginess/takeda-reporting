@@ -5,7 +5,7 @@ on:
     types: [opened, synchronize]
 
 permissions:
-  pull-requests: write   # 👈 allows posting comments back to PRs
+  pull-requests: write   # allows posting comments back to PRs
 
 jobs:
   review:
@@ -16,6 +16,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0   # ensures full history for diffs
+          token: ${{ secrets.GITHUB_TOKEN }} # or use GH_PAT if private/fork
 
       - name: Install GitHub CLI
         run: sudo apt update && sudo apt install gh -y
