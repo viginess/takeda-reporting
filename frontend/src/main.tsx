@@ -2,7 +2,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { SaasProvider } from '@saas-ui/react';
 import { extendTheme } from '@chakra-ui/react';
-import './index.css';
+import './global.css';
 import App from './app/App.tsx';
 
 const theme = extendTheme({

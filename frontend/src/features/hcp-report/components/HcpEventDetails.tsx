@@ -10,8 +10,6 @@ import {
   Radio,
   Box,
   Text,
-  CheckboxGroup,
-  Checkbox,
 } from '@chakra-ui/react';
 import { useFormContext } from 'react-hook-form';
 import { HiPlus } from 'react-icons/hi2';
@@ -31,9 +29,10 @@ export function HcpEventDetails({
   index = 0,
   onAddSymptom,
 }: HcpEventDetailsProps) {
-  const { setValue, register } = useFormContext();
+  const { setValue, register, watch } = useFormContext();
 
   const prefix = `symptoms.${index}`;
+  const firstProductName = watch('products.0.productName');
 
   const setUnknown = (fieldName: string) => {
     setValue(`${prefix}.${fieldName}`, 'Unknown');
@@ -66,7 +65,7 @@ export function HcpEventDetails({
         </FormLabel>
         <Flex gap={3} flexWrap="wrap" align="center" mb={2}>
           <Input
-            type='date'
+            type={watch(`${prefix}.eventStartDate`) === 'Unknown' ? 'text' : 'date'}
             placeholder="Select start date"
             flex="1"
             minW="140px"
@@ -84,7 +83,7 @@ export function HcpEventDetails({
         </Flex>
         <Flex gap={3} flexWrap="wrap" align="center">
           <Input
-            type='date'
+            type={['Unknown', 'Ongoing'].includes(watch(`${prefix}.eventEndDate`)) ? 'text' : 'date'}
             placeholder="Select end date"
             flex="1"
             minW="140px"
@@ -136,18 +135,21 @@ export function HcpEventDetails({
         <FormLabel fontWeight="500" color="gray.700">
           How serious was the symptom?
         </FormLabel>
-        <CheckboxGroup colorScheme="red" onChange={(val) => setValue(`${prefix}.seriousness`, val)}>
+        <RadioGroup 
+          value={watch(`${prefix}.seriousness`)}
+          onChange={(val) => setValue(`${prefix}.seriousness`, val)}
+        >
           <Stack direction="row" spacing={6} flexWrap="wrap">
-            <Checkbox value="not-serious">The symptom was not serious</Checkbox>
-            <Checkbox value="medical-intervention">Medical intervention required</Checkbox>
-            <Checkbox value="hospitalization">Hospitalization required</Checkbox>
-            <Checkbox value="life-threatening">Life threatening</Checkbox>
-            <Checkbox value="disability">Persistent/Significant disability</Checkbox>
-            <Checkbox value="congenital">Congenital anomaly/birth defect</Checkbox>
-            <Checkbox value="medically-significant">Medically significant</Checkbox>
-            <Checkbox value="death">Death</Checkbox>
+            <Radio value="not-serious" colorScheme="red">The symptom was not serious</Radio>
+            <Radio value="medical-intervention" colorScheme="red">Medical intervention required</Radio>
+            <Radio value="hospitalization" colorScheme="red">Hospitalization required</Radio>
+            <Radio value="life-threatening" colorScheme="red">Life threatening</Radio>
+            <Radio value="disability" colorScheme="red">Persistent/Significant disability</Radio>
+            <Radio value="congenital" colorScheme="red">Congenital anomaly/birth defect</Radio>
+            <Radio value="medically-significant" colorScheme="red">Medically significant</Radio>
+            <Radio value="death" colorScheme="red">Death</Radio>
           </Stack>
-        </CheckboxGroup>
+        </RadioGroup>
       </FormControl>
 
       <FormControl mb={8}>
@@ -189,7 +191,7 @@ export function HcpEventDetails({
         boxShadow="sm"
       >
         <Text fontWeight="700" mb={4} color="gray.800" fontSize="sm">
-          Suspect product: ww
+          Suspect product: {firstProductName || 'Unknown Product'}
         </Text>
         <RadioGroup onChange={(val) => setValue(`${prefix}.relatedToProduct`, val)}>
           <Stack spacing={2}>

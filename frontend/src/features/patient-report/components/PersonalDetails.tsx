@@ -32,7 +32,7 @@ export function PersonalDetails({
   hcpContactPermission,
   setHcpContactPermission,
 }: PersonalDetailsProps) {
-  const { setValue, register } = useFormContext();
+  const { setValue, register, watch } = useFormContext();
 
   const setUnknown = (fieldName: string) => {
     setValue(fieldName, 'Unknown');
@@ -48,6 +48,7 @@ export function PersonalDetails({
       </Text>
       <Box borderBottom="2px solid" borderColor="#CE0037" mb={6} w="full" maxW="200px" />
 
+      {/* ── Patient Details ─────────────────────────────── */}
       <FormControl mb={6}>
         <FormLabel fontWeight="500" color="gray.700">
           Initials
@@ -56,13 +57,13 @@ export function PersonalDetails({
           placeholder="Enter your initials"
           {...inputStyles}
           mb={2}
-          {...register('initials')}
+          {...register('patientDetails.initials')}
         />
         <Button
           variant="ghost"
           size="sm"
           color="gray.600"
-          onClick={() => setUnknown('initials')}
+          onClick={() => setUnknown('patientDetails.initials')}
         >
           Prefer not to provide
         </Button>
@@ -84,22 +85,22 @@ export function PersonalDetails({
         </RadioGroup>
         {ageType === 'dob' && (
           <Input
-            type='date'
+            type={watch('patientDetails.dob') === 'Unknown' ? 'text' : 'date'}
             placeholder="Select date of birth"
             mt={3}
             {...inputStyles}
-            {...register('dob')}
+            {...register('patientDetails.dob')}
           />
         )}
         {ageType === 'age' && (
           <Flex gap={3} mt={3} align="center">
             <Input
               placeholder="32"
-              type="number"
+              type={watch('patientDetails.ageValue') === 'Unknown' ? 'text' : 'number'}
               flex="1"
               maxW="120px"
               {...inputStyles}
-              {...register('ageValue')}
+              {...register('patientDetails.ageValue')}
             />
             <Text color="gray.600">Years</Text>
           </Flex>
@@ -110,7 +111,9 @@ export function PersonalDetails({
         <FormLabel fontWeight="500" color="gray.700">
           Sex assigned at birth
         </FormLabel>
-        <RadioGroup defaultValue="">
+        <RadioGroup
+          onChange={(val) => setValue('patientDetails.gender', val)}
+        >
           <Stack direction="row" spacing={6}>
             <Radio value="male" colorScheme="red">
               Male
@@ -126,7 +129,13 @@ export function PersonalDetails({
         <FormLabel fontWeight="500" color="gray.700">
           Do we have permission to contact you?
         </FormLabel>
-        <RadioGroup value={contactPermission} onChange={setContactPermission}>
+        <RadioGroup
+          value={contactPermission}
+          onChange={(val) => {
+            setContactPermission(val);
+            setValue('patientDetails.contactPermission', val);
+          }}
+        >
           <Stack direction="row" spacing={6}>
             <Radio value="yes" colorScheme="red">
               Yes
@@ -151,23 +160,34 @@ export function PersonalDetails({
               placeholder="client@gmail.com"
               type="email"
               {...inputStyles}
-              {...register('email')}
+              {...register('patientDetails.email')}
             />
           </FormControl>
           <FormControl>
             <FormLabel fontWeight="500" color="gray.700">
               Name
             </FormLabel>
-            <Input placeholder="Enter your name" {...inputStyles} {...register('name')} />
+            <Input
+              placeholder="Enter your name"
+              {...inputStyles}
+              {...register('patientDetails.name')}
+            />
           </FormControl>
         </Box>
       )}
 
+      {/* ── HCP Details ──────────────────────────────────── */}
       <FormControl mb={8}>
         <FormLabel fontWeight="500" color="gray.700">
           Do we have permission to contact your Healthcare Professional (HCP) about this report?
         </FormLabel>
-        <RadioGroup value={hcpContactPermission} onChange={setHcpContactPermission}>
+        <RadioGroup
+          value={hcpContactPermission}
+          onChange={(val) => {
+            setHcpContactPermission(val);
+            setValue('hcpDetails.contactPermission', val);
+          }}
+        >
           <Stack direction="row" spacing={6}>
             <Radio value="yes" colorScheme="red">
               Yes
@@ -191,14 +211,14 @@ export function PersonalDetails({
             <Input
               placeholder="Enter first name"
               {...inputStyles}
-              {...register('hcpFirstName')}
+              {...register('hcpDetails.firstName')}
             />
           </FormControl>
           <FormControl mb={4}>
             <FormLabel fontWeight="500" color="gray.700">
               Last name
             </FormLabel>
-            <Input placeholder="Enter last name" {...inputStyles} {...register('hcpLastName')} />
+            <Input placeholder="Enter last name" {...inputStyles} {...register('hcpDetails.lastName')} />
           </FormControl>
           <Text fontWeight="600" mb={3} color="gray.700" fontSize="sm">
             How do we contact them? (complete at least one of these fields)
@@ -211,7 +231,7 @@ export function PersonalDetails({
               placeholder="Enter email address"
               type="email"
               {...inputStyles}
-              {...register('hcpEmail')}
+              {...register('hcpDetails.email')}
             />
           </FormControl>
           <FormControl mb={4}>
@@ -222,7 +242,7 @@ export function PersonalDetails({
               placeholder="Enter number including area code"
               type="tel"
               {...inputStyles}
-              {...register('hcpPhone')}
+              {...register('hcpDetails.phone')}
             />
           </FormControl>
           <Text fontWeight="600" mb={3} color="gray.700" fontSize="sm">
@@ -235,20 +255,20 @@ export function PersonalDetails({
             <Input
               placeholder="Enter hospital/institution"
               {...inputStyles}
-              {...register('hcpInstitution')}
+              {...register('hcpDetails.institution')}
             />
           </FormControl>
           <FormControl mb={4}>
             <FormLabel fontWeight="500" color="gray.700">
               Address
             </FormLabel>
-            <Input placeholder="Enter address" {...inputStyles} {...register('hcpAddress')} />
+            <Input placeholder="Enter address" {...inputStyles} {...register('hcpDetails.address')} />
           </FormControl>
           <FormControl mb={4}>
             <FormLabel fontWeight="500" color="gray.700">
               City/Town
             </FormLabel>
-            <Input placeholder="Enter city/town" {...inputStyles} {...register('hcpCity')} />
+            <Input placeholder="Enter city/town" {...inputStyles} {...register('hcpDetails.city')} />
           </FormControl>
           <FormControl mb={4}>
             <FormLabel fontWeight="500" color="gray.700">
@@ -257,7 +277,7 @@ export function PersonalDetails({
             <Input
               placeholder="Enter state/county/province"
               {...inputStyles}
-              {...register('hcpState')}
+              {...register('hcpDetails.state')}
             />
           </FormControl>
           <FormControl mb={4}>
@@ -267,14 +287,14 @@ export function PersonalDetails({
             <Input
               placeholder="Enter ZIP/Postal code"
               {...inputStyles}
-              {...register('hcpZipCode')}
+              {...register('hcpDetails.zipCode')}
             />
           </FormControl>
           <FormControl>
             <FormLabel fontWeight="500" color="gray.700">
               Country
             </FormLabel>
-            <Input placeholder="Enter country" {...inputStyles} {...register('hcpCountry')} />
+            <Input placeholder="Enter country" {...inputStyles} {...register('hcpDetails.country')} />
           </FormControl>
         </Box>
       )}
