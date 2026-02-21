@@ -1,11 +1,90 @@
 import { z } from "zod";
-import { router, publicProcedure } from "../../trpc/trpc.js";
+import { eq, desc } from "drizzle-orm";
+import { router, publicProcedure, rateLimitedProcedure } from "../../trpc/trpc.js";
+import { db } from "../../db/index.js";
+import { familyReports } from "../../db/schema.js";
+import { createFamilySchema, updateFamilySchema } from "./family.validation.js";
 
 export const familyRouter = router({
-  create: publicProcedure
-    .input(z.any())
-    .mutation(({ input: _input }) => {
-      // TODO: Implement logic
-      return { success: true };
+  create: rateLimitedProcedure
+    .input(createFamilySchema)
+    .mutation(async ({ input }) => {
+      const [row] = await db
+        .insert(familyReports)
+        .values({
+          products: input.products ?? [],
+          symptoms: input.symptoms ?? [],
+          patientDetails: input.patientDetails ?? {},
+          hcpDetails: input.hcpDetails ?? {},
+          takingOtherMeds: input.takingOtherMeds,
+          otherMedications: input.otherMedications ?? [],
+          hasRelevantHistory: input.hasRelevantHistory,
+          medicalHistory: input.medicalHistory ?? [],
+          labTestsPerformed: input.labTestsPerformed,
+          labTests: input.labTests ?? [],
+          additionalDetails: input.additionalDetails,
+          attachments: input.attachments ?? [],
+          agreedToTerms: input.agreedToTerms,
+          status: input.status ?? "pending",
+        })
+        .returning();
+
+      return { success: true, data: row };
+    }),
+
+  getAll: publicProcedure
+    .input(
+      z.object({
+        status: z.string().optional(),
+        limit: z.number().min(1).max(200).optional().default(50),
+        offset: z.number().min(0).optional().default(0),
+      }).optional()
+    )
+    .query(async ({ input }) => {
+      const rows = await db
+        .select()
+        .from(familyReports)
+        .orderBy(desc(familyReports.createdAt))
+        .limit(input?.limit ?? 50)
+        .offset(input?.offset ?? 0);
+
+      return { success: true, data: rows, count: rows.length };
+    }),
+
+  getById: publicProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .query(async ({ input }) => {
+      const [row] = await db
+        .select()
+        .from(familyReports)
+        .where(eq(familyReports.id, input.id));
+
+      if (!row) throw new Error(`Family report ${input.id} not found`);
+      return { success: true, data: row };
+    }),
+
+  update: publicProcedure
+    .input(z.object({ id: z.string().uuid(), data: updateFamilySchema }))
+    .mutation(async ({ input }) => {
+      const [row] = await db
+        .update(familyReports)
+        .set({ ...input.data, updatedAt: new Date() })
+        .where(eq(familyReports.id, input.id))
+        .returning();
+
+      if (!row) throw new Error(`Family report ${input.id} not found`);
+      return { success: true, data: row };
+    }),
+
+  delete: publicProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ input }) => {
+      const [row] = await db
+        .delete(familyReports)
+        .where(eq(familyReports.id, input.id))
+        .returning();
+
+      if (!row) throw new Error(`Family report ${input.id} not found`);
+      return { success: true, deletedId: row.id };
     }),
 });

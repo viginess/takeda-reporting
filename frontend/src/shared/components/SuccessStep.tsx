@@ -14,14 +14,16 @@ import { FaRegCopy } from "react-icons/fa6";
 interface SuccessStepProps {
   onBackToHome?: () => void;
   onSubmitAnother?: () => void;
+  reportId?: string;
 }
 
-export function SuccessStep({ onBackToHome, onSubmitAnother }: SuccessStepProps) {
+export function SuccessStep({ onBackToHome, onSubmitAnother, reportId }: SuccessStepProps) {
   const toast = useToast();
-  const reportId = `REP-${String(Date.now()).slice(-8)}`;
+  const displayId = reportId ?? `REP-${String(Date.now()).slice(-8)}`;
+
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(reportId);
+    navigator.clipboard.writeText(displayId);
     toast({
       title: "Report ID copied!",
       status: "success",
@@ -120,7 +122,7 @@ export function SuccessStep({ onBackToHome, onSubmitAnother }: SuccessStepProps)
             fontFamily="mono"
             letterSpacing="1px"
           >
-            {reportId}
+            {displayId}
           </Text>
           <Box
             as="button"

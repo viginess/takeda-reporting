@@ -6,8 +6,8 @@ Thumbs.db
 .vscode
 .idea
 
-# Docker
-docker-compose.override.yml
-
 # Logs
 *.log
+
+# Vercel
+.vercel

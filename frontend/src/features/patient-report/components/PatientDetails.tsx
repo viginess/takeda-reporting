@@ -11,6 +11,7 @@ import {
   Button,
   Flex,
 } from '@chakra-ui/react';
+import { useFormContext } from 'react-hook-form';
 
 interface PatientDetailsProps {
   inputStyles: any;
@@ -23,6 +24,12 @@ export function PatientDetails({
   ageType,
   setAgeType,
 }: PatientDetailsProps) {
+  const { register, setValue, watch } = useFormContext();
+
+  const setUnknown = (fieldName: string) => {
+    setValue(fieldName, 'Unknown');
+  };
+
   return (
     <>
       <Heading as="h2" size="lg" mb={2} color="gray.800" fontWeight="600">
@@ -37,8 +44,8 @@ export function PatientDetails({
         <FormLabel fontWeight="500" color="gray.700">
           Name or initials
         </FormLabel>
-        <Input placeholder="Enter name or initials" {...inputStyles} mb={2} />
-        <Button variant="ghost" size="sm" color="gray.600">
+        <Input placeholder="Enter name or initials" {...inputStyles} mb={2} {...register('patientDetails.initials')} />
+        <Button variant="ghost" size="sm" color="gray.600" onClick={() => setUnknown('patientDetails.initials')}>
           Prefer not to provide
         </Button>
       </FormControl>
@@ -63,6 +70,7 @@ export function PatientDetails({
             type="date"
             mt={3}
             {...inputStyles}
+            {...register('patientDetails.dob')}
           />
         )}
         {ageType === 'age' && (
@@ -73,6 +81,7 @@ export function PatientDetails({
               flex="1"
               maxW="120px"
               {...inputStyles}
+              {...register('patientDetails.ageValue')}
             />
             <Text color="gray.600">Years</Text>
           </Flex>
@@ -83,7 +92,7 @@ export function PatientDetails({
         <FormLabel fontWeight="500" color="gray.700">
           Sex assigned at birth
         </FormLabel>
-        <RadioGroup defaultValue="">
+        <RadioGroup value={watch('patientDetails.gender')} onChange={(val) => setValue('patientDetails.gender', val)}>
           <Stack direction="row" spacing={6}>
             <Radio value="male" colorScheme="red">
               Male

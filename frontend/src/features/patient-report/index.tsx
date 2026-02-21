@@ -28,6 +28,8 @@ import { ReviewConfirm } from './components/ReviewConfirm';
 import { SuccessStep } from '../../shared/components/SuccessStep';
 import { useState } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
+import { useToast } from '@chakra-ui/react';
+import { trpc } from '../../utils/trpc';
 
 const inputStyles = {
   size: 'lg' as const,
@@ -129,6 +131,8 @@ function EventStep({
 function PatientForm({ onBack }: PatientFormProps) {
   const [additionalDetails, setAdditionalDetails] = useState('');
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [captchaChecked, setCaptchaChecked] = useState(!import.meta.env.VITE_RECAPTCHA_SITE_KEY);
+  const [reportId, setReportId] = useState<string | undefined>(undefined);
   const [accordionIndex, setAccordionIndex] = useState<number[]>([0, 1, 2, 3]);
 
   // Step 3 state
@@ -144,11 +148,74 @@ function PatientForm({ onBack }: PatientFormProps) {
   const [hasRelevantHistory, setHasRelevantHistory] = useState('');
   const [labTestsPerformed, setLabTestsPerformed] = useState('');
 
-  const onSubmit = (params: any) => {
-    console.log(params);
-    return new Promise((resolve) => {
-      setTimeout(resolve, 1000);
+  const toast = useToast();
+  const createPatient = trpc.patient.create.useMutation({
+    onError(err) {
+      toast({
+        title: 'Submission failed',
+        description: err.message,
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
+    },
+  });
+
+  const onSubmit = async (params: any) => {
+    if (!params.captchaChecked || !params.agreedToTerms) {
+      toast({
+        title: 'Validation Error',
+        description: 'Please confirm you are not a robot and agree to the terms.',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+      throw new Error('Validation failed');
+    }
+
+    const result = await createPatient.mutateAsync({
+      // ── Step 1: Product ──────────────────────────────
+      products: params.products ?? [],
+
+      // ── Step 2: Event ────────────────────────────────
+      symptoms: params.symptoms?.map((s: any) => ({
+        ...s,
+        seriousness: Array.isArray(s.seriousness) ? s.seriousness.join(', ') : s.seriousness,
+      })) ?? [],
+
+      // ── Step 3: Personal & HCP (nested objects) ──────
+      patientDetails: {
+        ...params.patientDetails,
+        contactPermission: contactPermission || undefined,
+        ageValue: params.patientDetails?.ageValue
+          ? Number(params.patientDetails.ageValue)
+          : undefined,
+      },
+      hcpDetails: {
+        ...params.hcpDetails,
+        contactPermission: hcpContactPermission || undefined,
+      },
+
+      // ── Step 4: Additional ───────────────────────────
+      takingOtherMeds: takingOtherMeds || undefined,
+      otherMedications: params.otherMedications ?? [],
+
+      hasRelevantHistory: hasRelevantHistory || undefined,
+      medicalHistory: params.medicalHistory ?? [],
+
+      labTestsPerformed: labTestsPerformed || undefined,
+      labTests: params.labTests ?? [],
+
+      additionalDetails: additionalDetails || undefined,
+      attachments: params.attachments ?? [],
+
+      // ── Step 5: Confirm ──────────────────────────────
+      agreedToTerms: agreedToTerms,
+      reporterType: 'patient',
+      status: 'pending',
     });
+    // Store the real report UUID returned from Supabase
+    if (result?.data?.id) setReportId(result.data.id);
   };
 
   return (
@@ -167,11 +234,11 @@ function PatientForm({ onBack }: PatientFormProps) {
       >
         {onBack ? (
           <Box as="button" onClick={onBack} p={0} minW="auto" h="auto">
-            <Image src={takedaLogo} alt="Takeda" h="32px" cursor="pointer" />
+            <Image src={takedaLogo} alt="Takeda" h="42px" cursor="pointer" />
           </Box>
         ) : (
           <Link href="/">
-            <Image src={takedaLogo} alt="Takeda" h="32px" cursor="pointer" />
+            <Image src={takedaLogo} alt="Takeda" h="42px" cursor="pointer" />
           </Link>
         )}
         <Heading as="h1" size="md" fontWeight="600" color="gray.800">
@@ -185,17 +252,55 @@ function PatientForm({ onBack }: PatientFormProps) {
           <StepForm
             onSubmit={onSubmit}
             defaultValues={{
+              // Step 1
               products: [
                 {
                   productName: '',
                   condition: '',
+                  actionTaken: '',
                   batches: [{ batchNumber: '', expiryDate: '', startDate: '', endDate: '', dosage: '' }],
                 },
               ],
-              symptoms: [{ name: '' }],
+              // Step 2
+              symptoms: [{ 
+                name: '', 
+                eventStartDate: '', 
+                eventEndDate: '', 
+                symptomTreated: '',
+                treatment: '',
+                seriousness: [],
+                outcome: ''
+              }],
+              // Step 3
+              patientDetails: {
+                name: '',
+                gender: '',
+                initials: '',
+                dob: '',
+                ageValue: '',
+                contactPermission: '',
+                email: '',
+              },
+              hcpDetails: {
+                contactPermission: '',
+                firstName: '',
+                lastName: '',
+                email: '',
+                phone: '',
+                institution: '',
+                address: '',
+                city: '',
+                state: '',
+                zipCode: '',
+                country: '',
+              },
+              // Step 4
               otherMedications: [],
               medicalHistory: [],
               labTests: [],
+              // Step 5
+              agreedToTerms: false,
+              captchaChecked: !import.meta.env.VITE_RECAPTCHA_SITE_KEY,
             }}
           >
             {({ FormStep }) => (
@@ -250,6 +355,8 @@ function PatientForm({ onBack }: PatientFormProps) {
                         setAccordionIndex={setAccordionIndex}
                         agreedToTerms={agreedToTerms}
                         setAgreedToTerms={setAgreedToTerms}
+                        captchaChecked={captchaChecked}
+                        setCaptchaChecked={setCaptchaChecked}
                         onBack={onBack}
                         primaryButtonStyles={primaryButtonStyles}
                       />
@@ -257,9 +364,10 @@ function PatientForm({ onBack }: PatientFormProps) {
                   </FormStep>
 
                   <StepsCompleted>
-<SuccessStep 
-                        onSubmitAnother={() => window.location.reload()}
-                      />
+                    <SuccessStep
+                      reportId={reportId}
+                      onSubmitAnother={() => window.location.reload()}
+                    />
                   </StepsCompleted>
                 </FormStepper>
 

@@ -1,12 +1,12 @@
-import { defineConfig } from "drizzle-kit";
+/// <reference types="node" />
+import type { Config } from "drizzle-kit";
 
-export default defineConfig({
-  schema: "./src/db/schema.ts",
+export default {
+  schema: "./src/db/**/*.schema.ts",
   out: "./drizzle",
-  driver: "pg",
+  driver: "pg",   // ✅ MUST be exactly "pg"
   dbCredentials: {
-    connectionString: process.env.DATABASE_URL || "postgres://postgres:postgres@localhost:5432/takeda_db",
+    // @ts-ignore - TS treats this file as isolated since it is outside the src/ rootDir
+    connectionString: process.env.DATABASE_URL!,
   },
-  verbose: true,
-  strict: true,
-});
+} satisfies Config;

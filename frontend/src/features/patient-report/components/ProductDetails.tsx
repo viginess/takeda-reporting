@@ -34,7 +34,7 @@ interface ProductDetailsProps {
 }
 
 export function ProductDetails({ inputStyles, index = 0, onAddProduct }: ProductDetailsProps) {
-  const { setValue, register, control } = useFormContext();
+  const { setValue, register, control, watch } = useFormContext();
 
   const { fields: conditionFields, append: appendCondition, remove: removeCondition } = useFieldArray({
     control,
@@ -213,7 +213,7 @@ export function ProductDetails({ inputStyles, index = 0, onAddProduct }: Product
             </FormLabel>
             <Flex gap={3} flexWrap="wrap">
               <Input
-               type='date'
+               type={watch(`${prefix}.batches.${bIdx}.expiryDate`) === 'Unknown' ? 'text' : 'date'}
                 placeholder="e.g. 24 February 2020"
                 flex="1"
                 minW="200px"
@@ -237,7 +237,7 @@ export function ProductDetails({ inputStyles, index = 0, onAddProduct }: Product
             </FormLabel>
             <Flex gap={3} flexWrap="wrap" align="center" mb={2}>
               <Input
-              type='date'
+              type={watch(`${prefix}.batches.${bIdx}.startDate`) === 'Unknown' ? 'text' : 'date'}
                 placeholder="Select start date"
                 flex="1"
                 minW="140px"
@@ -255,7 +255,7 @@ export function ProductDetails({ inputStyles, index = 0, onAddProduct }: Product
             </Flex>
             <Flex gap={3} flexWrap="wrap" align="center">
               <Input
-                type='date'
+                type={['Unknown', 'Ongoing'].includes(watch(`${prefix}.batches.${bIdx}.endDate`)) ? 'text' : 'date'}
                 placeholder="Select end date"
                 flex="1"
                 minW="140px"
@@ -292,7 +292,9 @@ export function ProductDetails({ inputStyles, index = 0, onAddProduct }: Product
         />
       </FormControl>
 
-      <ProductImageUpload />
+      <ProductImageUpload
+        onChange={(base64Array) => setValue(`${prefix}.images`, base64Array)}
+      />
         </Box>
       ))}
 

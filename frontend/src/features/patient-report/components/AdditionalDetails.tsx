@@ -43,7 +43,7 @@ export function AdditionalDetails({
   additionalDetails,
   setAdditionalDetails,
 }: AdditionalDetailsProps) {
-  const { setValue, register, control } = useFormContext();
+  const { setValue, register, control, watch } = useFormContext();
 
   const {
     fields: otherMedFields,
@@ -89,13 +89,22 @@ export function AdditionalDetails({
         Just a few more details (Optional)
       </Heading>
 
-      <ProductImageUpload label="Is there any additional documentation or evidence you would like to attach?" />
+      <ProductImageUpload
+        label="Is there any additional documentation or evidence you would like to attach?"
+        onChange={(base64Array) => setValue('attachments', base64Array)}
+      />
 
       <FormControl mb={6}>
         <FormLabel fontWeight="500" color="gray.700">
           Are you taking any other medication?
         </FormLabel>
-        <RadioGroup value={takingOtherMeds} onChange={setTakingOtherMeds}>
+        <RadioGroup
+          value={watch('takingOtherMeds') || takingOtherMeds}
+          onChange={(val) => {
+            setTakingOtherMeds(val);
+            setValue('takingOtherMeds', val);
+          }}
+        >
           <Stack direction="row" spacing={6}>
             <Radio value="yes" colorScheme="red">
               Yes
@@ -163,7 +172,7 @@ export function AdditionalDetails({
                 </FormLabel>
                 <Flex gap={3} flexWrap="wrap" align="center" mb={2}>
                   <Input
-                    type='date'
+                    type={watch(`otherMedications.${index}.startDate`) === 'Unknown' ? 'text' : 'date'}
                     placeholder="Select start date"
                     flex="1"
                     minW="140px"
@@ -181,7 +190,7 @@ export function AdditionalDetails({
                 </Flex>
                 <Flex gap={3} flexWrap="wrap" align="center">
                   <Input
-                    type='date'
+                    type={['Unknown', 'Ongoing'].includes(watch(`otherMedications.${index}.endDate`)) ? 'text' : 'date'}
                     placeholder="Select end date"
                     flex="1"
                     minW="140px"
@@ -225,7 +234,13 @@ export function AdditionalDetails({
         <FormLabel fontWeight="500" color="gray.700">
           Is there any relevant medical history you would like to share?
         </FormLabel>
-        <RadioGroup value={hasRelevantHistory} onChange={setHasRelevantHistory}>
+        <RadioGroup
+          value={watch('hasRelevantHistory') || hasRelevantHistory}
+          onChange={(val) => {
+            setHasRelevantHistory(val);
+            setValue('hasRelevantHistory', val);
+          }}
+        >
           <Stack direction="row" spacing={6}>
             <Radio value="yes" colorScheme="red">
               Yes
@@ -274,7 +289,7 @@ export function AdditionalDetails({
                 </FormLabel>
                 <Flex gap={3} flexWrap="wrap" align="center" mb={2}>
                   <Input
-                    type='date'
+                    type={watch(`medicalHistory.${index}.startDate`) === 'Unknown' ? 'text' : 'date'}
                     placeholder="Select start date"
                     flex="1"
                     minW="140px"
@@ -292,7 +307,7 @@ export function AdditionalDetails({
                 </Flex>
                 <Flex gap={3} flexWrap="wrap" align="center">
                   <Input
-                    type='date'
+                    type={['Unknown', 'Ongoing'].includes(watch(`medicalHistory.${index}.endDate`)) ? 'text' : 'date'}
                     placeholder="Select end date"
                     flex="1"
                     minW="140px"
@@ -348,7 +363,13 @@ export function AdditionalDetails({
         <FormLabel fontWeight="500" color="gray.700">
           Were any laboratory or diagnostic tests performed?
         </FormLabel>
-        <RadioGroup value={labTestsPerformed} onChange={setLabTestsPerformed}>
+        <RadioGroup
+          value={watch('labTestsPerformed') || labTestsPerformed}
+          onChange={(val) => {
+            setLabTestsPerformed(val);
+            setValue('labTestsPerformed', val);
+          }}
+        >
           <Stack direction="row" spacing={6}>
             <Radio value="yes" colorScheme="red">
               Yes
@@ -470,8 +491,11 @@ export function AdditionalDetails({
           placeholder="Enter additional details here"
           rows={5}
           maxLength={10000}
-          value={additionalDetails}
-          onChange={(e) => setAdditionalDetails(e.target.value)}
+          value={watch('additionalDetails') ?? additionalDetails}
+          onChange={(e) => {
+            setAdditionalDetails(e.target.value);
+            setValue('additionalDetails', e.target.value);
+          }}
           {...inputStyles}
         />
         <Text fontSize="xs" color="gray.500" mt={1}>

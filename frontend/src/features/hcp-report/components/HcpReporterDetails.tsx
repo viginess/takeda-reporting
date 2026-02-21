@@ -24,7 +24,7 @@ export function HcpReporterDetails({
   contactPermission,
   setContactPermission,
 }: HcpReporterDetailsProps) {
-  const { register } = useFormContext();
+  const { register, setValue, watch } = useFormContext();
 
   return (
     <>
@@ -41,14 +41,22 @@ export function HcpReporterDetails({
           <FormLabel fontWeight="500" color="gray.700">
             First name
           </FormLabel>
-          <Input placeholder="Enter first name" {...inputStyles} {...register('firstName')} />
+          <Input 
+            placeholder="Enter first name" 
+            {...inputStyles} 
+            {...register('firstName')} 
+          />
         </FormControl>
 
         <FormControl>
           <FormLabel fontWeight="500" color="gray.700">
             Last name
           </FormLabel>
-          <Input placeholder="Enter last name" {...inputStyles} {...register('lastName')} />
+          <Input 
+            placeholder="Enter last name" 
+            {...inputStyles} 
+            {...register('lastName')} 
+          />
         </FormControl>
       </Flex>
 
@@ -56,7 +64,13 @@ export function HcpReporterDetails({
         <FormLabel fontWeight="500" color="gray.700">
           Do we have permission to contact you for further information?
         </FormLabel>
-        <RadioGroup value={contactPermission} onChange={setContactPermission}>
+        <RadioGroup
+          value={watch('reporterDetails.contactPermission') || watch('contactPermission') || contactPermission}
+          onChange={(val) => {
+            setContactPermission(val);
+            setValue('contactPermission', val);
+          }}
+        >
           <Stack direction="row" spacing={6}>
             <Radio value="yes" colorScheme="red">
               Yes
@@ -77,18 +91,40 @@ export function HcpReporterDetails({
             <Box borderBottom="2px solid" borderColor="#CE0037" mt={2} mb={6} w="full" maxW="200px" />
           </Box>
 
-          <FormControl mb={4}>
+          <FormControl mb={4} isRequired>
             <FormLabel fontWeight="500" color="gray.700">
               Email
             </FormLabel>
-            <Input placeholder="Enter email address" type="email" {...inputStyles} {...register('email')} />
+            <Input 
+              placeholder="Enter email address" 
+              type="email" 
+              {...inputStyles} 
+              {...register('email', { 
+                required: 'Email is required',
+                pattern: {
+                  value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                  message: 'Invalid email address'
+                }
+              })} 
+            />
           </FormControl>
 
-          <FormControl mb={6}>
+          <FormControl mb={6} isRequired>
             <FormLabel fontWeight="500" color="gray.700">
               Phone number
             </FormLabel>
-            <Input placeholder="Enter number (inc area code)" type="tel" {...inputStyles} {...register('phone')} />
+            <Input 
+              placeholder="Enter number (inc area code)" 
+              type="tel" 
+              {...inputStyles} 
+              {...register('phone', { 
+                required: 'Phone number is required',
+                pattern: {
+                  value: /^\d{10}$/,
+                  message: 'Phone number must be exactly 10 digits'
+                }
+              })} 
+            />
           </FormControl>
 
           <Box mt={10} mb={4}>
