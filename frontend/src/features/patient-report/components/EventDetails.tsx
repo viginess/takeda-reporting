@@ -30,7 +30,7 @@ export function EventDetails({
   index = 0,
   onAddSymptom,
 }: EventDetailsProps) {
-  const { setValue, register } = useFormContext();
+  const { setValue, register, watch } = useFormContext();
 
   const prefix = `symptoms.${index}`;
 
@@ -65,7 +65,7 @@ export function EventDetails({
         </FormLabel>
         <Flex gap={3} flexWrap="wrap" align="center" mb={2}>
           <Input
-            type='date'
+            type={watch(`${prefix}.eventStartDate`) === 'Unknown' ? 'text' : 'date'}
             placeholder="Select start date"
             flex="1"
             minW="140px"
@@ -83,7 +83,7 @@ export function EventDetails({
         </Flex>
         <Flex gap={3} flexWrap="wrap" align="center">
           <Input
-            type='date'
+            type={['Unknown', 'Ongoing'].includes(watch(`${prefix}.eventEndDate`)) ? 'text' : 'date'}
             placeholder="Select end date"
             flex="1"
             minW="140px"
@@ -152,8 +152,11 @@ export function EventDetails({
         <FormLabel fontWeight="500" color="gray.700">
           Was the symptom serious?
         </FormLabel>
-        <RadioGroup onChange={(val) => setValue(`${prefix}.seriousness`, val)}>
-          <Stack spacing={3} flexWrap="wrap">
+        <RadioGroup 
+          value={watch(`${prefix}.seriousness`)}
+          onChange={(val) => setValue(`${prefix}.seriousness`, val)}
+        >
+          <Stack direction="row" spacing={6} flexWrap="wrap">
             <Radio value="not-serious" colorScheme="red">The symptom was not serious</Radio>
             <Radio value="medical-intervention" colorScheme="red">Medical intervention required</Radio>
             <Radio value="hospitalization" colorScheme="red">Hospitalization required</Radio>
@@ -161,6 +164,7 @@ export function EventDetails({
             <Radio value="disability" colorScheme="red">Persistent/Significant disability</Radio>
             <Radio value="congenital" colorScheme="red">Congenital anomaly/birth defect</Radio>
             <Radio value="medically-significant" colorScheme="red">Medically significant</Radio>
+            <Radio value="death" colorScheme="red">Death</Radio>
           </Stack>
         </RadioGroup>
       </FormControl>

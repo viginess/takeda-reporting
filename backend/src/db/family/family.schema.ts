@@ -7,7 +7,7 @@ import {
   jsonb,
 } from "drizzle-orm/pg-core";
 
-export const patientReports = pgTable("patient_reports", {
+export const familyReports = pgTable("family_reports", {
   id: uuid("id").defaultRandom().primaryKey(),
 
   // ── Step 1: Product ─────────────────────────────────────
@@ -16,10 +16,10 @@ export const patientReports = pgTable("patient_reports", {
   // ── Step 2: Event (symptoms) ─────────────────────────────
   symptoms: jsonb("symptoms"),
 
-  // ── Step 3: Personal & HCP (stored as JSONB objects) ────
+  // ── Step 3: Personal & HCP (same as patient form) ────────
   // patientDetails: { name, gender, initials, dob, ageValue, contactPermission, email }
   patientDetails: jsonb("patient_details"),
-  // hcpDetails: { contactPermission, firstName, lastName, email, phone, institution, address, city, state, zipCode, country }
+  // hcpDetails: { contactPermission, firstName, lastName, email, phone, ... }
   hcpDetails: jsonb("hcp_details"),
 
   // ── Step 4: Additional Details ───────────────────────────
@@ -33,11 +33,10 @@ export const patientReports = pgTable("patient_reports", {
   labTests: jsonb("lab_tests"),
 
   additionalDetails: text("additional_details"),
-  attachments: jsonb("attachments"),               // base64 image arrays from Additional step
+  attachments: jsonb("attachments"),
 
   // ── Step 5: Confirm ──────────────────────────────────────
-  agreedToTerms: boolean("agreed_to_terms").notNull(),
-  reporterType: text("reporter_type"),
+  agreedToTerms: boolean("agreed_to_terms").notNull().default(false),
   status: text("status").default("pending"),
 
   // Meta

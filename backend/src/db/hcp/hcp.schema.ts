@@ -7,7 +7,7 @@ import {
   jsonb,
 } from "drizzle-orm/pg-core";
 
-export const patientReports = pgTable("patient_reports", {
+export const hcpReports = pgTable("hcp_reports", {
   id: uuid("id").defaultRandom().primaryKey(),
 
   // ── Step 1: Product ─────────────────────────────────────
@@ -16,13 +16,15 @@ export const patientReports = pgTable("patient_reports", {
   // ── Step 2: Event (symptoms) ─────────────────────────────
   symptoms: jsonb("symptoms"),
 
-  // ── Step 3: Personal & HCP (stored as JSONB objects) ────
-  // patientDetails: { name, gender, initials, dob, ageValue, contactPermission, email }
+  // ── Step 3: Patient details (HCP-specific fields) ────────
+  // { initials, dob, age, gender, reference, height, weight }
   patientDetails: jsonb("patient_details"),
-  // hcpDetails: { contactPermission, firstName, lastName, email, phone, institution, address, city, state, zipCode, country }
-  hcpDetails: jsonb("hcp_details"),
 
-  // ── Step 4: Additional Details ───────────────────────────
+  // ── Step 4: Reporter / You ───────────────────────────────
+  // { firstName, lastName, email, phone, institution, address, city, state, zipCode, country, contactPermission }
+  reporterDetails: jsonb("reporter_details"),
+
+  // ── Step 5: Additional Details ───────────────────────────
   takingOtherMeds: text("taking_other_meds"),
   otherMedications: jsonb("other_medications"),
 
@@ -33,11 +35,10 @@ export const patientReports = pgTable("patient_reports", {
   labTests: jsonb("lab_tests"),
 
   additionalDetails: text("additional_details"),
-  attachments: jsonb("attachments"),               // base64 image arrays from Additional step
+  attachments: jsonb("attachments"),
 
-  // ── Step 5: Confirm ──────────────────────────────────────
-  agreedToTerms: boolean("agreed_to_terms").notNull(),
-  reporterType: text("reporter_type"),
+  // ── Step 6: Confirm ──────────────────────────────────────
+  agreedToTerms: boolean("agreed_to_terms").notNull().default(false),
   status: text("status").default("pending"),
 
   // Meta

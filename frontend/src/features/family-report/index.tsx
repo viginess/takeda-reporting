@@ -7,6 +7,8 @@ import {
   Link,
   Spacer,
   ButtonGroup,
+  Button,
+  useToast,
 } from '@chakra-ui/react';
 import {
   FormLayout,
@@ -27,6 +29,8 @@ import { AdditionalDetails } from '../patient-report/components/AdditionalDetail
 import { FamilyReviewConfirm } from './components/FamilyReviewConfirm';
 import { SuccessStep } from '../../shared/components/SuccessStep';
 import { useState } from 'react';
+import { useFormContext, useFieldArray } from 'react-hook-form';
+import { trpc } from '../../utils/trpc';
 
 const inputStyles = {
   size: 'lg' as const,
@@ -53,9 +57,82 @@ type FamilyFormProps = {
   onBack?: () => void;
 };
 
+// Wrapper component to provide field array functionality for products
+function ProductStep({ inputStyles }: { inputStyles: any }) {
+  const { control } = useFormContext();
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: 'products',
+  });
+
+  return (
+    <Box mt={12}>
+      {fields.map((field, index) => (
+        <Box key={field.id} mb={10} position="relative">
+          {index > 0 && (
+            <Flex justify="flex-end" mb={2}>
+              <Button size="sm" variant="ghost" colorScheme="red" onClick={() => remove(index)}>
+                Remove product
+              </Button>
+            </Flex>
+          )}
+          <ProductDetails
+            inputStyles={inputStyles}
+            index={index}
+            onAddProduct={() => append({ productName: '', condition: '' })}
+          />
+          {index < fields.length - 1 && <Box borderBottom="1px solid" borderColor="gray.100" my={10} />}
+        </Box>
+      ))}
+    </Box>
+  );
+}
+
+// Wrapper component to provide field array functionality for symptoms
+function EventStep({
+  inputStyles,
+  symptomTreated,
+  setSymptomTreated,
+}: {
+  inputStyles: any;
+  symptomTreated: string;
+  setSymptomTreated: (val: string) => void;
+}) {
+  const { control } = useFormContext();
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: 'symptoms',
+  });
+
+  return (
+    <Box mt={12}>
+      {fields.map((field, index) => (
+        <Box key={field.id} mb={10} position="relative">
+          {index > 0 && (
+            <Flex justify="flex-end" mb={2}>
+              <Button size="sm" variant="ghost" colorScheme="red" onClick={() => remove(index)}>
+                Remove symptom
+              </Button>
+            </Flex>
+          )}
+          <EventDetails
+            inputStyles={inputStyles}
+            index={index}
+            symptomTreated={symptomTreated}
+            setSymptomTreated={setSymptomTreated}
+            onAddSymptom={() => append({ name: '' })}
+          />
+          {index < fields.length - 1 && <Box borderBottom="1px solid" borderColor="gray.100" my={10} />}
+        </Box>
+      ))}
+    </Box>
+  );
+}
+
 function FamilyForm({ onBack }: FamilyFormProps) {
   const [additionalDetails, setAdditionalDetails] = useState('');
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [captchaChecked, setCaptchaChecked] = useState(!import.meta.env.VITE_RECAPTCHA_SITE_KEY);
   const [accordionIndex, setAccordionIndex] = useState<number[]>([0, 1, 2, 3]);
 
   // Step state
@@ -66,12 +143,65 @@ function FamilyForm({ onBack }: FamilyFormProps) {
   const [takingOtherMeds, setTakingOtherMeds] = useState('');
   const [hasRelevantHistory, setHasRelevantHistory] = useState('');
   const [labTestsPerformed, setLabTestsPerformed] = useState('');
+  const [submittedId, setSubmittedId] = useState<string | undefined>();
+  const toast = useToast();
 
-  const onSubmit = (params: any) => {
-    console.log(params);
-    return new Promise((resolve) => {
-      setTimeout(resolve, 1000);
-    });
+  const createFamilyReport = trpc.family.create.useMutation({
+    onError(err) {
+      toast({
+        title: 'Submission failed',
+        description: err.message,
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
+    },
+  });
+
+  const onSubmit = async (params: any) => {
+    console.error('apicalls',params);
+    try {
+      if (!params.captchaChecked || !params.agreedToTerms) {
+        toast({
+          title: 'Validation Error',
+          description: 'Please confirm you are not a robot and agree to the terms to submit.',
+          status: 'error',
+          duration: 3000,
+          isClosable: true,
+        });
+        throw new Error('Validation failed');
+      }
+
+      const payload = {
+        ...params,
+        symptoms: params.symptoms?.map((s: any) => ({
+          ...s,
+          seriousness: Array.isArray(s.seriousness) ? s.seriousness.join(', ') : s.seriousness,
+        })) ?? [],
+        patientDetails: {
+          ...params.patientDetails,
+          contactPermission: contactPermission || undefined,
+          ageValue: params.patientDetails?.ageValue ? Number(params.patientDetails.ageValue) : undefined,
+        },
+        hcpDetails: {
+          ...params.hcpDetails,
+          contactPermission: hcpContactPermission || undefined,
+        },
+        takingOtherMeds: takingOtherMeds || undefined,
+        hasRelevantHistory: hasRelevantHistory || undefined,
+        labTestsPerformed: labTestsPerformed || undefined,
+        additionalDetails: additionalDetails || undefined,
+        status: 'submitted',
+      };
+
+      const result = await createFamilyReport.mutateAsync(payload);
+      if (result?.data?.id) {
+        setSubmittedId(result.data.id);
+      }
+    } catch (error) {
+      console.error('Failed to submit report:', error);
+      throw error;
+    }
   };
 
   return (
@@ -97,11 +227,11 @@ function FamilyForm({ onBack }: FamilyFormProps) {
       >
         {onBack ? (
           <Box as="button" onClick={onBack} p={0} minW="auto" h="auto">
-            <Image src={takedaLogo} alt="Takeda" h="32px" cursor="pointer" />
+            <Image src={takedaLogo} alt="Takeda" h="42px" cursor="pointer" />
           </Box>
         ) : (
           <Link href="/">
-            <Image src={takedaLogo} alt="Takeda" h="32px" cursor="pointer" />
+            <Image src={takedaLogo} alt="Takeda" h="42px" cursor="pointer" />
           </Link>
         )}
         <Heading as="h1" size="md" fontWeight="600" color="gray.800">
@@ -114,28 +244,45 @@ function FamilyForm({ onBack }: FamilyFormProps) {
         <Box maxW="800px" w="full" bg="white" borderRadius="xl" boxShadow="md" p={10}>
           <StepForm
             onSubmit={onSubmit}
+            onError={(err) => console.error('Form validation failed:', err)}
             defaultValues={{
-              productName: '',
-              symptoms: '',
+              products: [
+                {
+                  productName: '',
+                  condition: '',
+                  actionTaken: '',
+                  batches: [{ batchNumber: '', expiryDate: '', startDate: '', endDate: '', dosage: '' }],
+                },
+              ],
+              symptoms: [{ 
+                name: '', 
+                eventStartDate: '', 
+                eventEndDate: '', 
+                symptomTreated: '',
+                treatment: '',
+                seriousness: [],
+                outcome: ''
+              }],
+              otherMedications: [],
+              medicalHistory: [],
+              labTests: [],
+              agreedToTerms: false,
+              captchaChecked: !import.meta.env.VITE_RECAPTCHA_SITE_KEY,
             }}
           >
             {({ FormStep }) => (
               <FormLayout spacing={8}>
                 <FormStepper colorScheme="red" mb={10}>
                   <FormStep name="product" title="Product">
-                    <Box mt={12}>
-                      <ProductDetails inputStyles={inputStyles} />
-                    </Box>
+                    <ProductStep inputStyles={inputStyles} />
                   </FormStep>
 
                   <FormStep name="event" title="Event">
-                    <Box mt={12}>
-                      <EventDetails
-                        inputStyles={inputStyles}
-                        symptomTreated={symptomTreated}
-                        setSymptomTreated={setSymptomTreated}
-                      />
-                    </Box>
+                    <EventStep
+                      inputStyles={inputStyles}
+                      symptomTreated={symptomTreated}
+                      setSymptomTreated={setSymptomTreated}
+                    />
                   </FormStep>
 
                   <FormStep name="patient" title="Patient">
@@ -183,6 +330,8 @@ function FamilyForm({ onBack }: FamilyFormProps) {
                         setAccordionIndex={setAccordionIndex}
                         agreedToTerms={agreedToTerms}
                         setAgreedToTerms={setAgreedToTerms}
+                        captchaChecked={captchaChecked}
+                        setCaptchaChecked={setCaptchaChecked}
                         onBack={onBack}
                         primaryButtonStyles={primaryButtonStyles}
                       />
@@ -191,6 +340,7 @@ function FamilyForm({ onBack }: FamilyFormProps) {
 
                   <StepsCompleted>
                     <SuccessStep 
+                        reportId={submittedId}
                         onSubmitAnother={() => window.location.reload()}
                       />
                   </StepsCompleted>

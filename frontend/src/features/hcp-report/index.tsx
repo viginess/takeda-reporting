@@ -8,6 +8,7 @@ import {
   Spacer,
   ButtonGroup,
   Button,
+  useToast,
 } from '@chakra-ui/react';
 import {
   FormLayout,
@@ -29,6 +30,7 @@ import { HcpReviewConfirm } from './components/HcpReviewConfirm';
 import { SuccessStep } from '../../shared/components/SuccessStep';
 import { useState } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
+import { trpc } from '../../utils/trpc';
 
 const inputStyles = {
   size: 'lg' as const,
@@ -130,6 +132,7 @@ function EventStep({
 function HcpForm({ onBack }: HcpFormProps) {
   const [additionalDetails, setAdditionalDetails] = useState('');
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [captchaChecked, setCaptchaChecked] = useState(!import.meta.env.VITE_RECAPTCHA_SITE_KEY);
   const [accordionIndex, setAccordionIndex] = useState<number[]>([0, 1, 2, 3]);
 
   // Step state
@@ -139,12 +142,77 @@ function HcpForm({ onBack }: HcpFormProps) {
   const [takingOtherMeds, setTakingOtherMeds] = useState('');
   const [hasRelevantHistory, setHasRelevantHistory] = useState('');
   const [labTestsPerformed, setLabTestsPerformed] = useState('');
+  const [submittedId, setSubmittedId] = useState<string | undefined>();
+  const toast = useToast();
 
-  const onSubmit = (params: any) => {
-    console.log(params);
-    return new Promise((resolve) => {
-      setTimeout(resolve, 1000);
-    });
+  const createHcpReport = trpc.hcp.create.useMutation({
+    onError(err) {
+      toast({
+        title: 'Submission failed',
+        description: err.message,
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
+    },
+  });
+
+  const onSubmit = async (params: any) => {
+    try {
+      if (!params.captchaChecked || !params.agreedToTerms) {
+        toast({
+          title: 'Validation Error',
+          description: 'Please confirm you are not a robot and agree to the terms to submit.',
+          status: 'error',
+          duration: 3000,
+          isClosable: true,
+        });
+        throw new Error('Validation failed');
+      }
+
+      const payload = {
+        ...params,
+        symptoms: params.symptoms?.map((s: any) => ({
+          ...s,
+          seriousness: Array.isArray(s.seriousness) ? s.seriousness.join(', ') : s.seriousness,
+        })) ?? [],
+        patientDetails: {
+          initials: params.patientInitials,
+          dob: params.patientDob,
+          age: params.patientAge ? Number(params.patientAge) : undefined,
+          gender: params.patientGender,
+          reference: params.patientReference,
+          height: params.patientHeight,
+          weight: params.patientWeight,
+        },
+        reporterDetails: {
+          firstName: params.firstName,
+          lastName: params.lastName,
+          email: params.email,
+          phone: params.phone,
+          institution: params.institution,
+          address: params.address,
+          city: params.city,
+          state: params.state,
+          zipCode: params.zipCode,
+          country: params.country,
+          contactPermission: contactPermission || params.contactPermission,
+        },
+        takingOtherMeds: takingOtherMeds || undefined,
+        hasRelevantHistory: hasRelevantHistory || undefined,
+        labTestsPerformed: labTestsPerformed || undefined,
+        additionalDetails: additionalDetails || undefined,
+        status: 'submitted',
+      };
+
+      const result = await createHcpReport.mutateAsync(payload);
+      if (result?.data?.id) {
+        setSubmittedId(result.data.id);
+      }
+    } catch (error) {
+      console.error('Failed to submit report:', error);
+      throw error;
+    }
   };
 
   return (
@@ -170,11 +238,11 @@ function HcpForm({ onBack }: HcpFormProps) {
       >
         {onBack ? (
           <Box as="button" onClick={onBack} p={0} minW="auto" h="auto">
-            <Image src={takedaLogo} alt="Takeda" h="32px" cursor="pointer" />
+            <Image src={takedaLogo} alt="Takeda" h="42px" cursor="pointer" />
           </Box>
         ) : (
           <Link href="/">
-            <Image src={takedaLogo} alt="Takeda" h="32px" cursor="pointer" />
+            <Image src={takedaLogo} alt="Takeda" h="42px" cursor="pointer" />
           </Link>
         )}
         <Heading as="h1" size="md" fontWeight="600" color="gray.800">
@@ -187,18 +255,49 @@ function HcpForm({ onBack }: HcpFormProps) {
         <Box maxW="800px" w="full" bg="white" borderRadius="xl" boxShadow="md" p={10}>
           <StepForm
             onSubmit={onSubmit}
+            onError={(err) => console.error('Form validation failed:', err)}
             defaultValues={{
               products: [
                 {
                   productName: '',
                   condition: '',
+                  doseForm: '',
+                  route: '',
                   batches: [{ batchNumber: '', expiryDate: '', startDate: '', endDate: '', dosage: '' }],
                 },
               ],
-              symptoms: [{ name: '' }],
+              symptoms: [{ 
+                name: '', 
+                eventStartDate: '', 
+                eventEndDate: '', 
+                symptomTreated: '',
+                treatment: '',
+                seriousness: [],
+                outcome: ''
+              }],
+              patientInitials: '',
+              patientAge: '',
+              patientDob: '',
+              patientGender: '',
+              patientReference: '',
+              patientHeight: '',
+              patientWeight: '',
+              firstName: '',
+              lastName: '',
+              email: '',
+              phone: '',
+              institution: '',
+              address: '',
+              city: '',
+              state: '',
+              zipCode: '',
+              country: '',
+              contactPermission: '',
               otherMedications: [],
               medicalHistory: [],
               labTests: [],
+              agreedToTerms: false,
+              captchaChecked: !import.meta.env.VITE_RECAPTCHA_SITE_KEY,
             }}
           >
             {({ FormStep }) => (
@@ -259,6 +358,8 @@ function HcpForm({ onBack }: HcpFormProps) {
                         setAccordionIndex={setAccordionIndex}
                         agreedToTerms={agreedToTerms}
                         setAgreedToTerms={setAgreedToTerms}
+                        captchaChecked={captchaChecked}
+                        setCaptchaChecked={setCaptchaChecked}
                         onBack={onBack}
                         primaryButtonStyles={primaryButtonStyles}
                       />
@@ -267,6 +368,7 @@ function HcpForm({ onBack }: HcpFormProps) {
 
                   <StepsCompleted>
                     <SuccessStep 
+                        reportId={submittedId}
                         onSubmitAnother={() => window.location.reload()}
                       />
                   </StepsCompleted>

@@ -1,17 +1,17 @@
 import { z } from "zod";
 import { eq, desc } from "drizzle-orm";
-import { router, publicProcedure } from "../../trpc/trpc.js";
+import { router, publicProcedure, rateLimitedProcedure } from "../../trpc/trpc.js";
 import { db } from "../../db/index.js";
-import { patients } from "../../db/schema.js";
+import { patientReports } from "../../db/schema.js";
 import { createPatientSchema, updatePatientSchema } from "./patient.validation.js";
 
 export const patientRouter = router({
   // ─── CREATE ────────────────────────────────────────────────────────────────
-  create: publicProcedure
+  create: rateLimitedProcedure
     .input(createPatientSchema)
     .mutation(async ({ input }) => {
       const [row] = await db
-        .insert(patients)
+        .insert(patientReports)
         .values({
           // ── Step 1: Product ────────────────────────────
           products: input.products ?? [],
@@ -61,8 +61,8 @@ export const patientRouter = router({
     .query(async ({ input }) => {
       const rows = await db
         .select()
-        .from(patients)
-        .orderBy(desc(patients.createdAt))
+        .from(patientReports)
+        .orderBy(desc(patientReports.createdAt))
         .limit(input?.limit ?? 50)
         .offset(input?.offset ?? 0);
 
@@ -75,8 +75,8 @@ export const patientRouter = router({
     .query(async ({ input }) => {
       const [row] = await db
         .select()
-        .from(patients)
-        .where(eq(patients.id, input.id));
+        .from(patientReports)
+        .where(eq(patientReports.id, input.id));
 
       if (!row) {
         throw new Error(`Patient with id ${input.id} not found`);
@@ -95,12 +95,12 @@ export const patientRouter = router({
     )
     .mutation(async ({ input }) => {
       const [row] = await db
-        .update(patients)
+        .update(patientReports)
         .set({
           ...input.data,
           updatedAt: new Date(),
         })
-        .where(eq(patients.id, input.id))
+        .where(eq(patientReports.id, input.id))
         .returning();
 
       if (!row) {
@@ -115,8 +115,8 @@ export const patientRouter = router({
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ input }) => {
       const [row] = await db
-        .delete(patients)
-        .where(eq(patients.id, input.id))
+        .delete(patientReports)
+        .where(eq(patientReports.id, input.id))
         .returning();
 
       if (!row) {

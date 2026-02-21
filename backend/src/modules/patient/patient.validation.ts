@@ -58,6 +58,7 @@ export const hcpDetailsSchema = z.object({
   contactPermission: z.string().optional(),
   firstName: z.string().optional(),
   lastName: z.string().optional(),
+  relationship: z.string().optional(),
   email: z.string().optional(),
   phone: z.string().optional(),
   institution: z.string().optional(),
@@ -66,6 +67,11 @@ export const hcpDetailsSchema = z.object({
   state: z.string().optional(),
   zipCode: z.string().optional(),
   country: z.string().optional(),
+  hcpContactPermission: z.string().optional(),
+  hcpFirstName: z.string().optional(),
+  hcpLastName: z.string().optional(),
+  hcpEmail: z.string().optional(),
+  hcpPhone: z.string().optional(),
 });
 
 // ─────────────────────────────────────────────────────────────

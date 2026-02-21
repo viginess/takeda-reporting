@@ -34,7 +34,7 @@ interface HcpProductDetailsProps {
 }
 
 export function HcpProductDetails({ inputStyles, index = 0, onAddProduct }: HcpProductDetailsProps) {
-  const { setValue, register, control } = useFormContext();
+  const { setValue, register, control, watch } = useFormContext();
 
   const { fields: conditionFields, append: appendCondition, remove: removeCondition } = useFieldArray({
     control,
@@ -217,7 +217,7 @@ export function HcpProductDetails({ inputStyles, index = 0, onAddProduct }: HcpP
             </FormLabel>
             <Flex gap={3} flexWrap="wrap">
               <Input
-                type='date'
+                type={watch(`${prefix}.batches.${bIdx}.expiryDate`) === 'Unknown' ? 'text' : 'date'}
                 placeholder="e.g. 24 February 2020"
                 flex="1"
                 minW="200px"
@@ -241,7 +241,7 @@ export function HcpProductDetails({ inputStyles, index = 0, onAddProduct }: HcpP
             </FormLabel>
             <Flex gap={3} flexWrap="wrap" align="center" mb={2}>
               <Input
-                type='date'
+                type={watch(`${prefix}.batches.${bIdx}.startDate`) === 'Unknown' ? 'text' : 'date'}
                 placeholder="Select start date"
                 flex="1"
                 minW="140px"
@@ -259,7 +259,7 @@ export function HcpProductDetails({ inputStyles, index = 0, onAddProduct }: HcpP
             </Flex>
             <Flex gap={3} flexWrap="wrap" align="center">
               <Input
-                type='date'
+                type={['Unknown', 'Ongoing'].includes(watch(`${prefix}.batches.${bIdx}.endDate`)) ? 'text' : 'date'}
                 placeholder="Select end date"
                 flex="1"
                 minW="140px"

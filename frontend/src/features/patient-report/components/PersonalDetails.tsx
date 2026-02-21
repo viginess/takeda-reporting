@@ -32,7 +32,7 @@ export function PersonalDetails({
   hcpContactPermission,
   setHcpContactPermission,
 }: PersonalDetailsProps) {
-  const { setValue, register } = useFormContext();
+  const { setValue, register, watch } = useFormContext();
 
   const setUnknown = (fieldName: string) => {
     setValue(fieldName, 'Unknown');
@@ -85,7 +85,7 @@ export function PersonalDetails({
         </RadioGroup>
         {ageType === 'dob' && (
           <Input
-            type='date'
+            type={watch('patientDetails.dob') === 'Unknown' ? 'text' : 'date'}
             placeholder="Select date of birth"
             mt={3}
             {...inputStyles}
@@ -96,7 +96,7 @@ export function PersonalDetails({
           <Flex gap={3} mt={3} align="center">
             <Input
               placeholder="32"
-              type="number"
+              type={watch('patientDetails.ageValue') === 'Unknown' ? 'text' : 'number'}
               flex="1"
               maxW="120px"
               {...inputStyles}

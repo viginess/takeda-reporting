@@ -66,7 +66,7 @@ export function ReviewConfirm({
   setCaptchaChecked,
 }: ReviewConfirmProps) {
   const { setStep } = useStepperContext();
-  const { control, setValue } = useFormContext();
+  const { control, setValue, register } = useFormContext();
 
   const products = useWatch({ control, name: 'products' }) ?? [];
   const symptoms = useWatch({ control, name: 'symptoms' }) ?? [];
@@ -265,12 +265,19 @@ export function ReviewConfirm({
       </Accordion>
 
       {/* reCAPTCHA */}
+      <input type="hidden" {...register('captchaChecked', { required: true, validate: (v: any) => v === true })} />
       {import.meta.env.VITE_RECAPTCHA_SITE_KEY ? (
         <Box mb={6}>
           <ReCAPTCHA
             sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
-            onChange={(token) => setCaptchaChecked(!!token)}
-            onExpired={() => setCaptchaChecked(false)}
+            onChange={(token) => {
+              setCaptchaChecked(!!token);
+              setValue('captchaChecked', !!token, { shouldValidate: true });
+            }}
+            onExpired={() => {
+              setCaptchaChecked(false);
+              setValue('captchaChecked', false, { shouldValidate: true });
+            }}
           />
         </Box>
       ) : (
@@ -286,9 +293,10 @@ export function ReviewConfirm({
         <Checkbox
           colorScheme="red"
           isChecked={agreedToTerms}
+          {...register('agreedToTerms', { required: true })}
           onChange={(e) => {
             setAgreedToTerms(e.target.checked);
-            setValue('agreedToTerms', e.target.checked);  // ← write into form state for Zod
+            setValue('agreedToTerms', e.target.checked, { shouldValidate: true });
           }}
         >
           I agree to the processing of my information as described in the{' '}

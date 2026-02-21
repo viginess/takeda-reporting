@@ -68,12 +68,11 @@ function WelcomePage() {
         borderColor="gray.100"
       >
         <Link href="/">
-    <Image src={takedaLogo} alt="Takeda" h="32px" cursor="pointer" />
+    <Image src={takedaLogo} alt="Takeda" h="42px" cursor="pointer" />
   </Link>
         <Heading
           as="h1"
           size="md"
-          mx="auto"
           fontWeight="600"
           letterSpacing="tight"
           color="gray.800"
