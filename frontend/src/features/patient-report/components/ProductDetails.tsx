@@ -292,7 +292,9 @@ export function ProductDetails({ inputStyles, index = 0, onAddProduct }: Product
         />
       </FormControl>
 
-      <ProductImageUpload />
+      <ProductImageUpload
+        onChange={(base64Array) => setValue(`${prefix}.images`, base64Array)}
+      />
         </Box>
       ))}
 

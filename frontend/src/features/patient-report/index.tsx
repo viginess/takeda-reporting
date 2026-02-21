@@ -163,42 +163,39 @@ function PatientForm({ onBack }: PatientFormProps) {
 
   const onSubmit = async (params: any) => {
     const result = await createPatient.mutateAsync({
-      // Personal
-      name: params.name || undefined,
-      gender: params.gender || undefined,
-      initials: params.initials || undefined,
-      dob: params.dob || undefined,
-      ageValue: params.ageValue ? Number(params.ageValue) : undefined,
-      contactPermission: contactPermission || undefined,
-      email: params.email || undefined,
-
-      // HCP
-      hcpContactPermission: hcpContactPermission || undefined,
-      hcpFirstName: params.hcpFirstName || undefined,
-      hcpLastName: params.hcpLastName || undefined,
-      hcpEmail: params.hcpEmail || undefined,
-      hcpPhone: params.hcpPhone || undefined,
-      hcpInstitution: params.hcpInstitution || undefined,
-      hcpAddress: params.hcpAddress || undefined,
-      hcpCity: params.hcpCity || undefined,
-      hcpState: params.hcpState || undefined,
-      hcpZipCode: params.hcpZipCode || undefined,
-      hcpCountry: params.hcpCountry || undefined,
-
-      // Medical flags (from local state)
-      takingOtherMeds: takingOtherMeds || undefined,
-      hasRelevantHistory: hasRelevantHistory || undefined,
-      labTestsPerformed: labTestsPerformed || undefined,
-      additionalDetails: additionalDetails || undefined,
-
-      // Full JSONB arrays — pass exactly as-is from form (rich nested data)
+      // ── Step 1: Product ──────────────────────────────
       products: params.products ?? [],
+
+      // ── Step 2: Event ────────────────────────────────
       symptoms: params.symptoms ?? [],
+
+      // ── Step 3: Personal & HCP (nested objects) ──────
+      patientDetails: {
+        ...params.patientDetails,
+        contactPermission: contactPermission || undefined,
+        ageValue: params.patientDetails?.ageValue
+          ? Number(params.patientDetails.ageValue)
+          : undefined,
+      },
+      hcpDetails: {
+        ...params.hcpDetails,
+        contactPermission: hcpContactPermission || undefined,
+      },
+
+      // ── Step 4: Additional ───────────────────────────
+      takingOtherMeds: takingOtherMeds || undefined,
       otherMedications: params.otherMedications ?? [],
+
+      hasRelevantHistory: hasRelevantHistory || undefined,
       medicalHistory: params.medicalHistory ?? [],
+
+      labTestsPerformed: labTestsPerformed || undefined,
       labTests: params.labTests ?? [],
 
-      // Consent & Meta
+      additionalDetails: additionalDetails || undefined,
+      attachments: params.attachments ?? [],
+
+      // ── Step 5: Confirm ──────────────────────────────
       agreedToTerms: agreedToTerms,
       reporterType: 'patient',
       status: 'pending',
@@ -241,6 +238,7 @@ function PatientForm({ onBack }: PatientFormProps) {
           <StepForm
             onSubmit={onSubmit}
             defaultValues={{
+              // Step 1
               products: [
                 {
                   productName: '',
@@ -248,10 +246,37 @@ function PatientForm({ onBack }: PatientFormProps) {
                   batches: [{ batchNumber: '', expiryDate: '', startDate: '', endDate: '', dosage: '' }],
                 },
               ],
+              // Step 2
               symptoms: [{ name: '' }],
+              // Step 3
+              patientDetails: {
+                name: '',
+                gender: '',
+                initials: '',
+                dob: '',
+                ageValue: '',
+                contactPermission: '',
+                email: '',
+              },
+              hcpDetails: {
+                contactPermission: '',
+                firstName: '',
+                lastName: '',
+                email: '',
+                phone: '',
+                institution: '',
+                address: '',
+                city: '',
+                state: '',
+                zipCode: '',
+                country: '',
+              },
+              // Step 4
               otherMedications: [],
               medicalHistory: [],
               labTests: [],
+              // Step 5
+              agreedToTerms: false,
             }}
           >
             {({ FormStep }) => (

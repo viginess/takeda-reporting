@@ -11,8 +11,6 @@ import {
   Box,
   Textarea,
   Text,
-  CheckboxGroup,
-  Checkbox,
 } from '@chakra-ui/react';
 import { useFormContext } from 'react-hook-form';
 import { HiPlus } from 'react-icons/hi2';
@@ -154,17 +152,17 @@ export function EventDetails({
         <FormLabel fontWeight="500" color="gray.700">
           Was the symptom serious?
         </FormLabel>
-        <CheckboxGroup colorScheme="red" onChange={(val) => setValue(`${prefix}.seriousness`, val)}>
-          <Stack direction="row" spacing={6} flexWrap="wrap">
-            <Checkbox value="not-serious">The symptom was not serious</Checkbox>
-            <Checkbox value="medical-intervention">Medical intervention required</Checkbox>
-            <Checkbox value="hospitalization">Hospitalization required</Checkbox>
-            <Checkbox value="life-threatening">Life threatening</Checkbox>
-            <Checkbox value="disability">Persistent/Significant disability</Checkbox>
-            <Checkbox value="congenital">Congenital anomaly/birth defect</Checkbox>
-            <Checkbox value="medically-significant">Medically significant</Checkbox>
+        <RadioGroup onChange={(val) => setValue(`${prefix}.seriousness`, val)}>
+          <Stack spacing={3} flexWrap="wrap">
+            <Radio value="not-serious" colorScheme="red">The symptom was not serious</Radio>
+            <Radio value="medical-intervention" colorScheme="red">Medical intervention required</Radio>
+            <Radio value="hospitalization" colorScheme="red">Hospitalization required</Radio>
+            <Radio value="life-threatening" colorScheme="red">Life threatening</Radio>
+            <Radio value="disability" colorScheme="red">Persistent/Significant disability</Radio>
+            <Radio value="congenital" colorScheme="red">Congenital anomaly/birth defect</Radio>
+            <Radio value="medically-significant" colorScheme="red">Medically significant</Radio>
           </Stack>
-        </CheckboxGroup>
+        </RadioGroup>
       </FormControl>
 
       <FormControl mb={8}>

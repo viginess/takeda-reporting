@@ -89,7 +89,10 @@ export function AdditionalDetails({
         Just a few more details (Optional)
       </Heading>
 
-      <ProductImageUpload label="Is there any additional documentation or evidence you would like to attach?" />
+      <ProductImageUpload
+        label="Is there any additional documentation or evidence you would like to attach?"
+        onChange={(base64Array) => setValue('attachments', base64Array)}
+      />
 
       <FormControl mb={6}>
         <FormLabel fontWeight="500" color="gray.700">
