@@ -3,7 +3,7 @@ import { eq, desc } from "drizzle-orm";
 import { router, publicProcedure } from "../../trpc/trpc.js";
 import { db } from "../../db/index.js";
 import { patients } from "../../db/schema.js";
-import { createPatientSchema, updatePatientSchema } from "./patient.schema.js";
+import { createPatientSchema, updatePatientSchema } from "./patient.validation.js";
 
 export const patientRouter = router({
   // ─── CREATE ────────────────────────────────────────────────────────────────
@@ -13,42 +13,30 @@ export const patientRouter = router({
       const [row] = await db
         .insert(patients)
         .values({
-          // Personal
-          name: input.name,
-          gender: input.gender,
-          initials: input.initials,
-          dob: input.dob,
-          ageValue: input.ageValue != null ? Number(input.ageValue) : undefined,
-          contactPermission: input.contactPermission,
-          email: input.email,
-
-          // HCP
-          hcpContactPermission: input.hcpContactPermission,
-          hcpFirstName: input.hcpFirstName,
-          hcpLastName: input.hcpLastName,
-          hcpEmail: input.hcpEmail,
-          hcpPhone: input.hcpPhone,
-          hcpInstitution: input.hcpInstitution,
-          hcpAddress: input.hcpAddress,
-          hcpCity: input.hcpCity,
-          hcpState: input.hcpState,
-          hcpZipCode: input.hcpZipCode,
-          hcpCountry: input.hcpCountry,
-
-          // Medical
-          takingOtherMeds: input.takingOtherMeds,
-          hasRelevantHistory: input.hasRelevantHistory,
-          labTestsPerformed: input.labTestsPerformed,
-          additionalDetails: input.additionalDetails,
-
-          // JSONB
+          // ── Step 1: Product ────────────────────────────
           products: input.products ?? [],
+
+          // ── Step 2: Event ──────────────────────────────
           symptoms: input.symptoms ?? [],
+
+          // ── Step 3: Personal & HCP (store as JSONB) ───
+          patientDetails: input.patientDetails ?? {},
+          hcpDetails: input.hcpDetails ?? {},
+
+          // ── Step 4: Additional ─────────────────────────
+          takingOtherMeds: input.takingOtherMeds,
           otherMedications: input.otherMedications ?? [],
+
+          hasRelevantHistory: input.hasRelevantHistory,
           medicalHistory: input.medicalHistory ?? [],
+
+          labTestsPerformed: input.labTestsPerformed,
           labTests: input.labTests ?? [],
 
-          // Consent & Meta
+          additionalDetails: input.additionalDetails,
+          attachments: input.attachments ?? [],
+
+          // ── Step 5: Confirm ────────────────────────────
           agreedToTerms: input.agreedToTerms,
           reporterType: input.reporterType,
           status: input.status ?? "pending",
@@ -109,7 +97,7 @@ export const patientRouter = router({
       const [row] = await db
         .update(patients)
         .set({
-          ...{ ...input.data, ageValue: input.data.ageValue != null ? Number(input.data.ageValue) : undefined },
+          ...input.data,
           updatedAt: new Date(),
         })
         .where(eq(patients.id, input.id))

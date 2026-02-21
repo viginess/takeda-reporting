@@ -1,0 +1,46 @@
+import {
+  pgTable,
+  uuid,
+  text,
+  boolean,
+  timestamp,
+  jsonb,
+} from "drizzle-orm/pg-core";
+
+export const patients = pgTable("patients", {
+  id: uuid("id").defaultRandom().primaryKey(),
+
+  // ── Step 1: Product ─────────────────────────────────────
+  products: jsonb("products"),
+
+  // ── Step 2: Event (symptoms) ─────────────────────────────
+  symptoms: jsonb("symptoms"),
+
+  // ── Step 3: Personal & HCP (stored as JSONB objects) ────
+  // patientDetails: { name, gender, initials, dob, ageValue, contactPermission, email }
+  patientDetails: jsonb("patient_details"),
+  // hcpDetails: { contactPermission, firstName, lastName, email, phone, institution, address, city, state, zipCode, country }
+  hcpDetails: jsonb("hcp_details"),
+
+  // ── Step 4: Additional Details ───────────────────────────
+  takingOtherMeds: text("taking_other_meds"),
+  otherMedications: jsonb("other_medications"),
+
+  hasRelevantHistory: text("has_relevant_history"),
+  medicalHistory: jsonb("medical_history"),
+
+  labTestsPerformed: text("lab_tests_performed"),
+  labTests: jsonb("lab_tests"),
+
+  additionalDetails: text("additional_details"),
+  attachments: jsonb("attachments"),               // base64 image arrays from Additional step
+
+  // ── Step 5: Confirm ──────────────────────────────────────
+  agreedToTerms: boolean("agreed_to_terms").notNull(),
+  reporterType: text("reporter_type"),
+  status: text("status").default("pending"),
+
+  // Meta
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});

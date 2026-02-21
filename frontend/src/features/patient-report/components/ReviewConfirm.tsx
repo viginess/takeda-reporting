@@ -15,6 +15,7 @@ import {
 } from '@chakra-ui/react';
 import { useStepperContext } from '@saas-ui/react';
 import { useFormContext, useWatch } from 'react-hook-form';
+import ReCAPTCHA from 'react-google-recaptcha';
 
 function EditLink({ onClick }: { onClick: () => void }) {
   return (
@@ -65,23 +66,26 @@ export function ReviewConfirm({
   setCaptchaChecked,
 }: ReviewConfirmProps) {
   const { setStep } = useStepperContext();
-  const { control } = useFormContext();
+  const { control, setValue } = useFormContext();
 
   const products = useWatch({ control, name: 'products' }) ?? [];
   const symptoms = useWatch({ control, name: 'symptoms' }) ?? [];
   const otherMedications = useWatch({ control, name: 'otherMedications' }) ?? [];
   const medicalHistory = useWatch({ control, name: 'medicalHistory' }) ?? [];
   const labTests = useWatch({ control, name: 'labTests' }) ?? [];
-  const name = useWatch({ control, name: 'name' });
-  const initials = useWatch({ control, name: 'initials' });
-  const gender = useWatch({ control, name: 'gender' });
-  const dob = useWatch({ control, name: 'dob' });
-  const ageValue = useWatch({ control, name: 'ageValue' });
-  const email = useWatch({ control, name: 'email' });
+  const attachments = useWatch({ control, name: 'attachments' }) ?? [];
+
+  // Step 3 — nested objects
+  const patientDetails = useWatch({ control, name: 'patientDetails' }) ?? {};
+  const hcpDetails = useWatch({ control, name: 'hcpDetails' }) ?? {};
 
   const v = (val: any) => (val && String(val).trim() ? String(val) : '—');
   const arr = (val: any) => Array.isArray(val) ? val.join(', ') : '—';
-  const ageDisplay = dob ? `DOB: ${dob}` : ageValue ? `${ageValue} years` : '—';
+  const ageDisplay = patientDetails.dob
+    ? `DOB: ${patientDetails.dob}`
+    : patientDetails.ageValue
+    ? `${patientDetails.ageValue} years`
+    : '—';
 
   return (
     <>
@@ -159,7 +163,7 @@ export function ReviewConfirm({
                 <ReviewRow label="End date" value={v(s?.eventEndDate)} />
                 <ReviewRow label="Was it treated?" value={v(s?.symptomTreated)} />
                 {s?.symptomTreated === 'yes' && <ReviewRow label="Treatment" value={v(s?.treatment)} />}
-                <ReviewRow label="Seriousness" value={arr(s?.seriousness)} />
+                <ReviewRow label="Seriousness" value={v(s?.seriousness)} />
                 <ReviewRow label="Outcome" value={v(s?.outcome)} />
                 {i < symptoms.length - 1 && <Divider my={3} />}
               </Box>
@@ -174,11 +178,24 @@ export function ReviewConfirm({
             <EditLink onClick={() => setStep('personal')} />
           </AccordionButton>
           <AccordionPanel pb={4} bg="white">
-            <ReviewRow label="Full name" value={v(name)} />
-            <ReviewRow label="Initials" value={v(initials)} />
-            <ReviewRow label="Gender" value={v(gender)} />
+            <SectionTitle>Patient</SectionTitle>
+            <ReviewRow label="Full name" value={v(patientDetails.name)} />
+            <ReviewRow label="Initials" value={v(patientDetails.initials)} />
+            <ReviewRow label="Gender" value={v(patientDetails.gender)} />
             <ReviewRow label="Age / Date of birth" value={ageDisplay} />
-            <ReviewRow label="Email" value={v(email)} />
+            <ReviewRow label="Email" value={v(patientDetails.email)} />
+            <ReviewRow label="Contact permission" value={v(patientDetails.contactPermission)} />
+
+            {(hcpDetails.firstName || hcpDetails.lastName || hcpDetails.email || hcpDetails.phone) && (
+              <>
+                <SectionTitle>Healthcare Professional (HCP)</SectionTitle>
+                <ReviewRow label="Name" value={[v(hcpDetails.firstName), v(hcpDetails.lastName)].filter(x => x !== '—').join(' ') || '—'} />
+                <ReviewRow label="Email" value={v(hcpDetails.email)} />
+                <ReviewRow label="Phone" value={v(hcpDetails.phone)} />
+                <ReviewRow label="Institution" value={v(hcpDetails.institution)} />
+                <ReviewRow label="Address" value={[v(hcpDetails.address), v(hcpDetails.city), v(hcpDetails.state), v(hcpDetails.country)].filter(x => x !== '—').join(', ') || '—'} />
+              </>
+            )}
           </AccordionPanel>
         </AccordionItem>
 
@@ -235,33 +252,45 @@ export function ReviewConfirm({
             ) : (
               <ReviewRow label="Lab tests" value="None" />
             )}
+
+            {/* Attachments */}
+            {attachments.length > 0 && (
+              <>
+                <SectionTitle>Attachments</SectionTitle>
+                <ReviewRow label="Files uploaded" value={`${attachments.length} image(s)`} />
+              </>
+            )}
           </AccordionPanel>
         </AccordionItem>
       </Accordion>
 
-      {/* Captcha */}
-      <Box
-        p={4} mb={6}
-        borderWidth="1px"
-        borderColor={captchaChecked ? 'green.300' : 'gray.200'}
-        borderRadius="lg"
-        bg={captchaChecked ? 'green.50' : 'gray.50'}
-        transition="all 0.2s"
-      >
-        <Checkbox
-          colorScheme="green"
-          isChecked={captchaChecked}
-          onChange={(e) => setCaptchaChecked(e.target.checked)}
-          fontWeight="500"
-        >
-          I'm not a robot
-        </Checkbox>
-        <Text fontSize="xs" color="gray.500" mt={1}>Please confirm you are a human before submitting.</Text>
-      </Box>
+      {/* reCAPTCHA */}
+      {import.meta.env.VITE_RECAPTCHA_SITE_KEY ? (
+        <Box mb={6}>
+          <ReCAPTCHA
+            sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
+            onChange={(token) => setCaptchaChecked(!!token)}
+            onExpired={() => setCaptchaChecked(false)}
+          />
+        </Box>
+      ) : (
+        <Box p={3} mb={6} borderRadius="md" bg="yellow.50" borderWidth="1px" borderColor="yellow.300">
+          <Text fontSize="xs" color="yellow.700">
+            ⚠️ reCAPTCHA site key missing. Add <strong>VITE_RECAPTCHA_SITE_KEY</strong> to <code>frontend/.env</code>
+          </Text>
+        </Box>
+      )}
 
       {/* Terms */}
       <Box mb={6} fontSize="sm" color="gray.600">
-        <Checkbox colorScheme="red" isChecked={agreedToTerms} onChange={(e) => setAgreedToTerms(e.target.checked)}>
+        <Checkbox
+          colorScheme="red"
+          isChecked={agreedToTerms}
+          onChange={(e) => {
+            setAgreedToTerms(e.target.checked);
+            setValue('agreedToTerms', e.target.checked);  // ← write into form state for Zod
+          }}
+        >
           I agree to the processing of my information as described in the{' '}
           <Link href="https://www.takeda.com/privacy-notice/" isExternal color="#CE0037" textDecoration="underline">
             Privacy Notice
