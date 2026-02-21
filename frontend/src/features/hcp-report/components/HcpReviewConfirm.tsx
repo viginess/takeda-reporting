@@ -13,6 +13,7 @@ import {
 } from '@chakra-ui/react';
 import { useStepperContext } from '@saas-ui/react';
 import { useFormContext } from 'react-hook-form';
+import ReCAPTCHA from 'react-google-recaptcha';
 
 interface ReviewRowProps {
   label: string;
@@ -38,11 +39,22 @@ function ReviewRow({ label, value }: ReviewRowProps) {
   );
 }
 
+const v = (value: string | undefined | null) => value || '—';
+const arr = (value: string[] | undefined | null) => (value?.length ? value.join(', ') : '—');
+
+const SectionTitle = ({ children }: { children: React.ReactNode }) => (
+  <Text fontWeight="600" mt={4} mb={2} color="gray.700" fontSize="md" borderBottom="1px solid" borderColor="gray.100" pb={1}>
+    {children}
+  </Text>
+);
+
 interface HcpReviewConfirmProps {
   accordionIndex: number[];
   setAccordionIndex: (val: number[]) => void;
   agreedToTerms: boolean;
   setAgreedToTerms: (val: boolean) => void;
+  captchaChecked: boolean;
+  setCaptchaChecked: (val: boolean) => void;
   onBack?: () => void;
   primaryButtonStyles: any;
 }
@@ -52,15 +64,13 @@ export function HcpReviewConfirm({
   setAccordionIndex,
   agreedToTerms,
   setAgreedToTerms,
+  captchaChecked,
+  setCaptchaChecked,
   onBack,
 }: HcpReviewConfirmProps) {
   const { setStep } = useStepperContext();
-  const { watch } = useFormContext();
+  const { watch, setValue, register } = useFormContext();
   const formData = watch();
-
-  const primaryProduct = formData.products?.[0] || {};
-  const firstBatch = primaryProduct.batches?.[0] || {};
-  const firstSymptom = formData.symptoms?.[0] || {};
 
   return (
     <>
@@ -139,11 +149,16 @@ export function HcpReviewConfirm({
             </Button>
           </AccordionButton>
           <AccordionPanel pb={4} bg="white">
-            <ReviewRow label="Product name" value={primaryProduct.productName} />
-            <ReviewRow label="Condition" value={primaryProduct.conditions?.[0]?.name} />
-            <ReviewRow label="Batch/lot number" value={firstBatch.batchNumber} />
-            <ReviewRow label="Pharmaceutical dose form" value={primaryProduct.doseForm} />
-            <ReviewRow label="Administration route" value={primaryProduct.route} />
+            {(formData.products || []).map((p: any, index: number) => (
+              <Box key={index} mb={index < formData.products.length - 1 ? 6 : 0}>
+                {formData.products.length > 1 && <SectionTitle>Product {index + 1}</SectionTitle>}
+                <ReviewRow label="Product name" value={v(p.productName)} />
+                <ReviewRow label="Condition" value={v(p.conditions?.[0]?.name)} />
+                <ReviewRow label="Batch/lot number" value={v(p.batches?.[0]?.batchNumber)} />
+                <ReviewRow label="Pharmaceutical dose form" value={v(p.doseForm)} />
+                <ReviewRow label="Administration route" value={v(p.route)} />
+              </Box>
+            ))}
           </AccordionPanel>
         </AccordionItem>
 
@@ -168,12 +183,14 @@ export function HcpReviewConfirm({
             </Button>
           </AccordionButton>
           <AccordionPanel pb={4} bg="white">
-            <ReviewRow label="Symptom" value={firstSymptom.name} />
-            <ReviewRow
-              label="Dates"
-              value={firstSymptom.eventStartDate ? `${firstSymptom.eventStartDate} to ${firstSymptom.eventEndDate || 'Ongoing'}` : ''}
-            />
-            <ReviewRow label="Relationship to product" value={firstSymptom.relationship} />
+            {(formData.symptoms || []).map((s: any, index: number) => (
+              <Box key={index} mb={index < formData.symptoms.length - 1 ? 6 : 0}>
+                {formData.symptoms.length > 1 && <SectionTitle>Event {index + 1}</SectionTitle>}
+                <ReviewRow label="Symptom" value={v(s.name)} />
+                <ReviewRow label="Dates" value={(s.eventStartDate || s.eventEndDate) ? `${s.eventStartDate || '?'} to ${s.eventEndDate || 'Ongoing'}` : '—'} />
+                <ReviewRow label="Relationship to product" value={v(s.relationship)} />
+              </Box>
+            ))}
           </AccordionPanel>
         </AccordionItem>
 
@@ -198,11 +215,11 @@ export function HcpReviewConfirm({
             </Button>
           </AccordionButton>
           <AccordionPanel pb={4} bg="white">
-            <ReviewRow label="Patient ID" value={formData.patientId} />
-            <ReviewRow label="Age/DOB" value={formData.age || formData.dob} />
-            <ReviewRow label="Sex" value={formData.gender} />
-            <ReviewRow label="Height" value={formData.height} />
-            <ReviewRow label="Weight" value={formData.weight} />
+            <ReviewRow label="Patient Initials" value={v(formData.patientInitials)} />
+            <ReviewRow label="Age/DOB" value={v(formData.age || formData.dob)} />
+            <ReviewRow label="Sex" value={v(formData.gender)} />
+            <ReviewRow label="Height" value={v(formData.height)} />
+            <ReviewRow label="Weight" value={v(formData.weight)} />
           </AccordionPanel>
         </AccordionItem>
 
@@ -227,35 +244,110 @@ export function HcpReviewConfirm({
             </Button>
           </AccordionButton>
           <AccordionPanel pb={4} bg="white">
-            <ReviewRow label="Name" value={`${formData.firstName} ${formData.lastName}`} />
-            <ReviewRow label="Hospital/Institution" value={formData.hospital} />
-            <ReviewRow label="Country" value={formData.country} />
+            <ReviewRow label="Name" value={[v(formData.firstName), v(formData.lastName)].filter(x => x !== '—').join(' ') || '—'} />
+            <ReviewRow label="Hospital/Institution" value={v(formData.institution)} />
+            <ReviewRow label="Email" value={v(formData.email)} />
+            <ReviewRow label="Phone" value={v(formData.phone)} />
+            <ReviewRow label="Address" value={[v(formData.address), v(formData.city), v(formData.state), v(formData.country)].filter(x => x !== '—').join(', ') || '—'} />
+            <ReviewRow label="Contact Permission" value={v(formData.contactPermission)} />
+          </AccordionPanel>
+        </AccordionItem>
+
+        <AccordionItem>
+          <AccordionButton fontWeight="600" color="gray.800" _expanded={{ bg: 'gray.50' }} justifyContent="space-between">
+            <Text>Additional details</Text>
+            <Button size="sm" variant="ghost" leftIcon={<span>✎</span>} onClick={(e) => { e.stopPropagation(); setStep('additional'); }}>Edit</Button>
+          </AccordionButton>
+          <AccordionPanel pb={4} bg="white">
+            {/* Other medications */}
+            {(formData.otherMedications?.length > 0) ? (
+              <>
+                <SectionTitle>Other medications ({formData.otherMedications.length})</SectionTitle>
+                {formData.otherMedications.map((m: any, i: number) => (
+                  <Box key={i} mb={2}>
+                    <ReviewRow label={`Medication ${i + 1}`} value={v(m?.product)} />
+                    <ReviewRow label="Condition" value={v(m?.condition)} />
+                  </Box>
+                ))}
+              </>
+            ) : (
+              <ReviewRow label="Other medications" value="None" />
+            )}
+
+            {/* Medical history */}
+            {(formData.medicalHistory?.length > 0) ? (
+              <>
+                <SectionTitle>Medical history ({formData.medicalHistory.length})</SectionTitle>
+                {formData.medicalHistory.map((h: any, i: number) => (
+                  <Box key={i} mb={2}>
+                    <ReviewRow label={`Condition ${i + 1}`} value={v(h?.conditionName)} />
+                    {h?.info && <ReviewRow label="Additional info" value={v(h?.info)} />}
+                  </Box>
+                ))}
+              </>
+            ) : (
+              <ReviewRow label="Medical history" value="None" />
+            )}
+
+            {/* Lab tests */}
+            {(formData.labTests?.length > 0) ? (
+              <>
+                <SectionTitle>Lab tests ({formData.labTests.length})</SectionTitle>
+                {formData.labTests.map((t: any, i: number) => (
+                  <Box key={i} mb={2}>
+                    <ReviewRow label={`Test ${i + 1}`} value={v(t?.testName)} />
+                    <ReviewRow label="Result" value={[v(t?.testQualifier), v(t?.testValue)].filter(x => x !== '—').join(' ') || '—'} />
+                    {t?.outcome?.length > 0 && <ReviewRow label="Outcome" value={arr(t?.outcome)} />}
+                    {t?.testComments && <ReviewRow label="Comments" value={v(t?.testComments)} />}
+                  </Box>
+                ))}
+              </>
+            ) : (
+              <ReviewRow label="Lab tests" value="None" />
+            )}
+
+            {/* Additional Info */}
+            <SectionTitle>Other information</SectionTitle>
+            <ReviewRow label="Additional details" value={v(formData.additionalDetails)} />
+            <ReviewRow label="Attachments" value={formData.attachments?.length ? `${formData.attachments.length} file(s)` : 'None'} />
           </AccordionPanel>
         </AccordionItem>
       </Accordion>
 
-      <Box
-        p={4}
-        mb={6}
-        borderWidth="1px"
-        borderColor="gray.200"
-        borderRadius="lg"
-        bg="gray.50"
-      >
-        <Checkbox
-          colorScheme="red"
-          isChecked={true}
-          readOnly
-        >
-          I&apos;m not a robot
-        </Checkbox>
-      </Box>
+      {/* reCAPTCHA */}
+      <input type="hidden" {...register('captchaChecked', { required: true, validate: (v: any) => v === true })} />
+      {import.meta.env.VITE_RECAPTCHA_SITE_KEY ? (
+        <Box mb={6}>
+          <ReCAPTCHA
+            sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
+            onChange={(token) => {
+              setCaptchaChecked(!!token);
+              setValue('captchaChecked', !!token, { shouldValidate: true });
+            }}
+            onExpired={() => {
+              setCaptchaChecked(false);
+              setValue('captchaChecked', false, { shouldValidate: true });
+            }}
+          />
+        </Box>
+      ) : (
+        <Box p={3} mb={6} borderRadius="md" bg="yellow.50" borderWidth="1px" borderColor="yellow.300">
+          <Text fontSize="xs" color="yellow.700">
+            reCAPTCHA site key missing. Add <strong>VITE_RECAPTCHA_SITE_KEY</strong> to <code>frontend/.env</code>
+          </Text>
+        </Box>
+      )}
 
+      {/* Terms */}
       <Box mb={6} fontSize="sm" color="gray.600">
         <Checkbox
           colorScheme="red"
           isChecked={agreedToTerms}
-          onChange={(e) => setAgreedToTerms(e.target.checked)}
+          {...register('agreedToTerms', { required: true })}
+          onChange={(e) => {
+            setAgreedToTerms(e.target.checked);
+            setValue('agreedToTerms', e.target.checked, { shouldValidate: true });
+          }}
         >
           I agree to the processing of my information as described in the{' '}
           <Link href="https://www.takeda.com/privacy-notice/" isExternal color="#CE0037" textDecoration="underline">
@@ -269,6 +361,16 @@ export function HcpReviewConfirm({
           other parties as required by law.
         </Checkbox>
       </Box>
+
+      {(!agreedToTerms || !captchaChecked) && (
+        <Text fontSize="xs" color="red.400" mb={2}>
+          {!captchaChecked && !agreedToTerms
+            ? 'Please confirm you are not a robot and agree to the terms to submit.'
+            : !captchaChecked
+            ? 'Please confirm you are not a robot.'
+            : 'Please agree to the terms to submit.'}
+        </Text>
+      )}
     </>
   );
 }

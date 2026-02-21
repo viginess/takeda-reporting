@@ -131,7 +131,7 @@ function EventStep({
 function PatientForm({ onBack }: PatientFormProps) {
   const [additionalDetails, setAdditionalDetails] = useState('');
   const [agreedToTerms, setAgreedToTerms] = useState(false);
-  const [captchaChecked, setCaptchaChecked] = useState(false);
+  const [captchaChecked, setCaptchaChecked] = useState(!import.meta.env.VITE_RECAPTCHA_SITE_KEY);
   const [reportId, setReportId] = useState<string | undefined>(undefined);
   const [accordionIndex, setAccordionIndex] = useState<number[]>([0, 1, 2, 3]);
 
@@ -162,12 +162,26 @@ function PatientForm({ onBack }: PatientFormProps) {
   });
 
   const onSubmit = async (params: any) => {
+    if (!params.captchaChecked || !params.agreedToTerms) {
+      toast({
+        title: 'Validation Error',
+        description: 'Please confirm you are not a robot and agree to the terms.',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+      throw new Error('Validation failed');
+    }
+
     const result = await createPatient.mutateAsync({
       // ── Step 1: Product ──────────────────────────────
       products: params.products ?? [],
 
       // ── Step 2: Event ────────────────────────────────
-      symptoms: params.symptoms ?? [],
+      symptoms: params.symptoms?.map((s: any) => ({
+        ...s,
+        seriousness: Array.isArray(s.seriousness) ? s.seriousness.join(', ') : s.seriousness,
+      })) ?? [],
 
       // ── Step 3: Personal & HCP (nested objects) ──────
       patientDetails: {
@@ -220,11 +234,11 @@ function PatientForm({ onBack }: PatientFormProps) {
       >
         {onBack ? (
           <Box as="button" onClick={onBack} p={0} minW="auto" h="auto">
-            <Image src={takedaLogo} alt="Takeda" h="32px" cursor="pointer" />
+            <Image src={takedaLogo} alt="Takeda" h="42px" cursor="pointer" />
           </Box>
         ) : (
           <Link href="/">
-            <Image src={takedaLogo} alt="Takeda" h="32px" cursor="pointer" />
+            <Image src={takedaLogo} alt="Takeda" h="42px" cursor="pointer" />
           </Link>
         )}
         <Heading as="h1" size="md" fontWeight="600" color="gray.800">
@@ -243,11 +257,20 @@ function PatientForm({ onBack }: PatientFormProps) {
                 {
                   productName: '',
                   condition: '',
+                  actionTaken: '',
                   batches: [{ batchNumber: '', expiryDate: '', startDate: '', endDate: '', dosage: '' }],
                 },
               ],
               // Step 2
-              symptoms: [{ name: '' }],
+              symptoms: [{ 
+                name: '', 
+                eventStartDate: '', 
+                eventEndDate: '', 
+                symptomTreated: '',
+                treatment: '',
+                seriousness: [],
+                outcome: ''
+              }],
               // Step 3
               patientDetails: {
                 name: '',
@@ -277,6 +300,7 @@ function PatientForm({ onBack }: PatientFormProps) {
               labTests: [],
               // Step 5
               agreedToTerms: false,
+              captchaChecked: !import.meta.env.VITE_RECAPTCHA_SITE_KEY,
             }}
           >
             {({ FormStep }) => (

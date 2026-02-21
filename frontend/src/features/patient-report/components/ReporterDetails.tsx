@@ -9,8 +9,7 @@ import {
   Stack,
   Radio,
 } from '@chakra-ui/react';
-
-
+import { useFormContext } from 'react-hook-form';
 
 interface ReporterDetailsProps {
   inputStyles: any;
@@ -27,6 +26,8 @@ export function ReporterDetails({
   hcpContactPermission,
   setHcpContactPermission,
 }: ReporterDetailsProps) {
+  const { register, setValue, watch } = useFormContext();
+
   return (
     <>
       <Heading as="h2" size="lg" mb={2} color="gray.800" fontWeight="600">
@@ -41,28 +42,42 @@ export function ReporterDetails({
         <FormLabel fontWeight="500" color="gray.700">
           First name
         </FormLabel>
-        <Input placeholder="Enter first name" {...inputStyles} />
+        <Input 
+          placeholder="Enter first name" 
+          {...inputStyles} 
+          {...register('hcpDetails.firstName')} 
+        />
       </FormControl>
 
       <FormControl mb={4}>
         <FormLabel fontWeight="500" color="gray.700">
           Last name
         </FormLabel>
-        <Input placeholder="Enter last name" {...inputStyles} />
+        <Input 
+          placeholder="Enter last name" 
+          {...inputStyles} 
+          {...register('hcpDetails.lastName')} 
+        />
       </FormControl>
 
       <FormControl mb={6}>
         <FormLabel fontWeight="500" color="gray.700">
           Relationship to patient
         </FormLabel>
-        <Input placeholder="Enter relationship to patient" {...inputStyles} />
+        <Input placeholder="Enter relationship to patient" {...inputStyles} {...register('hcpDetails.relationship')} />
       </FormControl>
 
       <FormControl mb={6} isRequired>
         <FormLabel fontWeight="500" color="gray.700">
           Do we have permission to contact you?
         </FormLabel>
-        <RadioGroup value={contactPermission} onChange={setContactPermission}>
+        <RadioGroup
+          value={watch('hcpDetails.contactPermission') || contactPermission}
+          onChange={(val) => {
+            setContactPermission(val);
+            setValue('hcpDetails.contactPermission', val);
+          }}
+        >
           <Stack direction="row" spacing={6}>
             <Radio value="yes" colorScheme="red">
               Yes
@@ -79,17 +94,38 @@ export function ReporterDetails({
           <Text fontWeight="600" mb={4} color="gray.700">
             Your contact information
           </Text>
-          <FormControl mb={4}>
+          <FormControl mb={4} isRequired>
             <FormLabel fontWeight="500" color="gray.700">
-              * Email address
+              Email address
             </FormLabel>
-            <Input placeholder="client@gmail.com" type="email" {...inputStyles} />
+            <Input 
+              placeholder="client@gmail.com" 
+              type="email" 
+              {...inputStyles} 
+              {...register('hcpDetails.email', { 
+                required: 'Email is required',
+                pattern: {
+                  value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                  message: 'Invalid email address'
+                }
+              })} 
+            />
           </FormControl>
-          <FormControl>
+          <FormControl isRequired>
             <FormLabel fontWeight="500" color="gray.700">
-              Name
+              Phone number
             </FormLabel>
-            <Input placeholder="Enter your name" {...inputStyles} />
+            <Input 
+              placeholder="Enter your phone number" 
+              {...inputStyles} 
+              {...register('hcpDetails.phone', { 
+                required: 'Phone number is required',
+                pattern: {
+                  value: /^\d{10}$/,
+                  message: 'Phone number must be exactly 10 digits'
+                }
+              })} 
+            />
           </FormControl>
         </Box>
       )}
@@ -99,7 +135,13 @@ export function ReporterDetails({
           Do we have permission to contact your Healthcare Professional (HCP) about this
           report?
         </FormLabel>
-        <RadioGroup value={hcpContactPermission} onChange={setHcpContactPermission}>
+        <RadioGroup
+          value={watch('hcpDetails.hcpContactPermission') || hcpContactPermission}
+          onChange={(val) => {
+            setHcpContactPermission(val);
+            setValue('hcpDetails.hcpContactPermission', val);
+          }}
+        >
           <Stack direction="row" spacing={6}>
             <Radio value="yes" colorScheme="red">
               Yes
@@ -120,13 +162,13 @@ export function ReporterDetails({
             <FormLabel fontWeight="500" color="gray.700">
               First name
             </FormLabel>
-            <Input placeholder="Enter first name" {...inputStyles} />
+            <Input placeholder="Enter first name" {...inputStyles} {...register('hcpDetails.hcpFirstName')} />
           </FormControl>
           <FormControl mb={4}>
             <FormLabel fontWeight="500" color="gray.700">
               Last name
             </FormLabel>
-            <Input placeholder="Enter last name" {...inputStyles} />
+            <Input placeholder="Enter last name" {...inputStyles} {...register('hcpDetails.hcpLastName')} />
           </FormControl>
           <Text fontWeight="600" mb={3} color="gray.700" fontSize="sm">
             How do we contact them? (complete at least one of these fields)
@@ -135,13 +177,13 @@ export function ReporterDetails({
             <FormLabel fontWeight="500" color="gray.700">
               Email
             </FormLabel>
-            <Input placeholder="Enter email address" type="email" {...inputStyles} />
+            <Input placeholder="Enter email address" type="email" {...inputStyles} {...register('hcpDetails.hcpEmail')} />
           </FormControl>
           <FormControl mb={4}>
             <FormLabel fontWeight="500" color="gray.700">
               Phone number
             </FormLabel>
-            <Input placeholder="Enter number including area code" type="tel" {...inputStyles} />
+            <Input placeholder="Enter number including area code" type="tel" {...inputStyles} {...register('hcpDetails.hcpPhone')} />
           </FormControl>
         </Box>
       )}

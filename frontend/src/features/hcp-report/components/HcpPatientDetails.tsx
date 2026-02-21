@@ -24,7 +24,7 @@ export function HcpPatientDetails({
   ageType,
   setAgeType,
 }: HcpPatientDetailsProps) {
-  const { setValue, register } = useFormContext();
+  const { setValue, register, watch } = useFormContext();
 
   const setUnknown = (fieldName: string) => {
     setValue(fieldName, 'Unknown');
@@ -76,7 +76,7 @@ export function HcpPatientDetails({
         </RadioGroup>
         {ageType === 'dob' && (
           <Input
-            type='date'
+            type={watch('patientDob') === 'Unknown' ? 'text' : 'date'}
             placeholder="Select date of birth"
             mt={3}
             {...inputStyles}
@@ -87,7 +87,7 @@ export function HcpPatientDetails({
           <Flex gap={3} mt={3} align="center">
             <Input
               placeholder="32"
-              type="number"
+              type={watch('patientAge') === 'Unknown' ? 'text' : 'number'}
               flex="1"
               maxW="120px"
               {...inputStyles}
@@ -102,7 +102,10 @@ export function HcpPatientDetails({
         <FormLabel fontWeight="500" color="gray.700">
           Sex assigned at birth
         </FormLabel>
-        <RadioGroup defaultValue="">
+        <RadioGroup 
+          value={watch('patientGender') || ''} 
+          onChange={(val) => setValue('patientGender', val)}
+        >
           <Stack direction="row" spacing={6}>
             <Radio value="male" colorScheme="red">
               Male

@@ -3,6 +3,13 @@ import { appRouter } from "./trpc/index.js";
 
 const server = createHTTPServer({
   router: appRouter,
+  createContext({ req }) {
+    return {
+      ip: req.socket.remoteAddress ?? "unknown",
+      userAgent: req.headers["user-agent"] ?? "unknown",
+      clientId: req.headers["x-client-id"] ?? "unknown",
+    };
+  },
   middleware(req, res, next) {
     const allowedOrigins = [
       "http://localhost:5173",
@@ -16,7 +23,7 @@ const server = createHTTPServer({
     }
 
     res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, x-client-id");
     res.setHeader("Access-Control-Allow-Credentials", "true");
 
     if (req.method === "OPTIONS") {
