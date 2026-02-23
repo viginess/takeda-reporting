@@ -2,8 +2,9 @@ import { z } from "zod";
 import { eq, desc } from "drizzle-orm";
 import { router, publicProcedure, rateLimitedProcedure } from "../../trpc/trpc.js";
 import { db } from "../../db/index.js";
-import { hcpReports } from "../../db/schema.js";
+import { hcpReports, notifications } from "../../db/schema.js";
 import { createHcpSchema, updateHcpSchema } from "./hcp.validation.js";
+import { determineNotificationData } from "../../utils/notification-helper.js";
 
 export const hcpRouter = router({
   create: rateLimitedProcedure
@@ -12,6 +13,7 @@ export const hcpRouter = router({
       const [row] = await db
         .insert(hcpReports)
         .values({
+          referenceId: `REP-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
           products: input.products ?? [],
           symptoms: input.symptoms ?? [],
           patientDetails: input.patientDetails ?? {},
@@ -28,6 +30,18 @@ export const hcpRouter = router({
           status: input.status ?? "pending",
         })
         .returning();
+
+      const notifData = determineNotificationData(input, "HCP", row.referenceId || row.id);
+      
+      await db.insert(notifications).values({
+        type: notifData.type === "warning" ? "urgent" : notifData.type, // Boost if HCP confirms a warning
+        title: notifData.title,
+        desc: notifData.desc,
+        time: notifData.time,
+        date: notifData.date,
+        reportId: notifData.reportId,
+        classificationReason: notifData.classificationReason,
+      });
 
       return { success: true, data: row };
     }),

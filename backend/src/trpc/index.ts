@@ -3,6 +3,7 @@ import { patientRouter } from "../modules/patient/patient.router.js";
 import { hcpRouter } from "../modules/hcp/hcp.router.js";
 import { familyRouter } from "../modules/family/family.router.js";
 import { adminRouter } from "../modules/admin/admin.router.js";
+import { notificationsRouter } from "../modules/notifications/notifications.router.js";
 
 export const appRouter = router({
   health: publicProcedure.query(() => ({ status: "ok", timestamp: new Date() })),
@@ -10,6 +11,7 @@ export const appRouter = router({
   hcp: hcpRouter,
   family: familyRouter,
   admin: adminRouter,
+  notifications: notificationsRouter,
 });
 
 export type AppRouter = typeof appRouter;

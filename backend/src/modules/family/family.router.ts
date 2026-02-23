@@ -2,8 +2,9 @@ import { z } from "zod";
 import { eq, desc } from "drizzle-orm";
 import { router, publicProcedure, rateLimitedProcedure } from "../../trpc/trpc.js";
 import { db } from "../../db/index.js";
-import { familyReports } from "../../db/schema.js";
+import { familyReports, notifications } from "../../db/schema.js";
 import { createFamilySchema, updateFamilySchema } from "./family.validation.js";
+import { determineNotificationData } from "../../utils/notification-helper.js";
 
 export const familyRouter = router({
   create: rateLimitedProcedure
@@ -12,6 +13,7 @@ export const familyRouter = router({
       const [row] = await db
         .insert(familyReports)
         .values({
+          referenceId: `REP-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
           products: input.products ?? [],
           symptoms: input.symptoms ?? [],
           patientDetails: input.patientDetails ?? {},
@@ -28,6 +30,18 @@ export const familyRouter = router({
           status: input.status ?? "pending",
         })
         .returning();
+
+      const notifData = determineNotificationData(input, "Family", row.referenceId || row.id);
+      
+      await db.insert(notifications).values({
+        type: notifData.type,
+        title: notifData.title,
+        desc: notifData.desc,
+        time: notifData.time,
+        date: notifData.date,
+        reportId: notifData.reportId,
+        classificationReason: notifData.classificationReason,
+      });
 
       return { success: true, data: row };
     }),

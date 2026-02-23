@@ -9,6 +9,7 @@ import {
 
 export const patientReports = pgTable("patient_reports", {
   id: uuid("id").defaultRandom().primaryKey(),
+  referenceId: text("reference_id"), // Custom human-readable ID e.g., REP-123456
 
   // ── Step 1: Product ─────────────────────────────────────
   products: jsonb("products"),

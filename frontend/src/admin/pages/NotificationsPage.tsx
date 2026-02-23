@@ -2,50 +2,21 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Bell, AlertTriangle, CheckCircle, Info, Settings,
-  Trash2, Check, Filter, Search, X, Clock
+  Trash2, Check, Filter, Search, X, Clock,
 } from "lucide-react";
+
+import { trpc } from "../../utils/trpc";
 import {
   Box, Flex, Text, Heading, Button, IconButton, Badge, Input,
-  InputGroup, InputLeftElement, InputRightElement, SimpleGrid
+  InputGroup, InputLeftElement, InputRightElement, SimpleGrid,
+  Spinner,
+
 } from "@chakra-ui/react";
 
-// ── Types ─────────────────────────────────────────────────────────────────────
-type NotifType = "urgent" | "info" | "approved" | "system" | "warning";
 
-interface Notification {
-  id: number;
-  type: NotifType;
-  title: string;
-  desc: string;
-  time: string;
-  date: string;
-  read: boolean;
-  reportId?: string;
-}
-
-// ── Data ─────────────────────────────────────────────────────────────────────
-const allNotifications: Notification[] = [
-  // Today
-  { id: 1,  type: "urgent",   title: "Critical: Severe allergic reaction reported",       desc: "Report #U-091 — Amoxicillin. Patient hospitalized. Requires immediate review.",          time: "2 min ago",   date: "Today",     read: false, reportId: "#U-091" },
-  { id: 2,  type: "urgent",   title: "Critical: Liver damage – Paracetamol overdose",     desc: "Report #U-088 — Marco D. flagged this case as life-threatening.",                        time: "18 min ago",  date: "Today",     read: false, reportId: "#U-088" },
-  { id: 3,  type: "warning",  title: "Batch #RX-442 side effects cluster detected",       desc: "3+ reports submitted for the same batch within 48 hours. Safety signal triggered.",      time: "45 min ago",  date: "Today",     read: false, reportId: "#U-079" },
-  { id: 4,  type: "approved", title: "Report #118 approved",                              desc: "Reviewed and approved by admin. Case closed with no further action required.",           time: "1 hr ago",    date: "Today",     read: true  },
-  { id: 5,  type: "info",     title: "Monthly report for June is ready",                  desc: "Download the June 2025 summary report from the reports section.",                        time: "2 hrs ago",   date: "Today",     read: true  },
-  { id: 6,  type: "system",   title: "New admin account created",                         desc: "james.t@company.com was granted admin access by super admin.",                           time: "3 hrs ago",   date: "Today",     read: true  },
-  // Yesterday
-  { id: 7,  type: "urgent",   title: "High: Cardiac event post-medication",               desc: "Report #U-085 — Selin A. Due for review tomorrow. Assigned to safety team.",            time: "Yesterday",   date: "Yesterday", read: true,  reportId: "#U-085" },
-  { id: 8,  type: "warning",  title: "Email notification service delayed",                desc: "Outbound emails delayed by 5–10 min. Engineering team is investigating.",                time: "Yesterday",   date: "Yesterday", read: true  },
-  { id: 9,  type: "approved", title: "Report #112 approved after review",                 desc: "Drug interaction report reviewed. Product monitoring extended for 6 months.",            time: "Yesterday",   date: "Yesterday", read: true  },
-  { id: 10, type: "info",     title: "System backup completed successfully",              desc: "All data backed up at 02:00 AM. Next backup scheduled for tomorrow.",                    time: "Yesterday",   date: "Yesterday", read: true  },
-  // Earlier
-  { id: 11, type: "urgent",   title: "Unexpected drug interaction flagged",               desc: "Report #U-081 — James T. Two medications with serious interaction reported.",            time: "2 days ago",  date: "Earlier",   read: true,  reportId: "#U-081" },
-  { id: 12, type: "system",   title: "System maintenance scheduled",                      desc: "Planned maintenance on Sunday 2–4 AM. Dashboard may be briefly unavailable.",           time: "3 days ago",  date: "Earlier",   read: true  },
-  { id: 13, type: "info",     title: "New HCP reporter registered",                       desc: "Dr. Priya N. registered as a new HCP reporter. Account pending verification.",          time: "4 days ago",  date: "Earlier",   read: true  },
-  { id: 14, type: "approved", title: "Quarterly safety review completed",                 desc: "Q2 2025 pharmacovigilance review finalized. Report submitted to regulatory body.",       time: "5 days ago",  date: "Earlier",   read: true  },
-];
 
 // ── Config ────────────────────────────────────────────────────────────────────
-const typeConfig: Record<NotifType, { icon: any; color: string; bg: string; border: string; label: string }> = {
+const typeConfig: Record<string, { icon: any; color: string; bg: string; border: string; label: string }> = {
   urgent:   { icon: AlertTriangle, color: "#CE0037", bg: "red.50", border: "red.200", label: "Urgent"   },
   warning:  { icon: AlertTriangle, color: "#d97706", bg: "yellow.50", border: "yellow.200", label: "Warning"  },
   approved: { icon: CheckCircle,   color: "#059669", bg: "green.50", border: "green.200", label: "Approved" },
@@ -64,21 +35,30 @@ const filterOptions: { label: string; value: string }[] = [
 
 // ── Component ─────────────────────────────────────────────────────────────────
 export default function NotificationsPage() {
-  const [notifications, setNotifications] = useState<Notification[]>(allNotifications);
+  const utils = trpc.useContext();
+  const { data: notifications = [], isLoading } = trpc.notifications.getAll.useQuery();
+
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [showUnreadOnly, setShowUnreadOnly] = useState(false);
 
-  const markAllRead = () =>
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+  const markAllReadMutation = trpc.notifications.markAllAsRead.useMutation({
+    onSuccess: () => utils.notifications.getAll.invalidate(),
+  });
+  const markReadMutation = trpc.notifications.markAsRead.useMutation({
+    onSuccess: () => utils.notifications.getAll.invalidate(),
+  });
+  const deleteNotifMutation = trpc.notifications.delete.useMutation({
+    onSuccess: () => utils.notifications.getAll.invalidate(),
+  });
+  const clearAllMutation = trpc.notifications.clearAll.useMutation({
+    onSuccess: () => utils.notifications.getAll.invalidate(),
+  });
 
-  const markRead = (id: number) =>
-    setNotifications((prev) => prev.map((n) => n.id === id ? { ...n, read: true } : n));
-
-  const deleteNotif = (id: number) =>
-    setNotifications((prev) => prev.filter((n) => n.id !== id));
-
-  const clearAll = () => setNotifications([]);
+  const markAllRead = () => markAllReadMutation.mutate();
+  const markRead = (id: number) => markReadMutation.mutate({ id });
+  const deleteNotif = (id: number) => deleteNotifMutation.mutate({ id });
+  const clearAll = () => clearAllMutation.mutate();
 
   const filtered = notifications.filter((n) => {
     const matchType   = filter === "all" || n.type === filter;
@@ -88,9 +68,10 @@ export default function NotificationsPage() {
     return matchType && matchSearch && matchUnread;
   });
 
-  const grouped = ["Today", "Yesterday", "Earlier"].reduce<Record<string, Notification[]>>((acc, date) => {
-    const items = filtered.filter((n) => n.date === date);
-    if (items.length) acc[date] = items;
+  const grouped = filtered.reduce<Record<string, any[]>>((acc, n) => {
+    const date = n.date || "Earlier";
+    if (!acc[date]) acc[date] = [];
+    acc[date].push(n);
     return acc;
   }, {});
 
@@ -236,7 +217,7 @@ export default function NotificationsPage() {
         spacing={3}
         mb={8}
       >
-        {(["urgent", "warning", "approved", "info", "system"] as NotifType[]).map((type) => {
+        {(["urgent", "warning", "approved", "info", "system"]).map((type) => {
           const cfg = typeConfig[type];
           const count = notifications.filter((n) => n.type === type).length;
           const unread = notifications.filter((n) => n.type === type && !n.read).length;
@@ -276,7 +257,11 @@ export default function NotificationsPage() {
       </SimpleGrid>
 
       {/* ── Notification List ── */}
-      {Object.keys(grouped).length === 0 ? (
+      {isLoading ? (
+        <Flex justify="center" align="center" py={16}>
+          <Spinner color="#CE0037" size="xl" />
+        </Flex>
+      ) : Object.keys(grouped).length === 0 ? (
         <Flex
           as={motion.div}
           {...({} as any)}
@@ -359,7 +344,7 @@ export default function NotificationsPage() {
                           <Flex align="center" gap={2} shrink={0}>
                             <Text fontSize="xs" color="#94a3b8" whiteSpace="nowrap">{n.time}</Text>
                             {!n.read && (
-                              <Box w="8px" h="8px" borderRadius="full" bg={cfg.color} shrink={0} />
+                              <Box w="8px" h="8px" borderRadius="full" bg={cfg.color} flexShrink={0} />
                             )}
                           </Flex>
                         </Flex>

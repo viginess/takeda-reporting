@@ -2,8 +2,9 @@ import { z } from "zod";
 import { eq, desc } from "drizzle-orm";
 import { router, publicProcedure, rateLimitedProcedure } from "../../trpc/trpc.js";
 import { db } from "../../db/index.js";
-import { patientReports } from "../../db/schema.js";
+import { patientReports, notifications } from "../../db/schema.js";
 import { createPatientSchema, updatePatientSchema } from "./patient.validation.js";
+import { determineNotificationData } from "../../utils/notification-helper.js";
 
 export const patientRouter = router({
   // ─── CREATE ────────────────────────────────────────────────────────────────
@@ -14,6 +15,7 @@ export const patientRouter = router({
         .insert(patientReports)
         .values({
           // ── Step 1: Product ────────────────────────────
+          referenceId: `REP-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
           products: input.products ?? [],
 
           // ── Step 2: Event ──────────────────────────────
@@ -42,6 +44,18 @@ export const patientRouter = router({
           status: input.status ?? "pending",
         })
         .returning();
+
+      const notifData = determineNotificationData(input, "Patient", row.referenceId || row.id);
+      
+      await db.insert(notifications).values({
+        type: notifData.type,
+        title: notifData.title,
+        desc: notifData.desc,
+        time: notifData.time,
+        date: notifData.date,
+        reportId: notifData.reportId,
+        classificationReason: notifData.classificationReason,
+      });
 
       return { success: true, data: row };
     }),
