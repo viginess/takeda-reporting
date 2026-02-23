@@ -42,9 +42,7 @@ export const familyReports = pgTable("family_reports", {
   agreedToTerms: boolean("agreed_to_terms").notNull().default(false),
   status: statusEnum("status").default("new"),
   severity: severityEnum("severity").default("info"),
-  assignee: text("assignee"),
   adminNotes: text("admin_notes"),
-  assignedAt: timestamp("assigned_at"),
   lastUpdatedAt: timestamp("last_updated_at"),
 
   // Meta
@@ -54,7 +52,6 @@ export const familyReports = pgTable("family_reports", {
   return {
     severityIdx: index("family_severity_idx").on(table.severity),
     statusIdx: index("family_status_idx").on(table.status),
-    assigneeIdx: index("family_assignee_idx").on(table.assignee),
     createdAtIdx: index("family_created_at_idx").on(table.createdAt),
   };
 });

@@ -9,71 +9,22 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid,
 } from "recharts";
 import { trpc } from "../../utils/trpc";
+import { useNavigate } from "react-router-dom";
 import {
   Box, Flex, Text, Heading, Button, IconButton, Badge, SimpleGrid,
-  Card, CardBody, HStack, VStack
+  Card, CardBody, HStack, VStack, Spinner
 } from "@chakra-ui/react";
 
-// ── Data ──────────────────────────────────────────────────────────────────────
-const stats = [
-  { title: "Total Reports", value: 128, icon: FileText, trend: "+12%", color: "#CE0037" },
-  { title: "Pending Review", value: 34, icon: Clock, trend: "+4%", color: "#f59e0b" },
-  { title: "Approved", value: 76, icon: CheckCircle, trend: "+18%", color: "#10b981" },
-  { title: "Urgent Cases", value: 5, icon: AlertTriangle, trend: "+2", color: "#ef4444" },
-];
-
-const activities = [
-  { message: "Report #124 submitted by Rania K.", time: "2 min ago", type: "submit" },
-  { message: "Report #118 approved by admin", time: "10 min ago", type: "approve" },
-  { message: "System settings updated", time: "1 hour ago", type: "system" },
-  { message: "New admin account created", time: "3 hours ago", type: "account" },
-  { message: "Report #112 flagged as urgent", time: "Yesterday", type: "urgent" },
-  { message: "Backup completed successfully", time: "Yesterday", type: "system" },
-];
-
-const urgentReports = [
-  { id: "#U-091", title: "Severe allergic reaction – Amoxicillin", severity: "Critical", assignee: "Rania K.", due: "Today, 3PM" },
-  { id: "#U-088", title: "Liver damage reported – Paracetamol overdose", severity: "Critical", assignee: "Marco D.", due: "Today, 5PM" },
-  { id: "#U-085", title: "Cardiac event post-medication", severity: "High", assignee: "Selin A.", due: "Tomorrow" },
-  { id: "#U-081", title: "Unexpected drug interaction flagged", severity: "High", assignee: "James T.", due: "In 2 days" },
-  { id: "#U-079", title: "Batch #RX-442 side effects cluster", severity: "Medium", assignee: "Priya N.", due: "In 3 days" },
-];
-
-const severityStyle = {
-  Critical: { bg: "red.50", text: "red.600", dot: "red.600" },
-  High:     { bg: "orange.50", text: "orange.600", dot: "orange.600" },
-  Medium:   { bg: "yellow.50", text: "yellow.600", dot: "yellow.600" },
-};
-
-const reportStatusData = [
-  { name: "Submitted", value: 40 },
-  { name: "In Review", value: 34 },
-  { name: "Approved", value: 76 },
-  { name: "Closed", value: 18 },
-];
-
-const monthlyReports = [
-  { month: "Jan", Patient: 12, HCP: 8, Family: 5 },
-  { month: "Feb", Patient: 18, HCP: 10, Family: 7 },
-  { month: "Mar", Patient: 25, HCP: 15, Family: 9 },
-  { month: "Apr", Patient: 20, HCP: 12, Family: 6 },
-  { month: "May", Patient: 32, HCP: 20, Family: 11 },
-  { month: "Jun", Patient: 21, HCP: 14, Family: 8 },
-];
-
-
-
 // ── Colors ────────────────────────────────────────────────────────────────────
-const PIE_COLORS = ["#CE0037", "#f59e0b", "#10b981", "#64748b"];
-const AREA_COLORS = { Patient: "#CE0037", HCP: "#E31C5F", Family: "#f59e0b" };
-
-const activityDot = {
-  submit:  "#CE0037",
-  approve: "#10b981",
-  system:  "#64748b",
-  account: "#E31C5F",
-  urgent:  "#a1002b",
+const PIE_COLORS     = ["#CE0037", "#f59e0b", "#10b981", "#64748b"];
+const AREA_COLORS    = { Patient: "#CE0037", HCP: "#E31C5F", Family: "#f59e0b" };
+const STATS_CONFIG   = {
+  total:   { title: "Total Reports",   icon: FileText,      color: "#CE0037" },
+  pending: { title: "Pending Review", icon: Clock,         color: "#f59e0b" },
+  approved: { title: "Approved",       icon: CheckCircle,   color: "#10b981" },
+  urgent:  { title: "Urgent Cases",   icon: AlertTriangle, color: "#ef4444" },
 };
+
 
 const notifStyle = {
   urgent:  { border: "#a1002b", bg: "red.50", icon: "🔴" },
@@ -99,9 +50,16 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 
 // ── Main Component ─────────────────────────────────────────────────────────────
 export default function AdminDashboard() {
+  const navigate = useNavigate();
   const [notifOpen, setNotifOpen] = useState(false);
   const utils = trpc.useContext();
+  
+  // Real Data Queries
   const { data: notifications = [] } = trpc.notifications.getAll.useQuery();
+  const { data: dashboardStats, isLoading: statsLoading } = trpc.admin.getDashboardStats.useQuery();
+  const { data: urgentReports = [], isLoading: urgentLoading } = trpc.admin.getUrgentReports.useQuery();
+  const { data: statusDistribution = [], isLoading: pieLoading } = trpc.admin.getStatusDistribution.useQuery();
+  const { data: monthlyVolume = [], isLoading: areaLoading } = trpc.admin.getMonthlyVolume.useQuery();
 
   const markReadMutation = trpc.notifications.markAsRead.useMutation({
     onSuccess: () => utils.notifications.getAll.invalidate(),
@@ -115,6 +73,8 @@ export default function AdminDashboard() {
 
   // Only show unread notifications in the dashboard bell dropdown
   const visibleNotifs = notifications.filter((n) => !n.read);
+
+
 
   return (
     <Box minH="100%" bg="#f8fafc" fontFamily="'DM Sans', system-ui, sans-serif" p={8}>
@@ -248,10 +208,10 @@ export default function AdminDashboard() {
 
       {/* ── Stat Cards ── */}
       <SimpleGrid columns={4} spacing={4} mb={6}>
-        {stats.map((stat, i) => (
+        {Object.entries(STATS_CONFIG).map(([key, cfg], i) => (
           <Card
             as={motion.div}
-            key={stat.title}
+            key={key}
             {...({} as any)}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -263,20 +223,25 @@ export default function AdminDashboard() {
           >
             <CardBody p={5}>
               <Flex justify="space-between" align="flex-start" mb={3}>
-                <Text fontSize="sm" color="#64748b" fontWeight="medium">{stat.title}</Text>
-                <Flex bg={`${stat.color}18`} borderRadius="lg" p={2}>
-                  <stat.icon size={16} color={stat.color} />
+                <Text fontSize="sm" color="#64748b" fontWeight="medium">{cfg.title}</Text>
+                <Flex bg={`${cfg.color}18`} borderRadius="lg" p={2}>
+                  <cfg.icon size={16} color={cfg.color} />
                 </Flex>
               </Flex>
-              <Text fontSize="3xl" fontWeight="extrabold" color="#0f172a" letterSpacing="-1px">
-                {stat.value}
-              </Text>
-              <Flex mt={2} align="center" gap={1}>
-                <TrendingUp size={12} color={stat.trend.startsWith("+") ? "#10b981" : "#ef4444"} />
-                <Text fontSize="xs" color={stat.trend.startsWith("+") ? "emerald.500" : "red.500"} fontWeight="semibold">
-                  {stat.trend}
+              {statsLoading ? (
+                <Spinner size="sm" color="#CE0037" />
+              ) : (
+                <Text fontSize="3xl" fontWeight="extrabold" color="#0f172a" letterSpacing="-1px">
+                  {dashboardStats ? (dashboardStats as any)[key] : 0}
                 </Text>
-                <Text fontSize="xs" color="#94a3b8">vs last month</Text>
+              )}
+              <Flex mt={2} align="center" gap={1}>
+                {/* Visual Placeholder for trend */}
+                <TrendingUp size={12} color="#10b981" />
+                <Text fontSize="xs" color="emerald.500" fontWeight="semibold">
+                  Live
+                </Text>
+                <Text fontSize="xs" color="#94a3b8" ml={1}>Synced with database</Text>
               </Flex>
             </CardBody>
           </Card>
@@ -303,42 +268,50 @@ export default function AdminDashboard() {
             <Text fontWeight="bold" fontSize="sm" color="#0f172a">Urgent Reports</Text>
             <Badge bg="red.500" color="white" borderRadius="full" px={2} py={0.5}>{urgentReports.length}</Badge>
           </Flex>
-          <Button variant="link" color="#CE0037" fontSize="sm" rightIcon={<ChevronRight size={14} />}>
+          <Button variant="link" color="#CE0037" fontSize="sm" rightIcon={<ChevronRight size={14} />} onClick={() => navigate('/admin/reports')}>
             View all
           </Button>
         </Flex>
         <Box>
-          {urgentReports.map((r, i) => {
-            const s = severityStyle[r.severity as keyof typeof severityStyle];
-            return (
-              <Flex
-                as={motion.div}
-                key={r.id}
-                {...({} as any)}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.4 + i * 0.06 }}
-                whileHover={{ background: "#f8fafc" }}
-                align="center"
-                p={3}
-                px={5}
-                borderBottom={i < urgentReports.length - 1 ? "1px solid" : "none"}
-                borderColor="#f1f5f9"
-                gap={4}
-                cursor="pointer"
-              >
-                <Text fontFamily="monospace" fontSize="xs" color="#94a3b8" w="56px" flexShrink={0}>{r.id}</Text>
-                <Text flex={1} fontSize="sm" fontWeight="medium" color="#0f172a">{r.title}</Text>
-                <Flex bg={s.bg} color={s.text} fontSize="2xs" fontWeight="bold" px={3} py={1} borderRadius="full" align="center" gap={2} flexShrink={0}>
-                  <Box w="6px" h="6px" borderRadius="full" bg={s.dot} />
-                  {r.severity}
+          {urgentLoading ? (
+            <Flex p={10} justify="center"><Spinner color="#CE0037" /></Flex>
+          ) : urgentReports.length === 0 ? (
+            <Flex p={10} justify="center"><Text color="#64748b" fontSize="sm">No urgent reports found</Text></Flex>
+          ) : (
+            urgentReports.map((r, i) => {
+              const s = r.severity === "Critical" 
+                        ? { bg: "red.50", text: "red.600", dot: "red.600" } 
+                        : { bg: "orange.50", text: "orange.600", dot: "orange.600" };
+              return (
+                <Flex
+                  as={motion.div}
+                  key={r.id}
+                  {...({} as any)}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.4 + i * 0.06 }}
+                  whileHover={{ background: "#f8fafc" }}
+                  align="center"
+                  p={3}
+                  px={5}
+                  borderBottom={i < urgentReports.length - 1 ? "1px solid" : "none"}
+                  borderColor="#f1f5f9"
+                  gap={4}
+                  cursor="pointer"
+                  onClick={() => navigate('/admin/reports')}
+                >
+                  <Text fontFamily="monospace" fontSize="xs" color="#94a3b8" w="80px" flexShrink={0}>{r.id}</Text>
+                  <Text flex={1} fontSize="sm" fontWeight="medium" color="#0f172a" noOfLines={1}>{r.title}</Text>
+                  <Flex bg={s.bg} color={s.text} fontSize="2xs" fontWeight="bold" px={3} py={1} borderRadius="full" align="center" gap={2} flexShrink={0}>
+                    <Box w="6px" h="6px" borderRadius="full" bg={s.dot} />
+                    {r.severity}
+                  </Flex>
+                  <Text fontSize="xs" color="#94a3b8" w="90px" textAlign="right" flexShrink={0}>{r.due}</Text>
+                  <MoreHorizontal size={15} color="#cbd5e1" />
                 </Flex>
-                <Text fontSize="sm" color="#64748b" w="90px" textAlign="right" flexShrink={0}>{r.assignee}</Text>
-                <Text fontSize="xs" color={r.due.includes("Today") ? "red.500" : "#94a3b8"} fontWeight={r.due.includes("Today") ? "semibold" : "normal"} w="90px" textAlign="right" flexShrink={0}>{r.due}</Text>
-                <MoreHorizontal size={15} color="#cbd5e1" />
-              </Flex>
-            );
-          })}
+              );
+            })
+          )}
         </Box>
       </Card>
 
@@ -368,25 +341,29 @@ export default function AdminDashboard() {
             </HStack>
           </Flex>
           <Box p={4} pb={2}>
-            <ResponsiveContainer width="100%" height={240}>
-              <AreaChart data={monthlyReports} margin={{ top: 5, right: 16, left: -20, bottom: 0 }}>
-                <defs>
+            {areaLoading ? (
+              <Flex h="240px" align="center" justify="center"><Spinner color="#CE0037" /></Flex>
+            ) : (
+              <ResponsiveContainer width="100%" height={240}>
+                <AreaChart data={monthlyVolume} margin={{ top: 5, right: 16, left: -20, bottom: 0 }}>
+                  <defs>
+                    {Object.entries(AREA_COLORS).map(([key, color]) => (
+                      <linearGradient key={key} id={`grad-${key}`} x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor={color} stopOpacity={0.25} />
+                        <stop offset="95%" stopColor={color} stopOpacity={0} />
+                      </linearGradient>
+                    ))}
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                  <XAxis dataKey="month" tick={{ fontSize: 12, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 12, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
+                  <Tooltip content={<CustomTooltip />} />
                   {Object.entries(AREA_COLORS).map(([key, color]) => (
-                    <linearGradient key={key} id={`grad-${key}`} x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor={color} stopOpacity={0.25} />
-                      <stop offset="95%" stopColor={color} stopOpacity={0} />
-                    </linearGradient>
+                    <Area key={key} type="monotone" dataKey={key} stroke={color} fill={`url(#grad-${key})`} strokeWidth={2.5} dot={false} activeDot={{ r: 5, fill: color }} />
                   ))}
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                <XAxis dataKey="month" tick={{ fontSize: 12, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 12, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
-                <Tooltip content={<CustomTooltip />} />
-                {Object.entries(AREA_COLORS).map(([key, color]) => (
-                  <Area key={key} type="monotone" dataKey={key} stroke={color} fill={`url(#grad-${key})`} strokeWidth={2.5} dot={false} activeDot={{ r: 5, fill: color }} />
-                ))}
-              </AreaChart>
-            </ResponsiveContainer>
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
           </Box>
         </Card>
 
@@ -407,24 +384,28 @@ export default function AdminDashboard() {
           </Box>
           <Flex p={4} align="center" gap={4}>
             <Box w="50%" h="200px">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie data={reportStatusData} dataKey="value" nameKey="name" outerRadius={80} innerRadius={46} paddingAngle={3} cx="50%" cy="50%">
-                    {reportStatusData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} stroke="none" />)}
-                  </Pie>
-                  <Tooltip formatter={(v: any, n: any) => [v, n]} contentStyle={{ borderRadius: 10, border: "1px solid #e2e8f0", fontSize: 13 }} />
-                </PieChart>
-              </ResponsiveContainer>
+              {pieLoading ? (
+                <Flex h="100%" align="center" justify="center"><Spinner color="#CE0037" /></Flex>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={statusDistribution} dataKey="value" nameKey="name" outerRadius={80} innerRadius={46} paddingAngle={3} cx="50%" cy="50%">
+                      {statusDistribution.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} stroke="none" />)}
+                    </Pie>
+                    <Tooltip formatter={(v: any, n: any) => [v, n]} contentStyle={{ borderRadius: 10, border: "1px solid #e2e8f0", fontSize: 13 }} />
+                  </PieChart>
+                </ResponsiveContainer>
+              )}
             </Box>
             <VStack flex={1} align="stretch" spacing={3}>
-              {reportStatusData.map((d, i) => {
-                const total = reportStatusData.reduce((s, r) => s + r.value, 0);
-                const pct = Math.round((d.value / total) * 100);
+              {statusDistribution.map((d, i) => {
+                const total = statusDistribution.reduce((s, r) => s + (r.value || 0), 0);
+                const pct = total > 0 ? Math.round(((d.value || 0) / total) * 100) : 0;
                 return (
                   <Box key={d.name}>
                     <Flex justify="space-between" mb={1}>
                       <Flex align="center" gap={2} fontSize="xs" color="#334155" fontWeight="medium">
-                        <Box w="9px" h="9px" borderRadius="full" bg={PIE_COLORS[i]} />
+                        <Box w="9px" h="9px" borderRadius="full" bg={PIE_COLORS[i % PIE_COLORS.length]} />
                         {d.name}
                       </Flex>
                       <Text fontSize="xs" fontWeight="bold" color="#0f172a">
@@ -439,7 +420,7 @@ export default function AdminDashboard() {
                         animate={{ width: `${pct}%` }}
                         transition={{ delay: 0.6 + i * 0.1, duration: 0.6 }}
                         h="100%"
-                        bg={PIE_COLORS[i]}
+                        bg={PIE_COLORS[i % PIE_COLORS.length]}
                         borderRadius="full"
                       />
                     </Box>
@@ -450,56 +431,6 @@ export default function AdminDashboard() {
           </Flex>
         </Card>
       </SimpleGrid>
-
-      {/* ── Recent Activity ── */}
-      <Card
-        as={motion.div}
-        {...({} as any)}
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.55 }}
-        borderRadius="2xl"
-        variant="outline"
-        boxShadow="sm"
-        overflow="hidden"
-      >
-        <Flex p={4} px={5} borderBottom="1px solid" borderColor="#f1f5f9" justify="space-between" align="center">
-          <Text fontWeight="bold" fontSize="sm" color="#0f172a">Recent Activity</Text>
-          <Button variant="link" color="#CE0037" fontSize="sm" rightIcon={<ChevronRight size={14} />}>
-            View all
-          </Button>
-        </Flex>
-        <Box py={1}>
-          {activities.map((a, i) => (
-            <Flex
-              as={motion.div}
-              key={i}
-              {...({} as any)}
-              initial={{ opacity: 0, x: -8 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.6 + i * 0.05 }}
-              whileHover={{ bg: "#f8fafc" }}
-              align="center"
-              gap={4}
-              p={3}
-              px={5}
-              borderBottom={i < activities.length - 1 ? "1px solid" : "none"}
-              borderColor="#f1f5f9"
-            >
-              <Box
-                w="10px"
-                h="10px"
-                borderRadius="full"
-                flexShrink={0}
-                bg={activityDot[a.type as keyof typeof activityDot]}
-                boxShadow={`0 0 0 3px ${activityDot[a.type as keyof typeof activityDot]}28`}
-              />
-              <Text flex={1} m={0} fontSize="sm" color="#0f172a" fontWeight="medium">{a.message}</Text>
-              <Text fontSize="xs" color="#94a3b8" flexShrink={0}>{a.time}</Text>
-            </Flex>
-          ))}
-        </Box>
-      </Card>
     </Box>
   );
 }

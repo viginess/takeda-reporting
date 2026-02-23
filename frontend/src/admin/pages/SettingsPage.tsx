@@ -1,48 +1,28 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Settings, Shield, Bell, Mail, Database, Globe,
+  Settings, Shield, Bell,  Database,
   Lock, Key, Save, RotateCcw, Check, AlertTriangle,
- Eye, EyeOff, History, AlertCircle,
-  Users, Zap
+ AlertCircle, UserCircle
 } from "lucide-react";
 import {
-  Box, Flex, Text, Heading, Button, IconButton, Badge, Input,
-  Select, Switch, SimpleGrid, Card, Modal, ModalOverlay, ModalContent, ModalHeader,
-  ModalBody, ModalFooter, useDisclosure
+  Box, Flex, Text, Heading, Button,  Badge, Input,
+  Select, Switch, Card, Modal, ModalOverlay, ModalContent, ModalHeader,
+  ModalBody, ModalFooter, useDisclosure, useToast, Spinner, Center
 } from "@chakra-ui/react";
+import { trpc } from "../../utils/trpc";
+import { supabase } from "../../utils/supabaseClient";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
-type Section = "general" | "security" | "notifications" | "integrations" | "audit";
+type Section = "general" | "security" | "notifications";
 
-interface AuditLog {
-  id: number;
-  section: string;
-  field: string;
-  from: string;
-  to: string;
-  by: string;
-  at: string;
-  ip: string;
-}
 
-// ── Mock Audit Log ─────────────────────────────────────────────────────────────
-const auditLogs: AuditLog[] = [
-  { id: 1, section: "Security",      field: "Session Timeout",        from: "30 min",           to: "60 min",             by: "Admin",     at: "Today, 10:14 AM",   ip: "192.168.1.10" },
-  { id: 2, section: "Notifications", field: "Urgent Alert Email",     from: "Disabled",          to: "Enabled",            by: "Admin",     at: "Today, 9:48 AM",    ip: "192.168.1.10" },
-  { id: 3, section: "General",       field: "System Language",        from: "English (UK)",      to: "English (US)",       by: "SuperAdmin", at: "Yesterday, 3:22 PM", ip: "10.0.0.5" },
-  { id: 4, section: "Integrations",  field: "SMTP Host",              from: "smtp.old.com",      to: "smtp.sendgrid.com",  by: "Admin",     at: "Yesterday, 11:05 AM", ip: "192.168.1.10" },
-  { id: 5, section: "Security",      field: "2FA Enforcement",        from: "Optional",          to: "Required",           by: "SuperAdmin", at: "Jun 19, 2:00 PM",   ip: "10.0.0.5" },
-  { id: 6, section: "General",       field: "Report Retention Period", from: "12 months",        to: "24 months",          by: "Admin",     at: "Jun 18, 4:30 PM",   ip: "192.168.1.10" },
-];
 
 // ── Nav Sections ──────────────────────────────────────────────────────────────
 const navSections: { id: Section; label: string; icon: any; desc: string }[] = [
   { id: "general",       label: "General",       icon: Settings, desc: "System preferences & behavior" },
-  { id: "security",      label: "Security",      icon: Shield,   desc: "Access control & authentication" },
+  { id: "security",      label: "Security",      icon: Shield,   desc: "Manage authentication & security policies" },
   { id: "notifications", label: "Notifications", icon: Bell,     desc: "Alert rules & delivery settings" },
-  { id: "integrations",  label: "Integrations",  icon: Zap,      desc: "Email, APIs & external services" },
-  { id: "audit",         label: "Audit Log",     icon: History,  desc: "Change history & activity trail" },
 ];
 
 // ── Setting Row ───────────────────────────────────────────────────────────────
@@ -90,40 +70,144 @@ export default function SystemSettings() {
   const [saved, setSaved] = useState(false);
   const [pendingSection, setPendingSection] = useState<Section | null>(null);
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [showApiKey, setShowApiKey] = useState(false);
+
+
+  const { data, isLoading, refetch } = trpc.admin.getSystemSettings.useQuery();
+  const { data: adminUsers } = trpc.admin.getAdmins.useQuery();
+  const utils = trpc.useContext();
+  const updateSettings = trpc.admin.updateSystemSettings.useMutation({
+    onSuccess: () => {
+      setUnsaved(false);
+      setSaved(true);
+      toast({
+        title: "Settings updated",
+        description: "Your changes have been saved successfully.",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+      refetch();
+      setTimeout(() => setSaved(false), 3000);
+    },
+    onError: (error) => {
+      toast({
+        title: "Error saving settings",
+        description: error.message,
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+  });
+
+  const runArchivingManual = trpc.admin.runManualArchiving.useMutation({
+    onSuccess: () => {
+      toast({
+        title: "Archiving complete",
+        description: "Old reports have been moved to the archive.",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+      refetch();
+    },
+    onError: (err) => {
+      toast({
+        title: "Archiving failed",
+        description: err.message,
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+  });
+
+  const toast = useToast();
 
   // ── General Settings State ──
-  const [systemName, setSystemName] = useState("Drug Safety Reporting System");
-  const [adminEmail, setAdminEmail] = useState("admin@pharma.com");
-  const [language, setLanguage] = useState("English (US)");
-  const [timezone, setTimezone] = useState("UTC+05:30 (IST)");
-  const [retention, setRetention] = useState("24 months");
+  const [adminEmail, setAdminEmail] = useState("");
+  const [language, setLanguage] = useState("");
+  const [timezone, setTimezone] = useState("");
+  const [retention, setRetention] = useState("");
   const [maintenanceMode, setMaintenanceMode] = useState(false);
-  const [debugMode, setDebugMode] = useState(false);
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [userId, setUserId] = useState<string | null>(null);
 
   // ── Security Settings State ──
-  const [twoFA, setTwoFA] = useState(true);
-  const [sessionTimeout, setSessionTimeout] = useState("60 min");
-  const [maxLoginAttempts, setMaxLoginAttempts] = useState("5");
-  const [passwordExpiry, setPasswordExpiry] = useState("90 days");
-  const [ipWhitelist, setIpWhitelist] = useState("192.168.1.0/24");
-  const [auditLogging, setAuditLogging] = useState(true);
+  const [twoFA, setTwoFA] = useState(false);
+  const [sessionTimeout, setSessionTimeout] = useState("");
+  const [maxLoginAttempts, setMaxLoginAttempts] = useState("");
+  const [passwordExpiry, setPasswordExpiry] = useState("");
 
   // ── Notification Settings State ──
-  const [urgentAlerts, setUrgentAlerts] = useState(true);
-  const [emailDigest, setEmailDigest] = useState(true);
-  const [smsAlerts, setSmsAlerts] = useState(false);
-  const [digestFrequency, setDigestFrequency] = useState("Daily");
-  const [alertThreshold, setAlertThreshold] = useState("Critical & High");
-  const [notifyOnApproval, setNotifyOnApproval] = useState(true);
+  const [urgentAlerts, setUrgentAlerts] = useState(false);
+  const [alertThreshold, setAlertThreshold] = useState("");
+  const [notifyOnApproval, setNotifyOnApproval] = useState(false);
+  
+  const updateAdminProfile = trpc.admin.updateAdminProfile.useMutation({
+    onSuccess: () => {
+      utils.admin.getAdmins.invalidate();
+      setUnsaved(false);
+      setSaved(true);
+      toast({
+        title: "Profile updated",
+        description: "Your profile changes have been saved successfully.",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+      setTimeout(() => setSaved(false), 3000);
+    },
+    onError: (error) => {
+      toast({
+        title: "Error saving profile",
+        description: error.message,
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+  });
 
-  // ── Integration Settings State ──
-  const [smtpHost, setSmtpHost] = useState("smtp.sendgrid.com");
-  const [smtpPort, setSmtpPort] = useState("587");
-  const [smtpUser, setSmtpUser] = useState("noreply@pharma.com");
-  const [apiKey, setApiKey] = useState("sk-prod-a8f3k2...xxxx");
-  const [webhookUrl, setWebhookUrl] = useState("https://hooks.internal.com/safety");
-  const [webhookEnabled, setWebhookEnabled] = useState(true);
+  // Integration settings removed
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUserId(user?.id || null);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (data) {
+      setLanguage(data.defaultLanguage || "English (US)");
+      
+      const clinical = data.clinicalConfig || {};
+      setAdminEmail(clinical.adminEmail || "admin@pharma.com");
+      setTimezone(clinical.timezone || "UTC+05:30 (IST)");
+      setRetention(clinical.retention || "24 months");
+      setMaintenanceMode(!!clinical.maintenanceMode);
+      setTwoFA(clinical.twoFA !== false); // Default to true if not explicitly false
+      setSessionTimeout(clinical.sessionTimeout || "60 min");
+      setMaxLoginAttempts(clinical.maxLoginAttempts || "5");
+      setPasswordExpiry(clinical.passwordExpiry || "90 days");
+  
+      const notifs = data.notificationThresholds || {};
+      setUrgentAlerts(notifs.urgentAlerts !== false);
+      setAlertThreshold(notifs.alertThreshold || "Critical & High");
+      setNotifyOnApproval(notifs.notifyOnApproval !== false);
+    }
+  }, [data]);
+
+  useEffect(() => {
+    if (adminUsers && userId) {
+      const profile = adminUsers.find(a => a.id === userId);
+      if (profile) {
+        setFirstName(profile.firstName || "");
+        setLastName(profile.lastName || "");
+      }
+    }
+  }, [adminUsers, userId]);
 
   const track = (fn: () => void) => { fn(); setUnsaved(true); setSaved(false); };
 
@@ -136,13 +220,93 @@ export default function SystemSettings() {
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    if (active === "general" || active === "security" || active === "notifications") {
+      if (!adminEmail.trim()) {
+        toast({
+          title: "Validation Error",
+          description: "Admin Email is required.",
+          status: "warning",
+          duration: 3000,
+          isClosable: true,
+        });
+        return;
+      }
+
+      await updateSettings.mutateAsync({
+        defaultLanguage: language,
+        notificationThresholds: {
+          urgentAlerts,
+          alertThreshold,
+          notifyOnApproval,
+          emailDigest: data?.notificationThresholds.emailDigest || false,
+          digestFrequency: data?.notificationThresholds.digestFrequency || "Daily",
+          smsAlerts: data?.notificationThresholds.smsAlerts || false,
+        },
+        clinicalConfig: {
+          adminEmail,
+          timezone,
+          retention,
+          maintenanceMode,
+          twoFA,
+          sessionTimeout,
+          maxLoginAttempts,
+          passwordExpiry,
+        }
+      });
+    }
+
+    // Always update profile fields if they are in the General tab now
+    if (userId) {
+      await updateAdminProfile.mutateAsync({
+        firstName,
+        lastName,
+      });
+    }
+
     setUnsaved(false);
     setSaved(true);
+    toast({
+      title: "Settings updated",
+      description: "Your changes have been saved successfully.",
+      status: "success",
+      duration: 3000,
+      isClosable: true,
+    });
+    refetch();
     setTimeout(() => setSaved(false), 3000);
   };
 
   const handleDiscard = () => {
+    if (data) {
+        // Reset to fetched state
+        setLanguage(data.defaultLanguage || "English (US)");
+        
+        const clinical = data.clinicalConfig || {};
+        setAdminEmail(clinical.adminEmail || "admin@pharma.com");
+        setTimezone(clinical.timezone || "UTC+05:30 (IST)");
+        setRetention(clinical.retention || "24 months");
+        setMaintenanceMode(!!clinical.maintenanceMode);
+        setTwoFA(clinical.twoFA !== false);
+        setSessionTimeout(clinical.sessionTimeout || "60 min");
+        setMaxLoginAttempts(clinical.maxLoginAttempts || "5");
+        setPasswordExpiry(clinical.passwordExpiry || "90 days");
+        // integration-related fields intentionally omitted when discarding
+
+        const notifs = data.notificationThresholds || {};
+        setUrgentAlerts(notifs.urgentAlerts !== false);
+        setAlertThreshold(notifs.alertThreshold || "Critical & High");
+        setNotifyOnApproval(notifs.notifyOnApproval !== false);
+    }
+
+    if (adminUsers && userId) {
+      const profile = adminUsers.find(a => a.id === userId);
+      if (profile) {
+        setFirstName(profile.firstName || "");
+        setLastName(profile.lastName || "");
+      }
+    }
+
     setUnsaved(false);
     if (pendingSection) { 
       setActive(pendingSection); 
@@ -150,6 +314,17 @@ export default function SystemSettings() {
     }
     onClose();
   };
+
+  if (isLoading) {
+    return (
+        <Center h="100vh" w="100%">
+            <Flex direction="column" align="center" gap={4}>
+                <Spinner size="xl" color="#CE0037" thickness="4px" />
+                <Text color="#64748b" fontWeight="medium">Loading system configurations...</Text>
+            </Flex>
+        </Center>
+    );
+  }
 
   return (
     <Flex direction="column" minH="100%" bg="#f8fafc" fontFamily="'DM Sans', system-ui, sans-serif">
@@ -162,17 +337,12 @@ export default function SystemSettings() {
               <Settings size={22} color="#CE0037" />
               <Heading as="h1" size="lg" color="#0f172a" letterSpacing="-0.5px">System Settings</Heading>
             </Flex>
-            <Text color="#64748b" fontSize="sm">Configure system behavior, security policies, and integrations</Text>
+            <Text color="#64748b" fontSize="sm">Configure system behavior and security policies</Text>
           </Box>
-
           <Flex align="center" gap={3}>
             <Flex align="center" gap={1.5} bg="red.50" border="1px solid" borderColor="red.200" borderRadius="md" px={3} py={1.5}>
               <Shield size={13} color="#CE0037" />
               <Text fontSize="xs" fontWeight="bold" color="#CE0037">Admin Only</Text>
-            </Flex>
-            <Flex align="center" gap={1.5} bg="#f8fafc" border="1px solid" borderColor="#e2e8f0" borderRadius="md" px={3} py={1.5}>
-              <History size={13} color="#64748b" />
-              <Text fontSize="xs" fontWeight="bold" color="#64748b">Changes Logged</Text>
             </Flex>
             <AnimatePresence>
                 {unsaved && (
@@ -289,41 +459,46 @@ export default function SystemSettings() {
           flex={1}
           minW={0}
         >
-          {/* ── General ── */}
           {active === "general" && (
             <>
-              <SectionCard title="System Identity" icon={Globe}>
-                <SettingRow label="System Name" desc="Display name shown across the application">
-                  <Input value={systemName} onChange={(e) => track(() => setSystemName(e.target.value))} size="sm" w="220px" bg="white" />
+              <SectionCard title="Profile" icon={UserCircle}>
+                <SettingRow label="First Name" desc="Your first name for professional attribution">
+                  <Input value={firstName} onChange={(e) => track(() => setFirstName(e.target.value))} size="sm" w="220px" bg="white" />
                 </SettingRow>
-                <SettingRow label="Admin Email" desc="All system alerts (Critical reports, HCP 3+ reports) are sent to this address">
-                  <Input value={adminEmail} onChange={(e) => track(() => setAdminEmail(e.target.value))} placeholder="admin@pharma.com" type="email" size="sm" w="220px" bg="white" />
+                <SettingRow label="Last Name" desc="Your last name for professional attribution">
+                  <Input value={lastName} onChange={(e) => track(() => setLastName(e.target.value))} size="sm" w="220px" bg="white" />
                 </SettingRow>
-                <SettingRow label="Default Language" desc="Language used across all user interfaces">
-                  <Select value={language} onChange={(e) => track(() => setLanguage(e.target.value))} size="sm" w="220px" bg="white">
-                      {["English (US)", "English (UK)", "French", "German", "Japanese"].map(o => <option key={o} value={o}>{o}</option>)}
-                  </Select>
-                </SettingRow>
-                <SettingRow label="Timezone" desc="Used for timestamps, reports, and scheduling">
-                  <Select value={timezone} onChange={(e) => track(() => setTimezone(e.target.value))} size="sm" w="220px" bg="white">
-                     {["UTC+00:00", "UTC+05:30 (IST)", "UTC+08:00 (SGT)", "UTC-05:00 (EST)"].map(o => <option key={o} value={o}>{o}</option>)}
-                  </Select>
+                <SettingRow label="Admin Email" desc="Used for system alerts and professional contact">
+                  <Input value={adminEmail} onChange={(e) => track(() => setAdminEmail(e.target.value))} size="sm" w="220px" bg="white" />
                 </SettingRow>
               </SectionCard>
 
+             
+
               <SectionCard title="Data Management" icon={Database}>
                 <SettingRow label="Report Retention Period" desc="How long submitted reports are stored before archiving">
-                  <Select value={retention} onChange={(e) => track(() => setRetention(e.target.value))} size="sm" w="220px" bg="white">
-                     {["6 months", "12 months", "24 months", "5 years", "Indefinite"].map(o => <option key={o} value={o}>{o}</option>)}
-                  </Select>
+                  <Flex align="center" gap={3}>
+                    <Select value={retention} onChange={(e) => track(() => setRetention(e.target.value))} size="sm" w="220px" bg="white">
+                       {["6 months", "12 months", "24 months", "5 years", "Indefinite"].map(o => <option key={o} value={o}>{o}</option>)}
+                    </Select>
+                    <Button 
+                      size="xs" 
+                      variant="outline" 
+                      colorScheme="red" 
+                      leftIcon={<RotateCcw size={12} />}
+                      onClick={() => runArchivingManual.mutate()}
+                      isLoading={runArchivingManual.isPending}
+                    >
+                      Run Cleanup Now
+                    </Button>
+                  </Flex>
                 </SettingRow>
                 <SettingRow label="Maintenance Mode" desc="Temporarily disables submissions from all reporters" sensitive>
                   <Switch colorScheme="red" isChecked={maintenanceMode} onChange={(e) => track(() => setMaintenanceMode(e.target.checked))} />
                 </SettingRow>
-                <SettingRow label="Debug Mode" desc="Enables verbose logging for troubleshooting (do not use in production)" sensitive>
-                  <Switch colorScheme="red" isChecked={debugMode} onChange={(e) => track(() => setDebugMode(e.target.checked))} />
-                </SettingRow>
               </SectionCard>
+
+             
             </>
           )}
 
@@ -358,15 +533,6 @@ export default function SystemSettings() {
                   </Select>
                 </SettingRow>
               </SectionCard>
-
-              <SectionCard title="Access Control" icon={Lock}>
-                <SettingRow label="IP Whitelist" desc="Restrict admin access to these IP ranges (CIDR format)" sensitive>
-                  <Input value={ipWhitelist} onChange={(e) => track(() => setIpWhitelist(e.target.value))} placeholder="e.g. 192.168.1.0/24" size="sm" w="220px" bg="white" />
-                </SettingRow>
-                <SettingRow label="Audit Logging" desc="Log all admin actions including settings changes" sensitive>
-                  <Switch colorScheme="red" isChecked={auditLogging} onChange={(e) => track(() => setAuditLogging(e.target.checked))} />
-                </SettingRow>
-              </SectionCard>
             </>
           )}
 
@@ -386,153 +552,14 @@ export default function SystemSettings() {
                    <Switch colorScheme="red" isChecked={notifyOnApproval} onChange={(e) => track(() => setNotifyOnApproval(e.target.checked))} />
                 </SettingRow>
               </SectionCard>
-
-              <SectionCard title="Delivery Channels" icon={Mail}>
-                <SettingRow label="Email Digest" desc="Send daily or weekly summary emails to admin team">
-                   <Switch colorScheme="red" isChecked={emailDigest} onChange={(e) => track(() => setEmailDigest(e.target.checked))} />
-                </SettingRow>
-                <SettingRow label="Digest Frequency" desc="How often to send the summary digest email">
-                  <Select value={digestFrequency} onChange={(e) => track(() => setDigestFrequency(e.target.value))} size="sm" w="220px" bg="white">
-                     {["Daily", "Weekly", "Bi-weekly"].map(o => <option key={o} value={o}>{o}</option>)}
-                  </Select>
-                </SettingRow>
-                <SettingRow label="SMS Alerts" desc="Send SMS to on-call safety officers for Critical cases" sensitive>
-                  <Switch colorScheme="red" isChecked={smsAlerts} onChange={(e) => track(() => setSmsAlerts(e.target.checked))} />
-                </SettingRow>
-              </SectionCard>
-            </>
+          </>
           )}
 
-          {/* ── Integrations ── */}
-          {active === "integrations" && (
-            <>
-              {/* Email alert info banner */}
-              <Flex align="flex-start" gap={3} bg="blue.50" border="1px solid" borderColor="blue.200" borderRadius="xl" p={4} mb={5}>
-                <Box mt="2px"><Mail size={16} color="#2563eb" /></Box>
-                <Box>
-                  <Text m={0} fontSize="sm" fontWeight="bold" color="blue.800">When does the system send an email to Admin?</Text>
-                  <Box as="ul" m={0} mt={2} pl={4} fontSize="xs" color="blue.700" style={{ lineHeight: 2 }}>
-                    <li>👨⚕️ An <strong>HCP submits 3 or more reports</strong> — admin is notified immediately</li>
-                    <li>🚨 A report is flagged as <strong>Critical</strong> — admin receives an urgent alert email</li>
-                  </Box>
-                  <Text m={0} mt={2} fontSize="xs" color="blue.600">
-                    📬 Email is sent to the <Text as="strong">Admin Email configured in General Settings</Text>. No other recipients.
-                  </Text>
-                </Box>
-              </Flex>
+       
 
-              <SectionCard title="Email / SMTP Configuration" icon={Mail}>
-                <SettingRow label="SMTP Host" desc="Email server that sends alert emails when reports have issues or status changes">
-                  <Input value={smtpHost} onChange={(e) => track(() => setSmtpHost(e.target.value))} placeholder="smtp.example.com" size="sm" w="220px" bg="white" />
-                </SettingRow>
-                <SettingRow label="SMTP Port" desc="Connection channel — use 587 for secure TLS email delivery">
-                  <Input value={smtpPort} onChange={(e) => track(() => setSmtpPort(e.target.value))} placeholder="587" size="sm" w="220px" bg="white" />
-                </SettingRow>
-                <SettingRow label="SMTP Username" desc="The 'From' email address that recipients see when they receive system alerts">
-                  <Input value={smtpUser} onChange={(e) => track(() => setSmtpUser(e.target.value))} placeholder="noreply@company.com" size="sm" w="220px" bg="white" />
-                </SettingRow>
-              </SectionCard>
-
-              <SectionCard title="API & Webhooks" icon={Zap}>
-                <SettingRow label="API Key" desc="Used to authenticate external integrations" sensitive>
-                  <Flex align="center" gap={2}>
-                    <Input
-                      value={showApiKey ? apiKey : "••••••••••••••••"}
-                      onChange={(e) => track(() => setApiKey(e.target.value))}
-                      readOnly={!showApiKey}
-                      size="sm"
-                      w="190px"
-                      bg="white"
-                      fontFamily="monospace"
-                    />
-                    <IconButton
-                      aria-label="Toggle API Key visibility"
-                      icon={showApiKey ? <EyeOff size={14} /> : <Eye size={14} />}
-                      size="sm"
-                      onClick={() => setShowApiKey((v) => !v)}
-                      variant="outline"
-                      color="#64748b"
-                    />
-                  </Flex>
-                </SettingRow>
-                <SettingRow label="Webhook URL" desc="POST endpoint for real-time report event notifications">
-                  <Input value={webhookUrl} onChange={(e) => track(() => setWebhookUrl(e.target.value))} placeholder="https://your-endpoint.com/hook" size="sm" w="220px" bg="white" />
-                </SettingRow>
-                <SettingRow label="Webhook Active" desc="Enable outbound webhook calls on report events">
-                  <Switch colorScheme="red" isChecked={webhookEnabled} onChange={(e) => track(() => setWebhookEnabled(e.target.checked))} />
-                </SettingRow>
-              </SectionCard>
-            </>
-          )}
-
-          {/* ── Audit Log ── */}
-          {active === "audit" && (
-            <Card bg="white" borderRadius="2xl" border="1px solid" borderColor="#e2e8f0" overflow="hidden" boxShadow="none">
-              <Flex p={3} px={5} borderBottom="1px solid" borderColor="#f1f5f9" align="center" justify="space-between" bg="#f8fafc">
-                <Flex align="center" gap={2}>
-                  <History size={15} color="#CE0037" />
-                  <Text fontWeight="bold" fontSize="sm" color="#0f172a">Settings Change History</Text>
-                  <Badge bg="red.50" color="#CE0037" border="1px solid" borderColor="red.200" borderRadius="full" px={2} py={0.5} fontSize="2xs" fontWeight="bold">
-                    {auditLogs.length} entries
-                  </Badge>
-                </Flex>
-                <Flex align="center" gap={1.5} fontSize="xs" color="#64748b">
-                  <Lock size={12} />
-                  Read-only — immutable log
-                </Flex>
-              </Flex>
-
-              {/* Column Headers */}
-              <SimpleGrid columns={7} gap={0} p={3} px={5} bg="#f8fafc" borderBottom="1px solid" borderColor="#f1f5f9" templateColumns="110px 120px 1fr 1fr 90px 130px 110px">
-                {["Section", "Field", "From", "To", "Changed By", "Timestamp", "IP Address"].map((h) => (
-                  <Text key={h} fontSize="2xs" fontWeight="bold" color="#94a3b8" textTransform="uppercase" letterSpacing="0.05em">{h}</Text>
-                ))}
-              </SimpleGrid>
-
-              {/* Rows */}
-              <Box>
-                {auditLogs.map((log, i) => (
-                  <SimpleGrid
-                    as={motion.div}
-                    key={log.id}
-                    {...({} as any)}
-                    initial={{ opacity: 0, y: 4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.05 }}
-                    columns={7}
-                    gap={0}
-                    p={3}
-                    px={5}
-                    borderBottom={i < auditLogs.length - 1 ? "1px solid" : "none"}
-                    borderColor="#f8fafc"
-                    alignItems="center"
-                    templateColumns="110px 120px 1fr 1fr 90px 130px 110px"
-                    _hover={{ bg: "#f8fafc" }}
-                  >
-                    <Box>
-                      <Badge bg="red.50" color="#CE0037" border="1px solid" borderColor="red.200" borderRadius="md" px={2} py={0.5} fontSize="xs" fontWeight="bold" textTransform="none">
-                        {log.section}
-                      </Badge>
-                    </Box>
-                    <Text fontSize="sm" fontWeight="semibold" color="#0f172a">{log.field}</Text>
-                    <Text fontSize="xs" color="red.500" textDecoration="line-through">{log.from}</Text>
-                    <Text fontSize="xs" color="emerald.600" fontWeight="bold">{log.to}</Text>
-                    <Flex align="center" gap={1.5}>
-                      <Flex w="22px" h="22px" borderRadius="full" bg="red.50" border="1px solid" borderColor="red.200" align="center" justify="center">
-                        <Users size={10} color="#CE0037" />
-                      </Flex>
-                      <Text fontSize="xs" color="#64748b">{log.by}</Text>
-                    </Flex>
-                    <Text fontSize="xs" color="#64748b">{log.at}</Text>
-                    <Text fontSize="2xs" fontFamily="monospace" color="#94a3b8">{log.ip}</Text>
-                  </SimpleGrid>
-                ))}
-              </Box>
-            </Card>
-          )}
 
           {/* ── Save / Reset Bar ── */}
-          {active !== "audit" && (
+          {true && (
             <Flex
               as={motion.div}
               {...({} as any)}
@@ -548,7 +575,7 @@ export default function SystemSettings() {
                 {...({} as any)}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.97 }}
-                onClick={() => { setUnsaved(false); setSaved(false); }}
+                onClick={handleDiscard}
                 variant="outline"
                 bg="white"
                 color="#64748b"
@@ -570,6 +597,7 @@ export default function SystemSettings() {
                 size="md"
                 transition="all 0.2s"
                 _hover={unsaved ? { bg: "#b3002f" } : {}}
+                isLoading={updateSettings.isPending || updateAdminProfile.isPending}
               >
                 Save Changes
               </Button>

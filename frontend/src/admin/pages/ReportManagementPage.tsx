@@ -2,9 +2,12 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FileText, Edit3, ChevronDown, Search,
-  X, Check, Clock, AlertTriangle, CheckCircle, Shield,
-  User, Calendar, Pill, Activity, Lock, History,
-  ChevronRight, Save, AlertCircle
+  X, AlertTriangle, User, Calendar, Pill, Activity,
+  Save, AlertCircle,
+  Clock,
+  CheckCircle,
+  Check,
+  History
 } from "lucide-react";
 import {
   Box, Flex, Text, Heading, Button, Badge, Input,
@@ -37,7 +40,6 @@ interface Report {
   status: Status;
   severity: Severity;
   submitted: string;
-  assignee: string;
   outcome: string;
   description: string;
   audit: AuditEntry[];
@@ -151,7 +153,7 @@ export default function ReportManagementPage() {
 
   const openReport = (r: Report) => {
     setSelectedReport(r);
-    setEditData({ status: r.status, severity: r.severity, assignee: r.assignee, description: r.description });
+    setEditData({ status: r.status, severity: r.severity, description: r.description });
     setMode("view");
     setShowAudit(false);
     setSaved(false);
@@ -184,7 +186,6 @@ export default function ReportManagementPage() {
       updates: {
         status: statusValue,
         severity: severityValue,
-        assignee: editData.assignee || undefined,
         adminNotes: editData.description || undefined
       }
     });
@@ -207,16 +208,6 @@ export default function ReportManagementPage() {
             </Flex>
             <Text color="#64748b" fontSize="sm">Review, edit, and update the status of drug safety reports</Text>
           </Box>
-          <Flex align="center" gap={2}>
-            <Flex align="center" gap={1.5} bg="red.50" border="1px solid" borderColor="red.200" borderRadius="md" px={3} py={1.5}>
-              <Shield size={13} color="#CE0037" />
-              <Text fontSize="xs" fontWeight="bold" color="#CE0037">Admin Access</Text>
-            </Flex>
-            <Flex align="center" gap={1.5} bg="white" border="1px solid" borderColor="#e2e8f0" borderRadius="md" px={3} py={1.5}>
-              <Lock size={13} color="#64748b" />
-              <Text fontSize="xs" fontWeight="bold" color="#64748b">All actions logged</Text>
-            </Flex>
-          </Flex>
         </Flex>
 
         {/* ── Filters ── */}
@@ -313,13 +304,13 @@ export default function ReportManagementPage() {
           overflow="hidden"
         >
           {/* Table Header */}
-          <SimpleGrid columns={selectedReport ? 1 : 6} gap={0} p="10px 18px" bg="#f8fafc" borderBottom="1px solid" borderColor="#f1f5f9" pt={3} pb={3}
-             templateColumns={selectedReport ? "1fr" : "90px 1fr 100px 90px 80px 40px"}
+          <SimpleGrid columns={selectedReport ? 1 : 5} gap={0} p="10px 18px" bg="#f8fafc" borderBottom="1px solid" borderColor="#f1f5f9" pt={3} pb={3}
+             templateColumns={selectedReport ? "1fr" : "90px 1fr 100px 90px 80px"}
           >
             {selectedReport ? (
                  <Text fontSize="xs" fontWeight="bold" color="#94a3b8" textTransform="uppercase" letterSpacing="0.06em">Selected Reports Match</Text>
             ) : (
-                ["Report ID", "Drug / Reporter", "Status", "Severity", "Type", ""].map((h) => (
+                ["Report ID", "Drug / Reporter", "Status", "Severity", "Type"].map((h) => (
                   <Text key={h} fontSize="xs" fontWeight="bold" color="#94a3b8" textTransform="uppercase" letterSpacing="0.06em">{h}</Text>
                 ))
             )}
@@ -337,8 +328,8 @@ export default function ReportManagementPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.04 }}
                 onClick={() => openReport(r)}
-                columns={selectedReport ? 1 : 6}
-                templateColumns={selectedReport ? "1fr" : "90px 1fr 100px 90px 80px 40px"}
+                columns={selectedReport ? 1 : 5}
+                templateColumns={selectedReport ? "1fr" : "90px 1fr 100px 90px 80px"}
                 gap={0}
                 p="13px 18px"
                 cursor="pointer"
@@ -380,7 +371,6 @@ export default function ReportManagementPage() {
                         >
                         {r.reporterType}
                         </Badge>
-                        <ChevronRight size={14} color="#cbd5e1" />
                     </>
                   )}
               </SimpleGrid>
@@ -521,26 +511,14 @@ export default function ReportManagementPage() {
                     { label: "Batch Number", icon: FileText, value: selectedReport.batch },
                     { label: "Reporter", icon: User, value: `${selectedReport.reporter} (${selectedReport.reporterType})` },
                     { label: "Submitted", icon: Calendar, value: selectedReport.submitted },
-                    { label: "Outcome", icon: Activity, value: selectedReport.outcome },
-                    { label: "Assignee", icon: User, value: mode === "edit" ? null : (editData.assignee || selectedReport.assignee) },
-                  ].map(({ label, icon: Icon, value }) => (
-                    <Box key={label} bg="#f8fafc" borderRadius="xl" p={3} px={4} border="1px solid" borderColor="#f1f5f9">
+                    { label: "Outcome", icon: Activity, value: selectedReport.outcome, span: 2 },
+                  ].map(({ label, icon: Icon, value, span }) => (
+                    <Box key={label} bg="#f8fafc" borderRadius="xl" p={3} px={4} border="1px solid" borderColor="#f1f5f9" gridColumn={span ? `span ${span}` : "auto"}>
                       <Flex align="center" gap={2} mb={1.5}>
                         <Icon size={12} color="#94a3b8" />
                         <Text fontSize="2xs" color="#94a3b8" fontWeight="bold" textTransform="uppercase" letterSpacing="0.05em">{label}</Text>
                       </Flex>
-                      {label === "Assignee" && mode === "edit" ? (
-                        <Input
-                          value={editData.assignee || ""}
-                          onChange={(e) => setEditData({ ...editData, assignee: e.target.value })}
-                          size="sm"
-                          bg="white"
-                          borderColor="#e2e8f0"
-                          borderRadius="md"
-                        />
-                      ) : (
-                        <Text fontSize="sm" fontWeight="semibold" color="#0f172a">{value}</Text>
-                      )}
+                      <Text fontSize="sm" fontWeight="semibold" color="#0f172a">{value}</Text>
                     </Box>
                   ))}
                 </SimpleGrid>

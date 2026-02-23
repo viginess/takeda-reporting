@@ -43,9 +43,7 @@ export const patientReports = pgTable("patient_reports", {
   reporterType: text("reporter_type"),
   status: statusEnum("status").default("new"),
   severity: severityEnum("severity").default("info"),
-  assignee: text("assignee"),
   adminNotes: text("admin_notes"),
-  assignedAt: timestamp("assigned_at"),
   lastUpdatedAt: timestamp("last_updated_at"),
 
   // Meta
@@ -55,7 +53,6 @@ export const patientReports = pgTable("patient_reports", {
   return {
     severityIdx: index("patient_severity_idx").on(table.severity),
     statusIdx: index("patient_status_idx").on(table.status),
-    assigneeIdx: index("patient_assignee_idx").on(table.assignee),
     createdAtIdx: index("patient_created_at_idx").on(table.createdAt),
   };
 });

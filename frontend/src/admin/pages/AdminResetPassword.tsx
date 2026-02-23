@@ -4,6 +4,7 @@ import { useToast } from "@chakra-ui/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Shield, Lock, Eye, EyeOff, AlertCircle, CheckCircle, ArrowRight } from "lucide-react";
 import { supabase } from "../../utils/supabaseClient";
+import { trpc } from "../../utils/trpc";
 import takedaLogo from "../../assets/takeda-logo.png";
 
 export default function AdminResetPassword() {
@@ -13,8 +14,12 @@ export default function AdminResetPassword() {
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState("");
   const [success, setSuccess]   = useState(false);
+  const [mfaStep, setMfaStep]   = useState<"reset" | "2fa">("reset");
+  const [otp, setOtp]           = useState(["", "", "", "", "", "", "", ""]);
+  const [email, setEmail]       = useState("");
   const navigate = useNavigate();
   const toast = useToast();
+  const { data: authPolicy } = trpc.public.getAuthPolicy.useQuery();
 
   useEffect(() => {
     // Check if we have a session or recovery token in the URL
@@ -24,6 +29,8 @@ export default function AdminResetPassword() {
       if (!session) {
         // If no session, the link might be invalid or expired
         setError("Invalid or expired reset link. Please request a new one.");
+      } else {
+        setEmail(session.user.email || "");
       }
     };
     checkSession();
@@ -54,16 +61,71 @@ export default function AdminResetPassword() {
 
       if (updateError) throw updateError;
 
-      setSuccess(true);
-      toast({
-        title: "Password Updated",
-        description: "Your password has been reset successfully. Redirecting...",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
+      const isMfaRequired = authPolicy?.isMfaRequired !== false;
+      if (isMfaRequired) {
+        // Send OTP for verification before finalizing
+        const { error: otpError } = await supabase.auth.signInWithOtp({
+          email,
+          options: { shouldCreateUser: false }
+        });
+        if (otpError) throw otpError;
+        setMfaStep("2fa");
+        toast({
+          title: "MFA Verification Required",
+          description: "A verification code has been sent to your email to confirm this password change.",
+          status: "info",
+        });
+      } else {
+        setSuccess(true);
+        toast({
+          title: "Password Updated",
+          description: "Your password has been reset successfully. Redirecting...",
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+        });
+      }
     } catch (err: any) {
       setError(err.message || "Failed to update password.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleOtp = (val: string, idx: number) => {
+    if (!/^\d?$/.test(val)) return;
+    const next = [...otp];
+    next[idx] = val;
+    setOtp(next);
+    if (val && idx < 7) document.getElementById(`otp-${idx + 1}`)?.focus();
+  };
+
+  const handleOtpKey = (e: React.KeyboardEvent, idx: number) => {
+    if (e.key === "Backspace" && !otp[idx] && idx > 0)
+      document.getElementById(`otp-${idx - 1}`)?.focus();
+  };
+
+  const handleVerifyOtp = async () => {
+    const code = otp.join("");
+    if (code.length < 8) { setError("Please enter the complete 8-digit code."); return; }
+    setLoading(true);
+    try {
+      const { error: verifyError } = await supabase.auth.verifyOtp({
+        email,
+        token: code,
+        type: 'email'
+      });
+
+      if (verifyError) throw verifyError;
+
+      setSuccess(true);
+      toast({
+        title: "Verified",
+        description: "Password reset finalized successfully.",
+        status: "success",
+      });
+    } catch (err: any) {
+      setError(err.message || "Invalid code. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -110,10 +172,12 @@ export default function AdminResetPassword() {
             </div>
           </div>
           <h1 style={{ fontSize: 32, fontWeight: 800, color: "#fff", margin: "0 0 16px", lineHeight: 1.2, letterSpacing: "-1px" }}>
-            Secure Your Account
+            {authPolicy?.systemName || "Drug Safety"}<br />Secure Your Account
           </h1>
           <p style={{ fontSize: 14, color: "rgba(255,255,255,0.7)", margin: "0 auto", lineHeight: 1.8, maxWidth: 320 }}>
-            Enter a strong new password to regain access to the Takeda Drug Safety Reporting Portal.
+            {mfaStep === "reset" 
+              ? "Enter a strong new password to regain access to the Takeda Drug Safety Reporting Portal."
+              : "For your security, we've sent a 2FA code to your email. Please verify it below."}
           </p>
         </div>
       </motion.div>
@@ -123,55 +187,102 @@ export default function AdminResetPassword() {
         style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "48px 64px" }}>
         
         <div style={{ width: "100%", maxWidth: 400 }}>
-          <div style={{ marginBottom: 32 }}>
-            <h2 style={{ fontSize: 26, fontWeight: 800, color: "#fff", margin: "0 0 8px", letterSpacing: "-0.5px" }}>Set New Password</h2>
-            <p style={{ color: "#64748b", margin: 0, fontSize: 14 }}>Create a secure password for your administrator account.</p>
-          </div>
+          <AnimatePresence {...({} as any)}>
+            {mfaStep === "reset" ? (
+              <motion.div {...({} as any)} key="reset-form" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+                <form onSubmit={handleUpdatePassword}>
+                  <div style={{ marginBottom: 16 }}>
+                    <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#64748b", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>New Password</label>
+                    <div style={{ position: "relative" }}>
+                      <Lock size={14} color="#475569" style={{ position: "absolute", left: 13, top: "50%", transform: "translateY(-50%)" }} />
+                      <input
+                        name="new-password"
+                        autoComplete="new-password"
+                        type={showPass ? "text" : "password"}
+                        value={password}
+                        onChange={(e) => { setPassword(e.target.value); setError(""); }}
+                        placeholder="••••••••••"
+                        style={{ width: "100%", paddingLeft: 38, paddingRight: 44, paddingTop: 11, paddingBottom: 11, background: "#1e293b", border: `1px solid ${error && !password ? "#ef4444" : "#334155"}`, borderRadius: 10, fontSize: 14, color: "#f1f5f9", outline: "none", boxSizing: "border-box" }}
+                      />
+                      <button type="button" onClick={() => setShowPass(!showPass)}
+                        style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#475569", padding: 4 }}>
+                        {showPass ? <EyeOff size={14} /> : <Eye size={14} />}
+                      </button>
+                    </div>
+                  </div>
 
-          <form onSubmit={handleUpdatePassword}>
-            <div style={{ marginBottom: 16 }}>
-              <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#64748b", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>New Password</label>
-              <div style={{ position: "relative" }}>
-                <Lock size={14} color="#475569" style={{ position: "absolute", left: 13, top: "50%", transform: "translateY(-50%)" }} />
-                <input type={showPass ? "text" : "password"} value={password} onChange={(e) => { setPassword(e.target.value); setError(""); }}
-                  placeholder="••••••••••"
-                  style={{ width: "100%", paddingLeft: 38, paddingRight: 44, paddingTop: 11, paddingBottom: 11, background: "#1e293b", border: `1px solid ${error && !password ? "#ef4444" : "#334155"}`, borderRadius: 10, fontSize: 14, color: "#f1f5f9", outline: "none", boxSizing: "border-box" }} />
-                <button type="button" onClick={() => setShowPass(!showPass)}
-                  style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#475569", padding: 4 }}>
-                  {showPass ? <EyeOff size={14} /> : <Eye size={14} />}
-                </button>
-              </div>
-            </div>
+                  <div style={{ marginBottom: 24 }}>
+                    <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#64748b", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>Confirm Password</label>
+                    <div style={{ position: "relative" }}>
+                      <Lock size={14} color="#475569" style={{ position: "absolute", left: 13, top: "50%", transform: "translateY(-50%)" }} />
+                      <input
+                        name="confirm-new-password"
+                        autoComplete="new-password"
+                        type={showPass ? "text" : "password"}
+                        value={confirmPassword}
+                        onChange={(e) => { setConfirmPassword(e.target.value); setError(""); }}
+                        placeholder="••••••••••"
+                        style={{ width: "100%", paddingLeft: 38, paddingRight: 12, paddingTop: 11, paddingBottom: 11, background: "#1e293b", border: `1px solid ${error && password !== confirmPassword ? "#ef4444" : "#334155"}`, borderRadius: 10, fontSize: 14, color: "#f1f5f9", outline: "none", boxSizing: "border-box" }}
+                      />
+                    </div>
+                  </div>
 
-            <div style={{ marginBottom: 24 }}>
-              <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#64748b", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>Confirm Password</label>
-              <div style={{ position: "relative" }}>
-                <Lock size={14} color="#475569" style={{ position: "absolute", left: 13, top: "50%", transform: "translateY(-50%)" }} />
-                <input type={showPass ? "text" : "password"} value={confirmPassword} onChange={(e) => { setConfirmPassword(e.target.value); setError(""); }}
-                  placeholder="••••••••••"
-                  style={{ width: "100%", paddingLeft: 38, paddingRight: 12, paddingTop: 11, paddingBottom: 11, background: "#1e293b", border: `1px solid ${error && password !== confirmPassword ? "#ef4444" : "#334155"}`, borderRadius: 10, fontSize: 14, color: "#f1f5f9", outline: "none", boxSizing: "border-box" }} />
-              </div>
-            </div>
+                  {error && (
+                    <motion.div {...({} as any)} initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}
+                      style={{ display: "flex", alignItems: "center", gap: 8, background: "#1e0a0a", border: "1px solid #7f1d1d", borderRadius: 8, padding: "10px 12px", marginBottom: 20 }}>
+                      <AlertCircle size={14} color="#ef4444" style={{ flexShrink: 0 }} />
+                      <span style={{ fontSize: 13, color: "#f87171" }}>{error}</span>
+                    </motion.div>
+                  )}
 
-            <AnimatePresence>
-              {error && (
-                <motion.div {...({} as any)} initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                  style={{ display: "flex", alignItems: "center", gap: 8, background: "#1e0a0a", border: "1px solid #7f1d1d", borderRadius: 8, padding: "10px 12px", marginBottom: 20 }}>
-                  <AlertCircle size={14} color="#ef4444" style={{ flexShrink: 0 }} />
-                  <span style={{ fontSize: 13, color: "#f87171" }}>{error}</span>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                  <motion.button {...({} as any)} type="submit" whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }}
+                    disabled={loading}
+                    style={{ width: "100%", padding: "13px", borderRadius: 10, border: "none", background: "#CE0037", color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, transition: "all 0.2s" }}>
+                    {loading
+                      ? <div style={{ width: 18, height: 18, border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+                      : <><Shield size={16} /> Continue to Verification <ArrowRight size={14} /></>}
+                  </motion.button>
+                </form>
+              </motion.div>
+            ) : (
+              <motion.div {...({} as any)} key="otp-form" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+                <div style={{ marginBottom: 20 }}>
+                  <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#64748b", marginBottom: 12, textTransform: "uppercase", letterSpacing: "0.06em", textAlign: "center" }}>Enter 8-Digit Code</label>
+                  <div style={{ display: "flex", gap: 6, justifyContent: "center" }}>
+                    {otp.map((digit, i) => (
+                      <input
+                        key={i}
+                        id={`otp-${i}`}
+                        name={i === 0 ? "one-time-code" : `otp-${i}`}
+                        autoComplete={i === 0 ? "one-time-code" : "off"}
+                        value={digit}
+                        onChange={(e) => handleOtp(e.target.value, i)}
+                        onKeyDown={(e) => handleOtpKey(e, i)}
+                        maxLength={1}
+                        inputMode="numeric"
+                        style={{ width: 44, height: 50, textAlign: "center", fontSize: 20, fontWeight: 800, background: "#1e293b", border: `2px solid ${digit ? "#CE0037" : "#334155"}`, borderRadius: 10, color: "#f1f5f9", outline: "none" }}
+                      />
+                    ))}
+                  </div>
+                </div>
 
-            <motion.button type="submit" {...({} as any)} whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }}
-              disabled={loading}
-              style={{ width: "100%", padding: "13px", borderRadius: 10, border: "none", background: "#CE0037", color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, transition: "all 0.2s" }}>
-              {loading
-                ? <motion.div {...({} as any)} animate={{ rotate: 360 }} transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
-                    style={{ width: 18, height: 18, border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "#fff", borderRadius: "50%" }} />
-                : <><Shield size={16} /> Reset Password <ArrowRight size={14} /></>}
-            </motion.button>
-          </form>
+                {error && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, background: "#1e0a0a", border: "1px solid #7f1d1d", borderRadius: 8, padding: "10px 12px", marginBottom: 20 }}>
+                    <AlertCircle size={14} color="#ef4444" style={{ flexShrink: 0 }} />
+                    <span style={{ fontSize: 13, color: "#f87171" }}>{error}</span>
+                  </div>
+                )}
+
+                <motion.button {...({} as any)} onClick={handleVerifyOtp} whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }}
+                  disabled={loading || otp.join("").length < 8}
+                  style={{ width: "100%", padding: "13px", borderRadius: 10, border: "none", background: otp.join("").length === 8 ? "#CE0037" : "#1e293b", color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                  {loading
+                    ? <div style={{ width: 18, height: 18, border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+                    : <><CheckCircle size={16} /> Finalize Password Reset</>}
+                </motion.button>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           <button onClick={() => navigate('/admin/login')}
             style={{ display: "block", margin: "24px auto 0", background: "none", border: "none", cursor: "pointer", fontSize: 12, color: "#475569", fontWeight: 500 }}>
