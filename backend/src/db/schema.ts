@@ -7,3 +7,5 @@ export * from "./admin/admin.schema.js";
 export * from "./notifications/notifications.schema.js";
 export * from "./enums.schema.js";
 export * from "./audit.schema.js";
+export * from "./admin/settings.schema.js";
+export * from "./archive.schema.js";

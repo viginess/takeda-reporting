@@ -23,8 +23,11 @@ export default function AdminLogin() {
   const navigate = useNavigate();
   const toast = useToast();
   const syncAdmin = trpc.admin.syncProfile.useMutation();
+  const { data: authPolicy } = trpc.public.getAuthPolicy.useQuery();
+  const recordFailure = trpc.public.recordLoginFailure.useMutation();
+  const utils = trpc.useUtils();
 
-  const MAX_ATTEMPTS = 5;
+  const MAX_ATTEMPTS = authPolicy?.maxLoginAttempts || 5;
 
   useEffect(() => {
     if (success) {
@@ -43,12 +46,35 @@ export default function AdminLogin() {
     setError("");
 
     try {
+      // 1. Check if account is locked on our backend first
+      const lockStatus = await utils.public.checkLockout.fetch({ email });
+      if (lockStatus?.locked) {
+        setError(("message" in lockStatus ? lockStatus.message : null) || "Account locked. Contact your system administrator.");
+        setLoading(false);
+        return;
+      }
+
       const { error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (authError) throw authError;
+      
+      const isMfaRequired = authPolicy?.isMfaRequired !== false;
+
+      if (!isMfaRequired) {
+        // Skip MFA if disabled globally
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          await syncAdmin.mutateAsync({
+            id: user.id,
+            email: user.email!,
+          });
+        }
+        setSuccess(true);
+        return;
+      }
 
       // Even if confirmed, we always trigger an OTP for mandatory 2FA as requested
       const { error: otpError } = await supabase.auth.signInWithOtp({
@@ -68,6 +94,10 @@ export default function AdminLogin() {
       });
     } catch (err: any) {
       console.error("Auth error:", err);
+      
+      // 2. Record failure on our backend to track lockouts
+      await recordFailure.mutateAsync({ email });
+      
       const newAttempts = attempts + 1;
       setAttempts(newAttempts);
       const remaining = MAX_ATTEMPTS - newAttempts;
@@ -263,7 +293,7 @@ export default function AdminLogin() {
           </div>
 
           <h1 style={{ fontSize: 34, fontWeight: 800, color: "#fff", margin: "0 0 16px", lineHeight: 1.2, letterSpacing: "-1px" }}>
-            Drug Safety<br />Reporting Portal
+            {authPolicy?.systemName || "Drug Safety"}<br />Reporting Portal
           </h1>
           <p style={{ fontSize: 14, color: "rgba(255,255,255,0.7)", margin: 0, lineHeight: 1.8, maxWidth: 300 }}>
             Restricted to authorized Takeda administrators only. Manage reports, review urgent cases, and protect patient safety.

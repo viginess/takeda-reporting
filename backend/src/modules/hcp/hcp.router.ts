@@ -3,13 +3,16 @@ import { eq, desc } from "drizzle-orm";
 import { router, publicProcedure, rateLimitedProcedure } from "../../trpc/trpc.js";
 import { db } from "../../db/index.js";
 import { hcpReports, notifications } from "../../db/schema.js";
+import { systemSettings } from "../../db/admin/settings.schema.js";
 import { createHcpSchema, updateHcpSchema } from "./hcp.validation.js";
-import { determineNotificationData } from "../../utils/notification-helper.js";
+import { determineNotificationData, shouldCreateNotification } from "../../utils/notification-helper.js";
+import { assertNoMaintenance } from "../../utils/config-helper.js";
 
 export const hcpRouter = router({
   create: rateLimitedProcedure
     .input(createHcpSchema)
     .mutation(async ({ input }) => {
+      await assertNoMaintenance();
       const [row] = await db
         .insert(hcpReports)
         .values({
@@ -28,20 +31,25 @@ export const hcpRouter = router({
           attachments: input.attachments ?? [],
           agreedToTerms: input.agreedToTerms,
           status: input.status ?? "new",
+          severity: determineNotificationData(input, "HCP", "TEMP").type as any,
         })
         .returning();
 
       const notifData = determineNotificationData(input, "HCP", row.referenceId || row.id);
       
-      await db.insert(notifications).values({
-        type: notifData.type === "warning" ? "urgent" : notifData.type, // Boost if HCP confirms a warning
-        title: notifData.title,
-        desc: notifData.desc,
-        time: notifData.time,
-        date: notifData.date,
-        reportId: notifData.reportId,
-        classificationReason: notifData.classificationReason,
-      });
+      const [settings] = await db.select().from(systemSettings).where(eq(systemSettings.id, 1));
+      
+      if (shouldCreateNotification(settings, notifData)) {
+        await db.insert(notifications).values({
+          type: notifData.type === "warning" ? "urgent" : notifData.type, // Boost if HCP confirms a warning
+          title: notifData.title,
+          desc: notifData.desc,
+          time: notifData.time,
+          date: notifData.date,
+          reportId: notifData.reportId,
+          classificationReason: notifData.classificationReason,
+        });
+      }
 
       return { success: true, data: row };
     }),

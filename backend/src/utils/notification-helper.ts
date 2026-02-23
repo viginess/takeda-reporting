@@ -83,3 +83,103 @@ export function determineNotificationData(
     reportId,
   };
 }
+
+export function determineUpdateNotification(
+  oldRecord: any,
+  updates: any,
+  reporterType: string,
+  reportId: string
+) {
+  const reporter = reporterType?.charAt(0)?.toUpperCase() + reporterType?.slice(1) || "Unknown";
+  
+  // 1. Check for Approval
+  if (updates.status === "approved" && oldRecord.status !== "approved") {
+    return {
+      type: "approved",
+      title: `${reporter} Report Approved — ${reportId}`,
+      desc: `The ${reporterType} report for ${reportId} was approved by \${adminId}.`,
+      classificationReason: "Report approved by admin",
+      time: "Just now",
+      date: "Today",
+      reportId
+    };
+  }
+
+  // 2. Check for Urgent Severity change
+  if (updates.severity === "urgent" && oldRecord.severity !== "urgent") {
+    return {
+      type: "urgent",
+      title: `Critical Severity Escalation — ${reportId}`,
+      desc: `The ${reporterType} report ${reportId} was escalated to Critical severity by \${adminId}.`,
+      classificationReason: "Severity escalated to urgent",
+      time: "Just now",
+      date: "Today",
+      reportId
+    };
+  }
+
+  // 3. Check for Closure
+  if (updates.status === "closed" && oldRecord.status !== "closed") {
+    return {
+      type: "system",
+      title: `${reporter} Report Closed — ${reportId}`,
+      desc: `The ${reporterType} report ${reportId} was marked as closed by \${adminId}.`,
+      classificationReason: "Report closed",
+      time: "Just now",
+      date: "Today",
+      reportId
+    };
+  }
+
+  return null;
+}
+
+export function shouldCreateNotification(settings: any, notification: { type: string }) {
+  const notifs = settings?.notificationThresholds || {
+    urgentAlerts: true,
+    alertThreshold: "All Severities",
+    notifyOnApproval: true,
+  };
+
+  const type = notification.type;
+
+  // 1. System and Approved notifications ALWAYS bypass severity filters
+  // (Approved still respects its own 'notifyOnApproval' toggle later)
+  if (type === "system") {
+    return true;
+  }
+
+  // 2. Handle Urgent Case Alerts toggle
+  if (notifs.urgentAlerts === false && type === "urgent") {
+    return false;
+  }
+
+  // 3. Handle Notify on Approval toggle
+  if (notifs.notifyOnApproval === false && type === "approved") {
+    return false;
+  }
+
+  // Approved type bypasses the rank-based "Threshold" check below
+  if (type === "approved") {
+    return true;
+  }
+
+  // 4. Handle Alert Threshold (Only for urgent, warning, info)
+  const rank: Record<string, number> = {
+    "info": 0,
+    "warning": 1,
+    "urgent": 2
+  };
+
+  const threshold = notifs.alertThreshold || "All Severities";
+  
+  if (threshold === "Critical & High") {
+    return rank[type] >= 1;
+  }
+  
+  if (threshold === "Critical Only") {
+    return rank[type] >= 2;
+  }
+
+  return true;
+}

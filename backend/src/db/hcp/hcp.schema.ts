@@ -44,9 +44,7 @@ export const hcpReports = pgTable("hcp_reports", {
   agreedToTerms: boolean("agreed_to_terms").notNull().default(false),
   status: statusEnum("status").default("new"),
   severity: severityEnum("severity").default("info"),
-  assignee: text("assignee"),
   adminNotes: text("admin_notes"),
-  assignedAt: timestamp("assigned_at"),
   lastUpdatedAt: timestamp("last_updated_at"),
 
   // Meta
@@ -56,7 +54,6 @@ export const hcpReports = pgTable("hcp_reports", {
   return {
     severityIdx: index("hcp_severity_idx").on(table.severity),
     statusIdx: index("hcp_status_idx").on(table.status),
-    assigneeIdx: index("hcp_assignee_idx").on(table.assignee),
     createdAtIdx: index("hcp_created_at_idx").on(table.createdAt),
   };
 });
