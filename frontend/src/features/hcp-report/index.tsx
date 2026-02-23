@@ -202,7 +202,7 @@ function HcpForm({ onBack }: HcpFormProps) {
         hasRelevantHistory: hasRelevantHistory || undefined,
         labTestsPerformed: labTestsPerformed || undefined,
         additionalDetails: additionalDetails || undefined,
-        status: 'submitted',
+        status: 'new',
       };
 
       const result = await createHcpReport.mutateAsync(payload);

@@ -191,7 +191,7 @@ function FamilyForm({ onBack }: FamilyFormProps) {
         hasRelevantHistory: hasRelevantHistory || undefined,
         labTestsPerformed: labTestsPerformed || undefined,
         additionalDetails: additionalDetails || undefined,
-        status: 'submitted',
+        status: 'new',
       };
 
       const result = await createFamilyReport.mutateAsync(payload);

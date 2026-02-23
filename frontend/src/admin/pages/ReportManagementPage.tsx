@@ -7,10 +7,11 @@ import {
   ChevronRight, Save, AlertCircle
 } from "lucide-react";
 import {
-  Box, Flex, Text, Heading, Button, IconButton, Badge, Input,
-  InputGroup, InputLeftElement, SimpleGrid, Card, CardBody, VStack,
-  HStack, IconButton as ChakraIconButton
+  Box, Flex, Text, Heading, Button, Badge, Input,
+  InputGroup, InputLeftElement, SimpleGrid, VStack,
+   IconButton as ChakraIconButton, useToast, Spinner, Center
 } from "@chakra-ui/react";
+import { trpc } from "../../utils/trpc";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 type Status = "Submitted" | "In Review" | "Approved" | "Closed" | "Urgent";
@@ -28,6 +29,7 @@ interface AuditEntry {
 
 interface Report {
   id: string;
+  originalId?: string;
   drug: string;
   batch: string;
   reporter: string;
@@ -41,63 +43,7 @@ interface Report {
   audit: AuditEntry[];
 }
 
-// ── Mock Data ─────────────────────────────────────────────────────────────────
-const reports: Report[] = [
-  {
-    id: "#R-124", drug: "Amoxicillin 500mg", batch: "AMX-2025-04", reporter: "Sarah M.", reporterType: "Patient",
-    status: "Urgent", severity: "Critical", submitted: "Jun 20, 2025", assignee: "Rania K.",
-    outcome: "Hospitalization",
-    description: "Patient developed severe anaphylactic reaction 30 minutes after first dose. Emergency services called. Patient admitted to ICU.",
-    audit: [
-      { action: "Status changed", by: "System", at: "10:02 AM", field: "status", from: "Submitted", to: "Urgent" },
-      { action: "Assigned to reviewer", by: "Admin", at: "10:05 AM", field: "assignee", from: "Unassigned", to: "Rania K." },
-      { action: "Report submitted", by: "Sarah M.", at: "10:01 AM" },
-    ]
-  },
-  {
-    id: "#R-123", drug: "Paracetamol 1g", batch: "PCM-2025-03", reporter: "Dr. Marco D.", reporterType: "HCP",
-    status: "In Review", severity: "High", submitted: "Jun 19, 2025", assignee: "Marco D.",
-    outcome: "Liver Damage",
-    description: "Patient presented with elevated liver enzymes 72 hours after taking recommended dose. Medication discontinued. Follow-up in progress.",
-    audit: [
-      { action: "Status changed", by: "Marco D.", at: "9:30 AM", field: "status", from: "Submitted", to: "In Review" },
-      { action: "Severity updated", by: "Marco D.", at: "9:32 AM", field: "severity", from: "Medium", to: "High" },
-      { action: "Report submitted", by: "Dr. Marco D.", at: "Yesterday 2:10 PM" },
-    ]
-  },
-  {
-    id: "#R-122", drug: "Metformin 850mg", batch: "MET-2025-02", reporter: "James T.", reporterType: "Family",
-    status: "Submitted", severity: "Medium", submitted: "Jun 18, 2025", assignee: "Unassigned",
-    outcome: "Gastrointestinal",
-    description: "Family member reports persistent nausea and vomiting for 3 days following medication start. No hospitalization required.",
-    audit: [
-      { action: "Report submitted", by: "James T.", at: "Jun 18, 3:45 PM" },
-    ]
-  },
-  {
-    id: "#R-121", drug: "Lisinopril 10mg", batch: "LIS-2025-01", reporter: "Dr. Priya N.", reporterType: "HCP",
-    status: "Approved", severity: "Low", submitted: "Jun 17, 2025", assignee: "Selin A.",
-    outcome: "Mild Reaction",
-    description: "Patient reported dry persistent cough starting 1 week after initiating therapy. Medication switched. Symptoms resolved.",
-    audit: [
-      { action: "Report approved", by: "Selin A.", at: "Jun 18, 11:00 AM" },
-      { action: "Review completed", by: "Selin A.", at: "Jun 18, 10:50 AM" },
-      { action: "Status changed", by: "Selin A.", at: "Jun 18, 9:00 AM", field: "status", from: "Submitted", to: "In Review" },
-      { action: "Report submitted", by: "Dr. Priya N.", at: "Jun 17, 4:20 PM" },
-    ]
-  },
-  {
-    id: "#R-120", drug: "Atorvastatin 20mg", batch: "ATV-2025-01", reporter: "Robert K.", reporterType: "Patient",
-    status: "Closed", severity: "Medium", submitted: "Jun 15, 2025", assignee: "Rania K.",
-    outcome: "Muscle Pain",
-    description: "Patient reports severe muscle pain and weakness (rhabdomyolysis suspected). Medication stopped. CPK levels monitored.",
-    audit: [
-      { action: "Case closed", by: "Rania K.", at: "Jun 16, 5:00 PM" },
-      { action: "Report approved", by: "Rania K.", at: "Jun 16, 4:45 PM" },
-      { action: "Report submitted", by: "Robert K.", at: "Jun 15, 2:00 PM" },
-    ]
-  },
-];
+// -- Replaced mock data with standard TRPC fetch --
 
 // ── Style Config ──────────────────────────────────────────────────────────────
 const statusCfg: Record<Status, { bg: string; text: string; border: string; icon: any }> = {
@@ -169,13 +115,36 @@ export default function ReportManagementPage() {
   const [editData, setEditData] = useState<Partial<Report>>({});
   const [showAudit, setShowAudit] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [reportsData, setReportsData] = useState<Report[]>(reports);
+  
+  const toast = useToast();
+  const utils = trpc.useContext();
+  const { data: generatedReports = [], isLoading, isError } = trpc.admin.getAllReports.useQuery();
+  const reportsData = generatedReports as unknown as Report[];
+
+  const updateMutation = trpc.admin.updateReport.useMutation({
+    onSuccess: () => {
+      utils.admin.getAllReports.invalidate();
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+      toast({ title: "Report updated", status: "success", duration: 3000, isClosable: true });
+    },
+    onError: (err) => {
+      toast({
+        title: "Update failed",
+        description: err.message,
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+  });
 
   const filtered = reportsData.filter((r) => {
     const matchSearch = r.id.toLowerCase().includes(search.toLowerCase()) ||
       r.drug.toLowerCase().includes(search.toLowerCase()) ||
       r.reporter.toLowerCase().includes(search.toLowerCase());
-    const matchStatus = filterStatus === "All" || r.status === filterStatus;
+    const matchStatus = filterStatus === "All" || 
+      (filterStatus === "Urgent" ? r.severity === "Critical" : r.status === filterStatus);
     const matchType = filterType === "All" || r.reporterType === filterType;
     return matchSearch && matchStatus && matchType;
   });
@@ -190,21 +159,39 @@ export default function ReportManagementPage() {
 
   const handleSave = () => {
     if (!selectedReport) return;
-    const newEntry: AuditEntry = {
-      action: "Report updated",
-      by: "Admin",
-      at: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+
+    const statusMap: Record<Status, ("new" | "under_review" | "approved" | "closed")> = {
+      "Submitted": "new",
+      "In Review": "under_review",
+      "Approved": "approved",
+      "Closed": "closed",
+      "Urgent": "under_review" // Urgent severity reports are still under review
     };
-    const updated = reportsData.map((r) =>
-      r.id === selectedReport.id
-        ? { ...r, ...editData, audit: [newEntry, ...r.audit] }
-        : r
-    );
-    setReportsData(updated);
-    setSelectedReport({ ...selectedReport, ...editData as Report, audit: [newEntry, ...selectedReport.audit] });
+
+    const severityMap: Record<Severity, ("info" | "warning" | "urgent")> = {
+      "Critical": "urgent",
+      "High": "warning",
+      "Medium": "info",
+      "Low": "info"
+    };
+
+    const statusValue = editData.status ? statusMap[editData.status as Status] : undefined;
+    const severityValue = editData.severity ? severityMap[editData.severity as Severity] : undefined;
+
+    updateMutation.mutate({
+      reportId: selectedReport.originalId ?? selectedReport.id,
+      reporterType: selectedReport.reporterType, // "Patient" | "HCP" | "Family"
+      updates: {
+        status: statusValue,
+        severity: severityValue,
+        assignee: editData.assignee || undefined,
+        adminNotes: editData.description || undefined
+      }
+    });
+
+    // Optimistically update local view while TRPC invalidates
+    setSelectedReport({ ...selectedReport, ...editData as Report });
     setMode("view");
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
   };
 
   return (
@@ -293,9 +280,25 @@ export default function ReportManagementPage() {
 
       {/* ── Main Layout ── */}
       <Flex flex={1} px={8} pb={8} minH={0} gap={0}>
-
-        {/* ── Table ── */}
-        <Box
+        {isLoading ? (
+          <Center w="100%" h="100%" flex={1}>
+            <VStack gap={4}>
+              <Spinner size="xl" color="#CE0037" thickness="4px" />
+              <Text color="gray.500" fontWeight="medium">Loading reports...</Text>
+            </VStack>
+          </Center>
+        ) : isError ? (
+          <Center w="100%" h="100%" flex={1}>
+            <VStack gap={4}>
+              <AlertCircle size={40} color="#CE0037" />
+              <Text fontSize="lg" fontWeight="bold" color="gray.800">Failed to load reports</Text>
+              <Text color="gray.500" fontSize="sm">Please try again later.</Text>
+            </VStack>
+          </Center>
+        ) : (
+          <>
+            {/* ── Table ── */}
+            <Box
           as={motion.div}
           {...({} as any)}
           initial={{ opacity: 0, x: -16 }}
@@ -308,7 +311,6 @@ export default function ReportManagementPage() {
           border="1px solid"
           borderColor="#e2e8f0"
           overflow="hidden"
-          transition="width 0.3s ease"
         >
           {/* Table Header */}
           <SimpleGrid columns={selectedReport ? 1 : 6} gap={0} p="10px 18px" bg="#f8fafc" borderBottom="1px solid" borderColor="#f1f5f9" pt={3} pb={3}
@@ -346,7 +348,6 @@ export default function ReportManagementPage() {
                 bg={selectedReport?.id === r.id ? "red.50" : "transparent"}
                 borderLeft="3px solid"
                 borderLeftColor={selectedReport?.id === r.id ? "#CE0037" : "transparent"}
-                transition="all 0.15s"
                 _hover={{ bg: selectedReport?.id === r.id ? "red.50" : "#f8fafc" }}
               >
                   {selectedReport ? (
@@ -464,7 +465,7 @@ export default function ReportManagementPage() {
                         {...({} as any)}
                         whileHover={{ scale: 1.02 }}
                         onClick={handleSave}
-                        bg="emerald.600"
+                        bg="#CE0037"
                         color="white"
                         size="sm"
                         leftIcon={<Save size={13} />}
@@ -474,7 +475,7 @@ export default function ReportManagementPage() {
                       </Button>
                     </>
                   )}
-                  <IconButton
+                  <ChakraIconButton
                     aria-label="Close panel"
                     icon={<X size={14} />}
                     size="sm"
@@ -708,6 +709,8 @@ export default function ReportManagementPage() {
             </Flex>
           )}
         </AnimatePresence>
+        </>
+        )}
       </Flex>
     </Flex>
   );

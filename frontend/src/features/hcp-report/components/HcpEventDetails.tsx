@@ -156,7 +156,10 @@ export function HcpEventDetails({
         <FormLabel fontWeight="500" color="gray.700">
           What was the outcome of the symptom?
         </FormLabel>
-        <RadioGroup onChange={(val) => setValue(`${prefix}.outcome`, val)}>
+        <RadioGroup 
+          value={watch(`${prefix}.outcome`)}
+          onChange={(val) => setValue(`${prefix}.outcome`, val)}
+        >
           <Stack direction="row" spacing={6} flexWrap="wrap">
             <Radio value="recovered" colorScheme="red">
               Recovered completely
@@ -193,7 +196,10 @@ export function HcpEventDetails({
         <Text fontWeight="700" mb={4} color="gray.800" fontSize="sm">
           Suspect product: {firstProductName || 'Unknown Product'}
         </Text>
-        <RadioGroup onChange={(val) => setValue(`${prefix}.relatedToProduct`, val)}>
+        <RadioGroup 
+          value={watch(`${prefix}.relatedToProduct`)}
+          onChange={(val) => setValue(`${prefix}.relatedToProduct`, val)}
+        >
           <Stack spacing={2}>
             <Radio value="yes" colorScheme="red">
               Yes

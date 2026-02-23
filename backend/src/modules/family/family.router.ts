@@ -27,7 +27,7 @@ export const familyRouter = router({
           additionalDetails: input.additionalDetails,
           attachments: input.attachments ?? [],
           agreedToTerms: input.agreedToTerms,
-          status: input.status ?? "pending",
+          status: input.status ?? "new",
         })
         .returning();
 
