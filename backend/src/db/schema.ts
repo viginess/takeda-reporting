@@ -4,3 +4,4 @@ export * from "./patient/patient.schema.js";
 export * from "./hcp/hcp.schema.js";
 export * from "./family/family.schema.js";
 export * from "./admin/admin.schema.js";
+export * from "./notifications/notifications.schema.js";

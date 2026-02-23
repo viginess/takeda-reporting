@@ -8,6 +8,7 @@ import {
   PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
   AreaChart, Area, XAxis, YAxis, CartesianGrid,
 } from "recharts";
+import { trpc } from "../../utils/trpc";
 import {
   Box, Flex, Text, Heading, Button, IconButton, Badge, SimpleGrid,
   Card, CardBody, HStack, VStack
@@ -60,12 +61,7 @@ const monthlyReports = [
   { month: "Jun", Patient: 21, HCP: 14, Family: 8 },
 ];
 
-const notifications = [
-  { id: 1, title: "5 urgent reports need attention", desc: "Critical cases unresolved for 2+ hours", time: "Just now", type: "urgent" },
-  { id: 2, title: "Monthly report generated", desc: "June summary is ready to download", time: "15 min ago", type: "info" },
-  { id: 3, title: "New admin user added", desc: "james.t@company.com was granted access", time: "1 hr ago", type: "account" },
-  { id: 4, title: "Email service delayed", desc: "Notifications may be slow by 5–10 min", time: "2 hrs ago", type: "warning" },
-];
+
 
 // ── Colors ────────────────────────────────────────────────────────────────────
 const PIE_COLORS = ["#CE0037", "#f59e0b", "#10b981", "#64748b"];
@@ -104,9 +100,21 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 // ── Main Component ─────────────────────────────────────────────────────────────
 export default function AdminDashboard() {
   const [notifOpen, setNotifOpen] = useState(false);
-  const [dismissed, setDismissed] = useState<number[]>([]);
+  const utils = trpc.useContext();
+  const { data: notifications = [] } = trpc.notifications.getAll.useQuery();
 
-  const visibleNotifs = notifications.filter((n) => !dismissed.includes(n.id));
+  const markReadMutation = trpc.notifications.markAsRead.useMutation({
+    onSuccess: () => utils.notifications.getAll.invalidate(),
+  });
+  const markAllReadMutation = trpc.notifications.markAllAsRead.useMutation({
+    onSuccess: () => utils.notifications.getAll.invalidate(),
+  });
+
+  const markRead = (id: number) => markReadMutation.mutate({ id });
+  const markAllRead = () => markAllReadMutation.mutate();
+
+  // Only show unread notifications in the dashboard bell dropdown
+  const visibleNotifs = notifications.filter((n) => !n.read);
 
   return (
     <Box minH="100%" bg="#f8fafc" fontFamily="'DM Sans', system-ui, sans-serif" p={8}>
@@ -183,17 +191,17 @@ export default function AdminDashboard() {
               >
                 <Flex p={4} borderBottom="1px solid" borderColor="#f1f5f9" justify="space-between" align="center">
                   <Text fontWeight="bold" fontSize="sm" color="#0f172a">Notifications</Text>
-                  <Text fontSize="xs" color="#CE0037" fontWeight="semibold" cursor="pointer" onClick={() => setDismissed(notifications.map(n => n.id))}>
+                  <Text fontSize="xs" color="#CE0037" fontWeight="semibold" cursor="pointer" onClick={() => markAllRead()}>
                     Clear all
                   </Text>
                 </Flex>
 
                 <Box>
                   {visibleNotifs.length === 0 ? (
-                    <Text p={6} textAlign="center" color="#94a3b8" fontSize="sm">All caught up! 🎉</Text>
+                    <Text p={6} textAlign="center" color="#94a3b8" fontSize="sm">All caught up!</Text>
                   ) : (
                     visibleNotifs.map((n) => {
-                      const s = notifStyle[n.type as keyof typeof notifStyle];
+                      const s = notifStyle[n.type as keyof typeof notifStyle] || notifStyle.info;
                       return (
                         <Flex
                           as={motion.div}
@@ -225,7 +233,7 @@ export default function AdminDashboard() {
                             variant="ghost"
                             size="xs"
                             color="#94a3b8"
-                            onClick={() => setDismissed((d) => [...d, n.id])}
+                            onClick={() => markRead(n.id)}
                           />
                         </Flex>
                       );
