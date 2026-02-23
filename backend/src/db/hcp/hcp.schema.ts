@@ -5,7 +5,9 @@ import {
   boolean,
   timestamp,
   jsonb,
+  index,
 } from "drizzle-orm/pg-core";
+import { severityEnum, statusEnum } from "../enums.schema.js";
 
 export const hcpReports = pgTable("hcp_reports", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -40,9 +42,21 @@ export const hcpReports = pgTable("hcp_reports", {
 
   // ── Step 6: Confirm ──────────────────────────────────────
   agreedToTerms: boolean("agreed_to_terms").notNull().default(false),
-  status: text("status").default("pending"),
+  status: statusEnum("status").default("new"),
+  severity: severityEnum("severity").default("info"),
+  assignee: text("assignee"),
+  adminNotes: text("admin_notes"),
+  assignedAt: timestamp("assigned_at"),
+  lastUpdatedAt: timestamp("last_updated_at"),
 
   // Meta
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => {
+  return {
+    severityIdx: index("hcp_severity_idx").on(table.severity),
+    statusIdx: index("hcp_status_idx").on(table.status),
+    assigneeIdx: index("hcp_assignee_idx").on(table.assignee),
+    createdAtIdx: index("hcp_created_at_idx").on(table.createdAt),
+  };
 });

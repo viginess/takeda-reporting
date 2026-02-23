@@ -113,7 +113,7 @@ export const createHcpSchema = z.object({
   agreedToTerms: z.boolean().refine((v) => v === true, {
     message: "You must agree to the terms",
   }),
-  status: z.enum(["pending", "submitted", "reviewed", "closed"]).optional(),
+  status: z.enum(["new", "under_review", "closed"]).optional(),
 });
 
 export const updateHcpSchema = createHcpSchema.partial();

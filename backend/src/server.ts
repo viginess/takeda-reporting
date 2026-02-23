@@ -8,6 +8,7 @@ const server = createHTTPServer({
       ip: req.socket.remoteAddress ?? "unknown",
       userAgent: req.headers["user-agent"] ?? "unknown",
       clientId: req.headers["x-client-id"] ?? "unknown",
+      token: req.headers.authorization?.split(" ")[1] ?? null,
     };
   },
   middleware(req, res, next) {

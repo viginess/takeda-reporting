@@ -212,7 +212,7 @@ function PatientForm({ onBack }: PatientFormProps) {
       // ── Step 5: Confirm ──────────────────────────────
       agreedToTerms: agreedToTerms,
       reporterType: 'patient',
-      status: 'pending',
+      status: 'new',
     });
     // Store the real report UUID returned from Supabase
     if (result?.data?.id) setReportId(result.data.id);

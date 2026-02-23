@@ -173,7 +173,10 @@ export function EventDetails({
         <FormLabel fontWeight="500" color="gray.700">
           What was the outcome of the symptom?
         </FormLabel>
-        <RadioGroup onChange={(val) => setValue(`${prefix}.outcome`, val)}>
+        <RadioGroup 
+          value={watch(`${prefix}.outcome`)}
+          onChange={(val) => setValue(`${prefix}.outcome`, val)}
+        >
           <Stack direction="row" spacing={6} flexWrap="wrap">
             <Radio value="recovered" colorScheme="red">
               Recovered completely

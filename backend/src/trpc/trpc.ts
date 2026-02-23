@@ -5,12 +5,30 @@ export interface Context {
   ip: string;
   userAgent: string;
   clientId: string | string[];
+  token: string | null;
 }
 
 const t = initTRPC.context<Context>().create();
 
 export const router = t.router;
 export const publicProcedure = t.procedure;
+
+const isAuthed = t.middleware(({ ctx, next }) => {
+  if (!ctx.token) {
+    throw new TRPCError({ code: "UNAUTHORIZED", message: "Admin token missing" });
+  }
+  // Basic validation. In production use jwt.verify
+  if (ctx.token.length < 10) {
+    throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid admin token" });
+  }
+  return next({
+    ctx: {
+      user: { id: "admin-user-id", role: "admin" }
+    }
+  });
+});
+
+export const protectedProcedure = t.procedure.use(isAuthed);
 
 /**
  * A procedure that limits submissions to 50 per hour per client fingerprint.

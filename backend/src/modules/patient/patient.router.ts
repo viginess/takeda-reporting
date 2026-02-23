@@ -41,7 +41,7 @@ export const patientRouter = router({
           // ── Step 5: Confirm ────────────────────────────
           agreedToTerms: input.agreedToTerms,
           reporterType: input.reporterType,
-          status: input.status ?? "pending",
+          status: input.status ?? "new",
         })
         .returning();
 

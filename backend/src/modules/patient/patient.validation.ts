@@ -134,7 +134,7 @@ export const createPatientSchema = z.object({
     message: "You must agree to the terms",
   }),
   reporterType: z.enum(["patient", "hcp", "family"]).optional(),
-  status: z.enum(["pending", "in_review", "closed"]).optional(),
+  status: z.enum(["new", "under_review", "closed"]).optional(),
 });
 
 export type CreatePatientInput = z.infer<typeof createPatientSchema>;
