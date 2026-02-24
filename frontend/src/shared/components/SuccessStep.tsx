@@ -8,6 +8,7 @@ import {
   Link,
   useToast,
 } from '@chakra-ui/react';
+import { useMemo } from 'react';
 import { LuBadgeCheck } from "react-icons/lu";
 import { FaRegCopy } from "react-icons/fa6";
 
@@ -19,7 +20,7 @@ interface SuccessStepProps {
 
 export function SuccessStep({ onBackToHome, onSubmitAnother, reportId }: SuccessStepProps) {
   const toast = useToast();
-  const displayId = reportId ?? `REP-${String(Date.now()).slice(-8)}`;
+  const displayId = useMemo(() => reportId ?? `REP-${String(Date.now()).slice(-8)}`, [reportId]);
 
 
   const handleCopy = () => {

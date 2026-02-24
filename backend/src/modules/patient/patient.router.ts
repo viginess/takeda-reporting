@@ -2,18 +2,24 @@ import { z } from "zod";
 import { eq, desc } from "drizzle-orm";
 import { router, publicProcedure, rateLimitedProcedure } from "../../trpc/trpc.js";
 import { db } from "../../db/index.js";
-import { patientReports } from "../../db/schema.js";
+import { patientReports, notifications } from "../../db/schema.js";
 import { createPatientSchema, updatePatientSchema } from "./patient.validation.js";
+import { determineNotificationData, shouldCreateNotification } from "../../utils/notification-helper.js";
+
+import { assertNoMaintenance } from "../../utils/config-helper.js";
+import { systemSettings } from "../../db/admin/settings.schema.js";
 
 export const patientRouter = router({
   // ─── CREATE ────────────────────────────────────────────────────────────────
   create: rateLimitedProcedure
     .input(createPatientSchema)
     .mutation(async ({ input }) => {
+      await assertNoMaintenance();
       const [row] = await db
         .insert(patientReports)
         .values({
           // ── Step 1: Product ────────────────────────────
+          referenceId: `REP-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
           products: input.products ?? [],
 
           // ── Step 2: Event ──────────────────────────────
@@ -39,9 +45,26 @@ export const patientRouter = router({
           // ── Step 5: Confirm ────────────────────────────
           agreedToTerms: input.agreedToTerms,
           reporterType: input.reporterType,
-          status: input.status ?? "pending",
+          status: input.status ?? "new",
+          severity: determineNotificationData(input, "Patient", "TEMP").type as any,
         })
         .returning();
+
+      const notifData = determineNotificationData(input, "Patient", row.referenceId || row.id);
+      
+      const [settings] = await db.select().from(systemSettings).where(eq(systemSettings.id, 1));
+      
+      if (shouldCreateNotification(settings, notifData)) {
+        await db.insert(notifications).values({
+          type: notifData.type,
+          title: notifData.title,
+          desc: notifData.desc,
+          time: notifData.time,
+          date: notifData.date,
+          reportId: notifData.reportId,
+          classificationReason: notifData.classificationReason,
+        });
+      }
 
       return { success: true, data: row };
     }),
