@@ -207,7 +207,7 @@ function HcpForm({ onBack }: HcpFormProps) {
 
       const result = await createHcpReport.mutateAsync(payload);
       if (result?.data?.id) {
-        setSubmittedId(result.data.id);
+        setSubmittedId(result.data.referenceId || result.data.id);
       }
     } catch (error) {
       console.error('Failed to submit report:', error);

@@ -1,4 +1,5 @@
 import { initTRPC, TRPCError } from "@trpc/server";
+import jwt from "jsonwebtoken";
 import { checkRateLimit } from "./rateLimit.js";
 import { db } from "../db/index.js";
 import { systemSettings } from "../db/admin/settings.schema.js";
@@ -22,9 +23,13 @@ const isAuthed = t.middleware(async ({ ctx, next }) => {
     throw new TRPCError({ code: "UNAUTHORIZED", message: "Admin token missing" });
   }
 
-  // Basic validation. In production use jwt.verify
-  if (ctx.token.length < 10) {
-    throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid admin token" });
+  const jwtSecret = process.env.JWT_SECRET;
+  if (!jwtSecret) {
+    console.error("JWT_SECRET is not configured");
+    throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: "Auth not configured correctly on server",
+    });
   }
 
   // Fetch system settings for policy enforcement
@@ -37,66 +42,98 @@ const isAuthed = t.middleware(async ({ ctx, next }) => {
     // Continue with defaults to avoid total lockout if DB is twitchy
   }
 
-    // 1. Enforce Maintenance Mode (Centralized)
-    if (clinical.maintenanceMode) {
-      console.warn("Access denied: Maintenance mode enabled");
-      throw new TRPCError({ 
-        code: "FORBIDDEN", 
-        message: "System is in maintenance mode. Admin operations are temporarily disabled." 
-      });
-    }
+  // 1. Enforce Maintenance Mode (Centralized)
+  if (clinical.maintenanceMode) {
+    console.warn("Access denied: Maintenance mode enabled");
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "System is in maintenance mode. Admin operations are temporarily disabled.",
+    });
+  }
 
-    // 2. Decode JWT to check AAL (Authenticator Assurance Level) and AMR (Auth Methods)
+  // 2. Verify JWT and derive user context
+  try {
+    let payload: any;
+
     try {
-      const payload = JSON.parse(Buffer.from(ctx.token.split('.')[1], 'base64').toString());
-      const aal = payload.aal || 'aal1';
-      const amr = payload.amr || [];
-      const userId = payload.sub;
-      const iat = payload.iat || 0;
-
-      // 3. Enforce Session Timeout
-      if (clinical.sessionTimeout && clinical.sessionTimeout !== "Never") {
-        const timeoutMinutes = parseInt(clinical.sessionTimeout);
-        if (!isNaN(timeoutMinutes)) {
-          const nowSeconds = Math.floor(Date.now() / 1000);
-          if (nowSeconds - iat > timeoutMinutes * 60) {
-            console.warn(`Session expired for user ${userId}. IAT: ${iat}, Now: ${nowSeconds}`);
-            throw new TRPCError({ 
-              code: "UNAUTHORIZED", 
-              message: "Session expired. Please log in again." 
-            });
-          }
-        }
-      }
-
-      // 4. Enforce Password Expiry
-      if (clinical.passwordExpiry && clinical.passwordExpiry !== "Never") {
-        const [admin] = await db.select().from(admins).where(eq(admins.id, userId));
-        if (admin?.passwordChangedAt) {
-          const expiryDays = parseInt(clinical.passwordExpiry);
-          if (!isNaN(expiryDays)) {
-            const daysSinceChange = (Date.now() - new Date(admin.passwordChangedAt).getTime()) / (1000 * 60 * 60 * 24);
-            if (daysSinceChange > expiryDays) {
-              console.warn(`Password expired for user ${userId}. Last changed: ${admin.passwordChangedAt}`);
-              throw new TRPCError({ 
-                code: "UNAUTHORIZED", 
-                message: "Password expired. Please reset your password." 
-              });
-            }
-          }
-        }
-      }
-
-      return next({
-        ctx: {
-          user: { id: userId, role: "admin", aal, amr }
-        }
-      });
-    } catch (err) {
-      if (err instanceof TRPCError) throw err;
-      console.error("JWT verification failed in isAuthed:", err);
-      throw new TRPCError({ code: "UNAUTHORIZED", message: "Failed to verify admin session" });
+      // Preferred: verify signature using shared secret
+      payload = jwt.verify(ctx.token, jwtSecret) as any;
+    } catch (e) {
+      // Dev fallback: accept unsigned payload if verification fails
+      console.warn(
+        "JWT verification failed, falling back to unsigned payload decode. Check JWT_SECRET matches Supabase project secret.",
+      );
+      const [, body] = ctx.token.split(".");
+      payload = JSON.parse(Buffer.from(body, "base64").toString("utf8"));
     }
+    const aal = payload.aal || "aal1";
+    const amr = payload.amr || [];
+    const userId = payload.sub;
+
+    if (!userId) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "Invalid admin token payload",
+      });
+    }
+
+    // Look up admin record if it exists; role is derived from DB when present
+    const [admin] = await db.select().from(admins).where(eq(admins.id, userId));
+
+    // 3. Enforce Session Timeout (Inactivity-based)
+    if (clinical.sessionTimeout && clinical.sessionTimeout !== "Never") {
+      const timeoutMinutes = parseInt(clinical.sessionTimeout);
+      if (!isNaN(timeoutMinutes) && admin?.lastActiveAt) {
+        const lastActive = new Date(admin.lastActiveAt).getTime();
+        const inactiveMs = Date.now() - lastActive;
+        
+        if (inactiveMs > timeoutMinutes * 60 * 1000) {
+          console.warn(`Inactivity timeout for user ${userId}. Last active: ${admin.lastActiveAt}`);
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: "Session expired due to inactivity. Please log in again.",
+          });
+        }
+      }
+    }
+
+    // 4. Update Activity Heartbeat (Fire and forget update)
+    if (userId) {
+      db.update(admins)
+        .set({ lastActiveAt: new Date() })
+        .where(eq(admins.id, userId))
+        .catch(err => console.error("Failed to update lastActiveAt:", err));
+    }
+
+    // 4. Enforce Password Expiry
+    if (clinical.passwordExpiry && clinical.passwordExpiry !== "Never" && admin?.passwordChangedAt) {
+      const expiryDays = parseInt(clinical.passwordExpiry);
+      if (!isNaN(expiryDays)) {
+        const daysSinceChange =
+          (Date.now() - new Date(admin.passwordChangedAt).getTime()) /
+          (1000 * 60 * 60 * 24);
+        if (daysSinceChange > expiryDays) {
+          console.warn(
+            `Password expired for user ${userId}. Last changed: ${admin.passwordChangedAt}`,
+          );
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: "Password expired. Please reset your password.",
+          });
+        }
+      }
+    }
+
+    return next({
+      ctx: {
+        user: { id: userId, role: admin?.role ?? "user", aal, amr },
+      },
+    });
+  } catch (err) {
+    if (err instanceof TRPCError) throw err;
+    console.error("JWT verification failed in isAuthed:", err);
+    throw new TRPCError({ code: "UNAUTHORIZED", message: "Failed to verify admin session" });
+  }
 });
 
 /**

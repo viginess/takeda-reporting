@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@chakra-ui/react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Shield, Eye, EyeOff, Lock, Mail, AlertCircle, CheckCircle, ArrowRight, Activity, Users } from "lucide-react";
+import { Shield, Eye, EyeOff, Lock, Mail, AlertCircle, CheckCircle, ArrowRight, Activity } from "lucide-react";
 import { supabase } from "../../utils/supabaseClient";
 import { trpc } from "../../utils/trpc";
 import takedaLogo from "../../assets/takeda-logo.png";
@@ -293,32 +293,14 @@ export default function AdminLogin() {
           </div>
 
           <h1 style={{ fontSize: 34, fontWeight: 800, color: "#fff", margin: "0 0 16px", lineHeight: 1.2, letterSpacing: "-1px" }}>
-            {authPolicy?.systemName || "Drug Safety"}<br />Reporting Portal
+            Drug Safety<br />Reporting Portal
           </h1>
           <p style={{ fontSize: 14, color: "rgba(255,255,255,0.7)", margin: 0, lineHeight: 1.8, maxWidth: 300 }}>
             Restricted to authorized Takeda administrators only. Manage reports, review urgent cases, and protect patient safety.
           </p>
         </div>
 
-        {/* Role-based access notice */}
         <div style={{ position: "relative" }}>
-          <div style={{ background: "rgba(0,0,0,0.25)", borderRadius: 12, padding: "16px 18px", border: "1px solid rgba(255,255,255,0.12)", marginBottom: 24, backdropFilter: "blur(8px)" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-              <Users size={14} color="rgba(255,255,255,0.8)" />
-              <span style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.8)", textTransform: "uppercase", letterSpacing: "0.08em" }}>Role-Based Access</span>
-            </div>
-            {[
-              { role: "Admin", access: "Full access — reports, settings, users", color: "#fca5a5" },
-              { role: "Reviewer", access: "View & update report status only", color: "#fcd34d" },
-              { role: "Reporter", access: "Submit reports only — no admin access", color: "#86efac" },
-            ].map(({ role, access, color }) => (
-              <div key={role} style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 8 }}>
-                <span style={{ fontSize: 11, fontWeight: 800, color, background: "rgba(0,0,0,0.3)", borderRadius: 4, padding: "1px 7px", flexShrink: 0, marginTop: 1 }}>{role}</span>
-                <span style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", lineHeight: 1.5 }}>{access}</span>
-              </div>
-            ))}
-          </div>
-
           {[
             { icon: Shield,   label: "Admin-only access enforced" },
             { icon: Lock,     label: "Encrypted & audit-logged session" },

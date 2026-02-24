@@ -1,4 +1,4 @@
-import { sql, eq, lt, and, ne } from "drizzle-orm";
+import { eq, lt, and, ne } from "drizzle-orm";
 import { db } from "../db/index.js";
 import { 
   systemSettings, 
@@ -34,7 +34,7 @@ export async function runArchiver() {
       return;
     }
 
-    const cutoff =calculateCutoff(settings.clinicalConfig.retention);
+    const cutoff = calculateCutoff(settings.clinicalConfig.retention);
     console.log(`Archiving reports created before ${cutoff.toISOString()} (Policy: ${settings.clinicalConfig.retention})`);
 
     await db.transaction(async (tx) => {

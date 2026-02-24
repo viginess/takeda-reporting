@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import { supabase } from '../../utils/supabaseClient';
+import { trpc } from '../../utils/trpc';
 import Sidebar from './Sidebar';
 import { Flex, Box, IconButton } from '@chakra-ui/react';
 import { FiMenu } from 'react-icons/fi';
@@ -8,6 +9,8 @@ import { FiMenu } from 'react-icons/fi';
 export default function AdminLayout() {
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
   const navigate = useNavigate();
+
+  const { data: systemSettings } = trpc.admin.getSystemSettings.useQuery();
 
   useEffect(() => {
     const checkSession = async () => {
@@ -25,8 +28,37 @@ export default function AdminLayout() {
       }
     });
 
+    // ── Inactivity Auto-Logout ──
+    let timeoutId: NodeJS.Timeout;
+    const sessionTimeout = systemSettings?.clinicalConfig?.sessionTimeout;
+
+    if (sessionTimeout && sessionTimeout !== "Never") {
+      const minutes = parseInt(sessionTimeout);
+      if (!isNaN(minutes)) {
+        const resetTimer = () => {
+          if (timeoutId) clearTimeout(timeoutId);
+          timeoutId = setTimeout(async () => {
+            console.log("Inactivity timeout reached. Signing out...");
+            await supabase.auth.signOut();
+            navigate('/admin/login');
+          }, minutes * 60 * 1000);
+        };
+
+        // Reset timer on activity
+        const events = ['mousedown', 'keydown', 'scroll', 'touchstart'];
+        events.forEach(e => window.addEventListener(e, resetTimer));
+        resetTimer(); // Start initial timer
+
+        return () => {
+          if (timeoutId) clearTimeout(timeoutId);
+          events.forEach(e => window.removeEventListener(e, resetTimer));
+          subscription.unsubscribe();
+        };
+      }
+    }
+
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, systemSettings]);
 
   return (
     <Flex h="100vh" w="100vw" overflow="hidden" bg="white">

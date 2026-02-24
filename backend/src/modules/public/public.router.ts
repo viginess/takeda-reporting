@@ -20,7 +20,6 @@ export const publicRouter = router({
         return {
           isMfaRequired: true,
           maxLoginAttempts: 5,
-          systemName: "Drug Safety Reporting System",
         };
       }
 
@@ -28,7 +27,6 @@ export const publicRouter = router({
       return {
         isMfaRequired: clinical.twoFA === true,
         maxLoginAttempts: parseInt(clinical.maxLoginAttempts || "5"),
-        systemName: "Takeda Reporting",
       };
     } catch (err: any) {
       console.error("Error in getAuthPolicy:", err);
