@@ -432,21 +432,6 @@ export default function SystemSettings() {
               </Flex>
             ))}
           </Box>
-
-          {/* Quick Stats */}
-          <Box mt={4} bg="white" borderRadius="2xl" border="1px solid" borderColor="#e2e8f0" p={4}>
-            <Text m={0} mb={3} fontSize="xs" fontWeight="bold" color="#94a3b8" textTransform="uppercase" letterSpacing="0.06em">System Status</Text>
-            {[
-              { label: "DB Connection", value: "Active", color: "emerald.600" },
-              { label: "Last Backup", value: "2 hrs ago", color: "#64748b" },
-              { label: "Version", value: "v2.4.1", color: "#64748b" },
-            ].map((s) => (
-              <Flex key={s.label} justify="space-between" align="center" mb={1.5}>
-                <Text fontSize="xs" color="#64748b">{s.label}</Text>
-                <Text fontSize="xs" fontWeight="bold" color={s.color}>{s.value}</Text>
-              </Flex>
-            ))}
-          </Box>
         </Box>
 
         {/* ── Main Content ── */}

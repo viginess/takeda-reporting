@@ -20,6 +20,7 @@ export default function AdminResetPassword() {
   const navigate = useNavigate();
   const toast = useToast();
   const { data: authPolicy } = trpc.public.getAuthPolicy.useQuery();
+  const syncPasswordChange = trpc.admin.syncPasswordChange.useMutation();
 
   useEffect(() => {
     // Check if we have a session or recovery token in the URL
@@ -76,6 +77,9 @@ export default function AdminResetPassword() {
           status: "info",
         });
       } else {
+        // ── Backend Sync ──
+        await syncPasswordChange.mutateAsync();
+        
         setSuccess(true);
         toast({
           title: "Password Updated",
@@ -117,6 +121,10 @@ export default function AdminResetPassword() {
       });
 
       if (verifyError) throw verifyError;
+
+      // ── Backend Sync ──
+      // Notify our DB that the password has changed to reset the Password Expiry timer
+      await syncPasswordChange.mutateAsync();
 
       setSuccess(true);
       toast({
@@ -172,7 +180,7 @@ export default function AdminResetPassword() {
             </div>
           </div>
           <h1 style={{ fontSize: 32, fontWeight: 800, color: "#fff", margin: "0 0 16px", lineHeight: 1.2, letterSpacing: "-1px" }}>
-            {authPolicy?.systemName || "Drug Safety"}<br />Secure Your Account
+            Drug Safety<br />Secure Your Account
           </h1>
           <p style={{ fontSize: 14, color: "rgba(255,255,255,0.7)", margin: "0 auto", lineHeight: 1.8, maxWidth: 320 }}>
             {mfaStep === "reset" 

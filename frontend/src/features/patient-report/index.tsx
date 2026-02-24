@@ -215,7 +215,7 @@ function PatientForm({ onBack }: PatientFormProps) {
       status: 'new',
     });
     // Store the real report UUID returned from Supabase
-    if (result?.data?.id) setReportId(result.data.id);
+    if (result?.data?.id) setReportId(result.data.referenceId || result.data.id);
   };
 
   return (

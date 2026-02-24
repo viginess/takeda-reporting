@@ -18,6 +18,7 @@ export const admins = pgTable("admins", {
   lockedAt: timestamp("locked_at"),
   passwordChangedAt: timestamp("password_changed_at").defaultNow().notNull(),
   lastLoginAt: timestamp("last_login_at"),
+  lastActiveAt: timestamp("last_active_at").defaultNow(),
 
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

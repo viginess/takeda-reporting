@@ -2,7 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FileText, Edit3, ChevronDown, Search,
-  X, AlertTriangle, User, Calendar, Pill, Activity,
+  X, AlertTriangle, User, Calendar, Activity,
   Save, AlertCircle,
   Clock,
   CheckCircle,
@@ -40,12 +40,12 @@ interface Report {
   status: Status;
   severity: Severity;
   submitted: string;
-  outcome: string;
   description: string;
   audit: AuditEntry[];
+  fullDetails?: any;
 }
 
-// -- Replaced mock data with standard TRPC fetch --
+
 
 // ── Style Config ──────────────────────────────────────────────────────────────
 const statusCfg: Record<Status, { bg: string; text: string; border: string; icon: any }> = {
@@ -71,6 +71,19 @@ const reporterTypeCfg: Record<ReporterType, { color: string; bg: string }> = {
 
 const statusOptions: Status[] = ["Submitted", "In Review", "Approved", "Closed", "Urgent"];
 const severityOptions: Severity[] = ["Critical", "High", "Medium", "Low"];
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function formatKey(key: string) {
+  return key
+    .replace(/([A-Z])/g, " $1")
+    .replace(/_/g, " ")
+    .trim()
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function isPrimitive(val: any) {
+  return typeof val === "string" || typeof val === "number" || typeof val === "boolean";
+}
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 function StatusBadge({ status }: { status: Status }) {
@@ -107,6 +120,158 @@ function SeverityDot({ severity }: { severity: Severity }) {
   );
 }
 
+// ── Improved DataDisplay ──────────────────────────────────────────────────────
+const DataDisplay = ({ data, depth = 0 }: { data: any; depth?: number }): any => {
+  if (data === null || data === undefined) return null;
+
+  // Primitive leaf value
+  if (isPrimitive(data)) {
+    const str = data.toString();
+    // Check for base64 image
+    if (typeof data === "string" && data.startsWith("data:image/")) {
+      return (
+        <Box mt={2} borderRadius="lg" overflow="hidden" border="1px solid" borderColor="#e2e8f0" maxW="300px">
+          <img src={data} alt="Attachment" style={{ width: "100%", height: "auto", display: "block" }} />
+        </Box>
+      );
+    }
+    return (
+      <Text as="span" fontSize="sm" color="#0f172a" fontWeight="500">
+        {str}
+      </Text>
+    );
+  }
+
+  // Array
+  if (Array.isArray(data)) {
+    if (data.length === 0) return null;
+    const allPrimitive = data.every(isPrimitive);
+    if (allPrimitive) {
+      // Render as pill-badges
+      return (
+        <Flex wrap="wrap" gap={1.5} mt={1}>
+          {data.map((item, i) => (
+            <Badge
+              key={i}
+              bg="#f1f5f9"
+              color="#334155"
+              borderRadius="md"
+              px={2}
+              py={0.5}
+              fontSize="xs"
+              fontWeight="medium"
+              textTransform="none"
+              border="1px solid #e2e8f0"
+            >
+              {item.toString()}
+            </Badge>
+          ))}
+        </Flex>
+      );
+    }
+    // Array of objects/arrays — numbered cards
+    return (
+      <VStack align="stretch" spacing={2} mt={2} w="full">
+        {data.map((item, i) => (
+          <Box
+            key={i}
+            bg="white"
+            borderRadius="lg"
+            p={3}
+            border="1px solid #e2e8f0"
+            borderLeft="3px solid #CE0037"
+          >
+            {data.length > 1 && (
+              <Text fontSize="2xs" color="#CE0037" fontWeight="800" textTransform="uppercase" letterSpacing="0.08em" mb={2}>
+                Entry {i + 1}
+              </Text>
+            )}
+            <DataDisplay data={item} depth={depth + 1} />
+          </Box>
+        ))}
+      </VStack>
+    );
+  }
+
+  // Object
+  if (typeof data === "object" && data !== null) {
+    const keys = Object.keys(data).filter((k) => {
+      const v = data[k];
+      return (
+        v !== null &&
+        v !== undefined &&
+        v !== "" &&
+        !(Array.isArray(v) && v.length === 0) &&
+        !(typeof v === "object" && !Array.isArray(v) && Object.keys(v).length === 0)
+      );
+    });
+    if (keys.length === 0) return null;
+
+    const flatKeys = keys.filter((k) => isPrimitive(data[k]));
+    const nestedKeys = keys.filter((k) => !isPrimitive(data[k]));
+
+    return (
+      <VStack align="stretch" spacing={0} w="full">
+        {/* Flat primitive fields — clean 2-column label/value grid */}
+        {flatKeys.length > 0 && (
+          <SimpleGrid
+            columns={2}
+            spacing={0}
+            mb={nestedKeys.length > 0 ? 4 : 0}
+          >
+            {flatKeys.map((key) => (
+              <Box
+                key={key}
+                py={2.5}
+                pr={4}
+                borderBottom="1px solid #f1f5f9"
+              >
+                <Text
+                  fontSize="2xs"
+                  color="#94a3b8"
+                  fontWeight="700"
+                  textTransform="uppercase"
+                  letterSpacing="0.06em"
+                  mb={0.5}
+                >
+                  {formatKey(key)}
+                </Text>
+                <DataDisplay data={data[key]} depth={depth + 1} />
+              </Box>
+            ))}
+          </SimpleGrid>
+        )}
+
+        {/* Nested fields — labeled expandable sections */}
+        {nestedKeys.map((key) => (
+          <Box key={key} mb={4}>
+            {/* Section header with red accent bar */}
+            <Flex align="center" gap={2} mb={2.5}>
+              <Box w="3px" h="14px" bg="#CE0037" borderRadius="full" flexShrink={0} />
+              <Text
+                fontSize="xs"
+                color="#475569"
+                fontWeight="700"
+                textTransform="uppercase"
+                letterSpacing="0.07em"
+              >
+                {formatKey(key)}
+              </Text>
+              <Box flex={1} h="1px" bg="#f1f5f9" />
+            </Flex>
+            {/* Indented content */}
+            <Box pl={4} borderLeft="2px solid #f1f5f9">
+              <DataDisplay data={data[key]} depth={depth + 1} />
+            </Box>
+          </Box>
+        ))}
+      </VStack>
+    );
+  }
+
+  return null;
+};
+
 // ── Main Component ─────────────────────────────────────────────────────────────
 export default function ReportManagementPage() {
   const [search, setSearch] = useState("");
@@ -116,6 +281,7 @@ export default function ReportManagementPage() {
   const [mode, setMode] = useState<"view" | "edit">("view");
   const [editData, setEditData] = useState<Partial<Report>>({});
   const [showAudit, setShowAudit] = useState(false);
+  const [showFullDetails, setShowFullDetails] = useState(true);
   const [saved, setSaved] = useState(false);
   
   const toast = useToast();
@@ -142,7 +308,7 @@ export default function ReportManagementPage() {
   });
 
   const filtered = reportsData.filter((r) => {
-    const matchSearch = r.id.toLowerCase().includes(search.toLowerCase()) ||
+    const matchSearch = (r.originalId || r.id).toLowerCase().includes(search.toLowerCase()) ||
       r.drug.toLowerCase().includes(search.toLowerCase()) ||
       r.reporter.toLowerCase().includes(search.toLowerCase());
     const matchStatus = filterStatus === "All" || 
@@ -156,6 +322,7 @@ export default function ReportManagementPage() {
     setEditData({ status: r.status, severity: r.severity, description: r.description });
     setMode("view");
     setShowAudit(false);
+    setShowFullDetails(true);
     setSaved(false);
   };
 
@@ -167,7 +334,7 @@ export default function ReportManagementPage() {
       "In Review": "under_review",
       "Approved": "approved",
       "Closed": "closed",
-      "Urgent": "under_review" // Urgent severity reports are still under review
+      "Urgent": "under_review"
     };
 
     const severityMap: Record<Severity, ("info" | "warning" | "urgent")> = {
@@ -182,7 +349,7 @@ export default function ReportManagementPage() {
 
     updateMutation.mutate({
       reportId: selectedReport.originalId ?? selectedReport.id,
-      reporterType: selectedReport.reporterType, // "Patient" | "HCP" | "Family"
+      reporterType: selectedReport.reporterType,
       updates: {
         status: statusValue,
         severity: severityValue,
@@ -190,7 +357,6 @@ export default function ReportManagementPage() {
       }
     });
 
-    // Optimistically update local view while TRPC invalidates
     setSelectedReport({ ...selectedReport, ...editData as Report });
     setMode("view");
   };
@@ -322,7 +488,7 @@ export default function ReportManagementPage() {
             {filtered.map((r, i) => (
               <SimpleGrid
                 as={motion.div}
-                key={r.id}
+                key={r.originalId || r.id}
                 {...({} as any)}
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -336,10 +502,10 @@ export default function ReportManagementPage() {
                 borderBottom="1px solid"
                 borderColor="#f8fafc"
                 alignItems="center"
-                bg={selectedReport?.id === r.id ? "red.50" : "transparent"}
+                bg={selectedReport?.originalId === (r.originalId || r.id) ? "red.50" : "transparent"}
                 borderLeft="3px solid"
-                borderLeftColor={selectedReport?.id === r.id ? "#CE0037" : "transparent"}
-                _hover={{ bg: selectedReport?.id === r.id ? "red.50" : "#f8fafc" }}
+                borderLeftColor={selectedReport?.originalId === (r.originalId || r.id) ? "#CE0037" : "transparent"}
+                _hover={{ bg: selectedReport?.originalId === (r.originalId || r.id) ? "red.50" : "#f8fafc" }}
               >
                   {selectedReport ? (
                       <VStack align="flex-start" spacing={1}>
@@ -507,13 +673,10 @@ export default function ReportManagementPage() {
                 {/* Report Info Grid */}
                 <SimpleGrid columns={2} spacing={3} mb={5}>
                   {[
-                    { label: "Drug Name", icon: Pill, value: selectedReport.drug },
-                    { label: "Batch Number", icon: FileText, value: selectedReport.batch },
                     { label: "Reporter", icon: User, value: `${selectedReport.reporter} (${selectedReport.reporterType})` },
                     { label: "Submitted", icon: Calendar, value: selectedReport.submitted },
-                    { label: "Outcome", icon: Activity, value: selectedReport.outcome, span: 2 },
-                  ].map(({ label, icon: Icon, value, span }) => (
-                    <Box key={label} bg="#f8fafc" borderRadius="xl" p={3} px={4} border="1px solid" borderColor="#f1f5f9" gridColumn={span ? `span ${span}` : "auto"}>
+                  ].map(({ label, icon: Icon, value }) => (
+                    <Box key={label} bg="#f8fafc" borderRadius="xl" p={3} px={4} border="1px solid" borderColor="#f1f5f9">
                       <Flex align="center" gap={2} mb={1.5}>
                         <Icon size={12} color="#94a3b8" />
                         <Text fontSize="2xs" color="#94a3b8" fontWeight="bold" textTransform="uppercase" letterSpacing="0.05em">{label}</Text>
@@ -593,34 +756,87 @@ export default function ReportManagementPage() {
                   </Box>
                 </SimpleGrid>
 
-                {/* Description */}
-                <Box bg="#f8fafc" borderRadius="xl" p={4} border="1px solid" borderColor="#f1f5f9" mb={5}>
-                  <Flex align="center" gap={2} mb={2}>
-                    <FileText size={12} color="#94a3b8" />
-                    <Text fontSize="2xs" color="#94a3b8" fontWeight="bold" textTransform="uppercase" letterSpacing="0.05em">Case Description</Text>
-                  </Flex>
-                  {mode === "edit" ? (
-                    <Box
-                      as="textarea"
-                      value={editData.description || ""}
-                      onChange={(e: any) => setEditData({ ...editData, description: e.target.value })}
-                      rows={4}
+
+                {/* ── Full Form Details — improved ── */}
+                {selectedReport.fullDetails && (
+                  <Box
+                    bg="white"
+                    borderRadius="xl"
+                    border="1px solid"
+                    borderColor="#e2e8f0"
+                    mb={5}
+                    overflow="hidden"
+                    boxShadow="0 1px 3px rgba(0,0,0,0.04)"
+                  >
+                    {/* Collapsible Header */}
+                    <Button
+                      onClick={() => setShowFullDetails((v) => !v)}
+                      variant="ghost"
                       w="full"
-                      border="1px solid"
-                      borderColor="#e2e8f0"
-                      borderRadius="md"
-                      p={2}
-                      fontSize="sm"
-                      color="#0f172a"
-                      bg="white"
-                      style={{ resize: "vertical", outline: "none" }}
-                    />
-                  ) : (
-                    <Text m={0} fontSize="sm" color="#334155" lineHeight="1.7">
-                      {editData.description || selectedReport.description}
-                    </Text>
-                  )}
-                </Box>
+                      justifyContent="space-between"
+                      p={3}
+                      px={5}
+                      h="auto"
+                      bg={showFullDetails ? "white" : "#f8fafc"}
+                      borderBottom={showFullDetails ? "1px solid #f1f5f9" : "none"}
+                      borderRadius="none"
+                      _hover={{ bg: "#f8fafc" }}
+                    >
+                      <Flex align="center" gap={2.5}>
+                        <Flex
+                          w="22px"
+                          h="22px"
+                          borderRadius="md"
+                          bg="red.50"
+                          align="center"
+                          justify="center"
+                          border="1px solid"
+                          borderColor="red.100"
+                        >
+                          <FileText size={11} color="#CE0037" />
+                        </Flex>
+                        <Text fontSize="sm" fontWeight="700" color="#0f172a">Full Form Details</Text>
+                        <Badge
+                          bg="#f1f5f9"
+                          color="#64748b"
+                          borderRadius="full"
+                          px={2}
+                          py={0.5}
+                          fontSize="2xs"
+                          fontWeight="bold"
+                          textTransform="none"
+                        >
+                          {Object.keys(selectedReport.fullDetails).length} sections
+                        </Badge>
+                      </Flex>
+                      <Box
+                        as={motion.div}
+                        animate={{ rotate: showFullDetails ? 180 : 0 }}
+                        transition={{ duration: 0.2 } as any}
+                      >
+                        <ChevronDown size={14} color="#94a3b8" />
+                      </Box>
+                    </Button>
+
+                    <AnimatePresence>
+                      {showFullDetails && (
+                        <Box
+                          as={motion.div}
+                          {...({} as any)}
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          overflow="hidden"
+                        >
+                          <Box p={5}>
+                            <DataDisplay data={selectedReport.fullDetails} depth={0} />
+                          </Box>
+                        </Box>
+                      )}
+                    </AnimatePresence>
+                  </Box>
+                )}
 
                 {/* Audit Trail */}
                 <Box bg="#f8fafc" borderRadius="xl" border="1px solid" borderColor="#f1f5f9" overflow="hidden">

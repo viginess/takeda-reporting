@@ -6,7 +6,7 @@ import {
   timestamp,
   jsonb,
 } from "drizzle-orm/pg-core";
-import { severityEnum, statusEnum } from "./enums.schema.js";
+import { severityEnum, statusEnum } from "../shared/enums.schema.js";
 
 export const archivedReports = pgTable("archived_reports", {
   id: uuid("id").defaultRandom().primaryKey(),
