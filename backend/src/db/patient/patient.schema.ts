@@ -5,10 +5,13 @@ import {
   boolean,
   timestamp,
   jsonb,
+  index,
 } from "drizzle-orm/pg-core";
+import { severityEnum, statusEnum } from "../shared/enums.schema.js";
 
 export const patientReports = pgTable("patient_reports", {
   id: uuid("id").defaultRandom().primaryKey(),
+  referenceId: text("reference_id"), // Custom human-readable ID e.g., REP-123456
 
   // ── Step 1: Product ─────────────────────────────────────
   products: jsonb("products"),
@@ -38,9 +41,18 @@ export const patientReports = pgTable("patient_reports", {
   // ── Step 5: Confirm ──────────────────────────────────────
   agreedToTerms: boolean("agreed_to_terms").notNull(),
   reporterType: text("reporter_type"),
-  status: text("status").default("pending"),
+  status: statusEnum("status").default("new"),
+  severity: severityEnum("severity").default("info"),
+  adminNotes: text("admin_notes"),
+  lastUpdatedAt: timestamp("last_updated_at"),
 
   // Meta
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => {
+  return {
+    severityIdx: index("patient_severity_idx").on(table.severity),
+    statusIdx: index("patient_status_idx").on(table.status),
+    createdAtIdx: index("patient_created_at_idx").on(table.createdAt),
+  };
 });

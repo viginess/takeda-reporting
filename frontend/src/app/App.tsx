@@ -2,6 +2,15 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { httpBatchLink } from '@trpc/client';
 import { trpc } from '../utils/trpc';
 import WelcomePage from '../WelcomePage';
+import { supabase } from '../utils/supabaseClient';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import AdminLayout from '../admin/components/AdminLayout';
+import DashBoard from '../admin/pages/DashBoard';
+import ReportManagementPage from '../admin/pages/ReportManagementPage';
+import NotificationsPage from '../admin/pages/NotificationsPage';
+import SettingsPage from '../admin/pages/SettingsPage';
+import AdminLogin from '../admin/pages/AdminLogin';
+import AdminResetPassword from '../admin/pages/AdminResetPassword';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -26,9 +35,13 @@ const trpcClient = trpc.createClient({
       url: import.meta.env.VITE_API_URL
         ? `${import.meta.env.VITE_API_URL}`
         : 'http://localhost:3000',
-      headers: () => ({
-        'x-client-id': getGuestId(),
-      }),
+      headers: async () => {
+        const { data: { session } } = await supabase.auth.getSession();
+        return {
+          'x-client-id': getGuestId(),
+          ...(session?.access_token ? { 'Authorization': `Bearer ${session.access_token}` } : {}),
+        };
+      },
     }),
   ],
 });
@@ -37,7 +50,20 @@ function App() {
   return (
     <trpc.Provider client={trpcClient} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>
-        <WelcomePage />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<WelcomePage />} />
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route index element={<DashBoard />} />
+              <Route path="reports" element={<ReportManagementPage />} />
+              <Route path="notifications" element={<NotificationsPage />} />
+              <Route path="users" element={<div style={{ padding: "20px", color: "#a1a1aa", fontFamily: "system-ui, sans-serif" }}>Users Page (Coming Soon)</div>} />
+              <Route path="settings" element={<SettingsPage />} />
+            </Route>
+            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/admin/reset-password" element={<AdminResetPassword />} />
+          </Routes>
+        </BrowserRouter>
       </QueryClientProvider>
     </trpc.Provider>
   );

@@ -1,5 +1,7 @@
 import { createHTTPServer } from "@trpc/server/adapters/standalone";
 import { appRouter } from "./trpc/index.js";
+import cron from "node-cron";
+import { runArchiver } from "./jobs/archiver.js";
 
 const server = createHTTPServer({
   router: appRouter,
@@ -8,6 +10,7 @@ const server = createHTTPServer({
       ip: req.socket.remoteAddress ?? "unknown",
       userAgent: req.headers["user-agent"] ?? "unknown",
       clientId: req.headers["x-client-id"] ?? "unknown",
+      token: req.headers.authorization?.split(" ")[1] ?? null,
     };
   },
   middleware(req, res, next) {
@@ -51,4 +54,10 @@ const port = process.env.PORT ? parseInt(process.env.PORT) : 3000;
 
 server.listen(port, () => {
   console.log(`🚀 tRPC server ready on http://localhost:${port}`);
+  
+  // Schedule archiving job: Every Sunday at midnight
+  cron.schedule("0 0 * * 0", async () => {
+    await runArchiver();
+  });
+  console.log("⏰ Report archiving cron job scheduled (Every Sunday at 00:00)");
 });

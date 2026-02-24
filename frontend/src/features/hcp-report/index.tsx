@@ -202,12 +202,12 @@ function HcpForm({ onBack }: HcpFormProps) {
         hasRelevantHistory: hasRelevantHistory || undefined,
         labTestsPerformed: labTestsPerformed || undefined,
         additionalDetails: additionalDetails || undefined,
-        status: 'submitted',
+        status: 'new',
       };
 
       const result = await createHcpReport.mutateAsync(payload);
       if (result?.data?.id) {
-        setSubmittedId(result.data.id);
+        setSubmittedId(result.data.referenceId || result.data.id);
       }
     } catch (error) {
       console.error('Failed to submit report:', error);
