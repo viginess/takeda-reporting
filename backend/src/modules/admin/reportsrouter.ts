@@ -1,9 +1,10 @@
 import { z } from "zod";
 import { sql, eq } from "drizzle-orm";
+import { TRPCError } from "@trpc/server";
 import {
-  protectedProcedure,
-  mfaProtectedProcedure,
-} from "../../trpc/trpc.js";
+  viewerProcedure,
+  adminProcedure,
+} from "../../trpc/procedures.js";
 import { db } from "../../db/index.js";
 import {
   patientReports,
@@ -19,7 +20,7 @@ import {
   shouldCreateNotification,
 } from "../../utils/notification-helper.js";
 
-export const getAllReports = mfaProtectedProcedure.query(async () => {
+export const getAllReports = viewerProcedure.query(async () => {
   const res = await db.execute(sql`
       SELECT 
         id, 
@@ -248,7 +249,7 @@ export const getAllReports = mfaProtectedProcedure.query(async () => {
   return mapped;
 });
 
-export const updateReport = mfaProtectedProcedure
+export const updateReport = adminProcedure
   .input(
     z.object({
       reportId: z.string().uuid(),
@@ -289,6 +290,22 @@ export const updateReport = mfaProtectedProcedure
       .where(eq(tableToUpdate.id, reportId));
 
     if (!oldRecord) throw new Error("Report not found");
+
+    const userRole = ctx.user?.role || "admin";
+    if (userRole === "admin") {
+      if (oldRecord.status === "closed") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Admins cannot edit closed reports.",
+        });
+      }
+      if (updates.status === "closed") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Only Super Admins can close reports.",
+        });
+      }
+    }
 
     const [settings] = await db
       .select()
@@ -341,7 +358,7 @@ export const updateReport = mfaProtectedProcedure
     return { success: true, data: newRecord };
   });
 
-export const getDashboardStats = protectedProcedure.query(async () => {
+export const getDashboardStats = viewerProcedure.query(async () => {
   const res = await db.execute(sql`
         WITH all_reports AS (
           SELECT status, severity, created_at FROM patient_reports
@@ -368,7 +385,7 @@ export const getDashboardStats = protectedProcedure.query(async () => {
   };
 });
 
-export const getUrgentReports = protectedProcedure.query(async () => {
+export const getUrgentReports = viewerProcedure.query(async () => {
   const res = await db.execute(sql`
         SELECT 
           id, 
@@ -433,7 +450,7 @@ export const getUrgentReports = protectedProcedure.query(async () => {
   });
 });
 
-export const getStatusDistribution = protectedProcedure.query(async () => {
+export const getStatusDistribution = viewerProcedure.query(async () => {
   const res = await db.execute(sql`
         WITH all_reports AS (
           SELECT status FROM patient_reports
@@ -458,7 +475,7 @@ export const getStatusDistribution = protectedProcedure.query(async () => {
   }));
 });
 
-export const getMonthlyVolume = protectedProcedure.query(async () => {
+export const getMonthlyVolume = viewerProcedure.query(async () => {
   const res = await db.execute(sql`
         WITH months AS (
           SELECT generate_series(
