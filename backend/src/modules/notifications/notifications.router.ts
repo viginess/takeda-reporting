@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { router, publicProcedure } from "../../trpc/trpc.js";
+import { router, publicProcedure } from "../../trpc/init.js";
 import { db } from "../../db/index.js";
 import { notifications } from "../../db/schema.js";
 import { eq, desc } from "drizzle-orm";
