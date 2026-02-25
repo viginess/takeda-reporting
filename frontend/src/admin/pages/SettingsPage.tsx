@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Settings, Shield, Bell,  Database,
   Lock, Key, Save, RotateCcw, Check, AlertTriangle,
- AlertCircle, UserCircle
+ AlertCircle, UserCircle, Users
 } from "lucide-react";
 import {
   Box, Flex, Text, Heading, Button,  Badge, Input,
@@ -14,7 +14,7 @@ import { trpc } from "../../utils/trpc";
 import { supabase } from "../../utils/supabaseClient";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
-type Section = "general" | "security" | "notifications";
+type Section = "general" | "security" | "notifications" | "admins";
 
 
 
@@ -23,6 +23,7 @@ const navSections: { id: Section; label: string; icon: any; desc: string }[] = [
   { id: "general",       label: "General",       icon: Settings, desc: "System preferences & behavior" },
   { id: "security",      label: "Security",      icon: Shield,   desc: "Manage authentication & security policies" },
   { id: "notifications", label: "Notifications", icon: Bell,     desc: "Alert rules & delivery settings" },
+  { id: "admins",        label: "Admin Roles",   icon: Users,    desc: "Manage admin accounts and roles" },
 ];
 
 // ── Setting Row ───────────────────────────────────────────────────────────────
@@ -72,8 +73,11 @@ export default function SystemSettings() {
   const { isOpen, onOpen, onClose } = useDisclosure();
 
 
+  const { data: user } = trpc.admin.getMe.useQuery();
   const { data, isLoading, refetch } = trpc.admin.getSystemSettings.useQuery();
-  const { data: adminUsers } = trpc.admin.getAdmins.useQuery();
+  const { data: adminUsers, refetch: refetchAdmins } = trpc.admin.getAdmins.useQuery(undefined, {
+    enabled: user?.role === "super_admin",
+  });
   const utils = trpc.useContext();
   const updateSettings = trpc.admin.updateSystemSettings.useMutation({
     onSuccess: () => {
@@ -122,6 +126,51 @@ export default function SystemSettings() {
     }
   });
 
+  const updateAdminRole = trpc.admin.updateAdminRole.useMutation({
+    onSuccess: () => {
+      toast({
+        title: "Role updated",
+        description: "The admin's role has been successfully changed.",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+      refetchAdmins();
+    },
+    onError: (err) => {
+      toast({
+        title: "Update failed",
+        description: err.message,
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+  });
+
+  const inviteAdmin = trpc.admin.inviteAdmin.useMutation({
+    onSuccess: () => {
+      toast({
+        title: "Invitation sent",
+        description: `An invitation has been sent to ${inviteEmail}.`,
+        status: "success",
+        duration: 4000,
+        isClosable: true,
+      });
+      setInviteEmail("");
+      refetchAdmins();
+    },
+    onError: (err: any) => {
+      toast({
+        title: "Invitation failed",
+        description: err.message,
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+  });
+
   const toast = useToast();
 
   // ── General Settings State ──
@@ -137,13 +186,20 @@ export default function SystemSettings() {
   // ── Security Settings State ──
   const [twoFA, setTwoFA] = useState(false);
   const [sessionTimeout, setSessionTimeout] = useState("");
-  const [maxLoginAttempts, setMaxLoginAttempts] = useState("");
-  const [passwordExpiry, setPasswordExpiry] = useState("");
+  const [maxLoginAttempts, setMaxLoginAttempts] = useState("5");
+  const [passwordExpiry, setPasswordExpiry] = useState("90 days");
+  
+  // Invite state
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteRole, setInviteRole] = useState<"super_admin" | "admin" | "viewer">("admin");
 
   // ── Notification Settings State ──
   const [urgentAlerts, setUrgentAlerts] = useState(false);
   const [alertThreshold, setAlertThreshold] = useState("");
   const [notifyOnApproval, setNotifyOnApproval] = useState(false);
+  
+  // Buffered Admin Role Changes
+  const [roleChanges, setRoleChanges] = useState<Record<string, "super_admin" | "admin" | "viewer">>({});
   
   const updateAdminProfile = trpc.admin.updateAdminProfile.useMutation({
     onSuccess: () => {
@@ -200,14 +256,12 @@ export default function SystemSettings() {
   }, [data]);
 
   useEffect(() => {
-    if (adminUsers && userId) {
-      const profile = adminUsers.find(a => a.id === userId);
-      if (profile) {
-        setFirstName(profile.firstName || "");
-        setLastName(profile.lastName || "");
-      }
+    // Current user's profile is loaded from getMe for accurate profile display without needing getAdmins
+    if (user) {
+      setFirstName(user.firstName || "");
+      setLastName(user.lastName || "");
     }
-  }, [adminUsers, userId]);
+  }, [user]);
 
   const track = (fn: () => void) => { fn(); setUnsaved(true); setSaved(false); };
 
@@ -264,6 +318,15 @@ export default function SystemSettings() {
       });
     }
 
+    // 3. Update any buffered admin role changes
+    const roleEntries = Object.entries(roleChanges);
+    if (roleEntries.length > 0) {
+      for (const [adminId, role] of roleEntries) {
+        await updateAdminRole.mutateAsync({ adminId, role });
+      }
+      setRoleChanges({});
+    }
+
     setUnsaved(false);
     setSaved(true);
     toast({
@@ -307,6 +370,7 @@ export default function SystemSettings() {
       }
     }
 
+    setRoleChanges({});
     setUnsaved(false);
     if (pendingSection) { 
       setActive(pendingSection); 
@@ -325,6 +389,11 @@ export default function SystemSettings() {
         </Center>
     );
   }
+
+  const filteredNavSections = navSections.filter(s => {
+    if (user?.role !== "super_admin" && s.id !== "general") return false;
+    return true;
+  });
 
   return (
     <Flex direction="column" minH="100%" bg="#f8fafc" fontFamily="'DM Sans', system-ui, sans-serif">
@@ -405,7 +474,7 @@ export default function SystemSettings() {
           shrink={0}
         >
           <Box bg="white" borderRadius="2xl" border="1px solid" borderColor="#e2e8f0" overflow="hidden">
-            {navSections.map((s, i) => (
+            {filteredNavSections.map((s, i) => (
               <Flex
                 key={s.id}
                 onClick={() => handleNavClick(s.id)}
@@ -414,7 +483,7 @@ export default function SystemSettings() {
                 p={3}
                 px={4}
                 cursor="pointer"
-                borderBottom={i < navSections.length - 1 ? "1px solid" : "none"}
+                borderBottom={i < filteredNavSections.length - 1 ? "1px solid" : "none"}
                 borderColor="#f8fafc"
                 bg={active === s.id ? "red.50" : "transparent"}
                 borderLeft="3px solid"
@@ -458,30 +527,30 @@ export default function SystemSettings() {
                 </SettingRow>
               </SectionCard>
 
-             
-
-              <SectionCard title="Data Management" icon={Database}>
-                <SettingRow label="Report Retention Period" desc="How long submitted reports are stored before archiving">
-                  <Flex align="center" gap={3}>
-                    <Select value={retention} onChange={(e) => track(() => setRetention(e.target.value))} size="sm" w="220px" bg="white">
-                       {["6 months", "12 months", "24 months", "5 years", "Indefinite"].map(o => <option key={o} value={o}>{o}</option>)}
-                    </Select>
-                    <Button 
-                      size="xs" 
-                      variant="outline" 
-                      colorScheme="red" 
-                      leftIcon={<RotateCcw size={12} />}
-                      onClick={() => runArchivingManual.mutate()}
-                      isLoading={runArchivingManual.isPending}
-                    >
-                      Run Cleanup Now
-                    </Button>
-                  </Flex>
-                </SettingRow>
-                <SettingRow label="Maintenance Mode" desc="Temporarily disables submissions from all reporters" sensitive>
-                  <Switch colorScheme="red" isChecked={maintenanceMode} onChange={(e) => track(() => setMaintenanceMode(e.target.checked))} />
-                </SettingRow>
-              </SectionCard>
+              {user?.role === "super_admin" && (
+                <SectionCard title="Data Management" icon={Database}>
+                  <SettingRow label="Report Retention Period" desc="How long submitted reports are stored before archiving">
+                    <Flex align="center" gap={3}>
+                      <Select value={retention} onChange={(e) => track(() => setRetention(e.target.value))} size="sm" w="220px" bg="white">
+                        {["6 months", "12 months", "24 months", "5 years", "Indefinite"].map(o => <option key={o} value={o}>{o}</option>)}
+                      </Select>
+                      <Button 
+                        size="xs" 
+                        variant="outline" 
+                        colorScheme="red" 
+                        leftIcon={<RotateCcw size={12} />}
+                        onClick={() => runArchivingManual.mutate()}
+                        isLoading={runArchivingManual.isPending}
+                      >
+                        Run Cleanup Now
+                      </Button>
+                    </Flex>
+                  </SettingRow>
+                  <SettingRow label="Maintenance Mode" desc="Temporarily disables submissions from all reporters" sensitive>
+                    <Switch colorScheme="red" isChecked={maintenanceMode} onChange={(e) => track(() => setMaintenanceMode(e.target.checked))} />
+                  </SettingRow>
+                </SectionCard>
+              )}
 
              
             </>
@@ -537,7 +606,81 @@ export default function SystemSettings() {
                    <Switch colorScheme="red" isChecked={notifyOnApproval} onChange={(e) => track(() => setNotifyOnApproval(e.target.checked))} />
                 </SettingRow>
               </SectionCard>
-          </>
+            </>
+          )}
+
+          {/* ── Admin Management ── */}
+          {active === "admins" && user?.role === "super_admin" && (
+            <>
+              <SectionCard title="Invite New Admin" icon={Users}>
+                <SettingRow label="Send Invitation" desc="Invite a new user to the admin panel">
+                  <Flex gap={2}>
+                    <Input 
+                      placeholder="Email address" 
+                      value={inviteEmail} 
+                      onChange={(e) => setInviteEmail(e.target.value)} 
+                      size="sm" 
+                      w="220px" 
+                      bg="white" 
+                    />
+                    <Select 
+                      value={inviteRole} 
+                      onChange={(e) => setInviteRole(e.target.value as any)} 
+                      size="sm" 
+                      w="140px" 
+                      bg="white"
+                    >
+                      <option value="super_admin">Super Admin</option>
+                      <option value="admin">Admin</option>
+                      <option value="viewer">Viewer</option>
+                    </Select>
+                    <Button 
+                      size="sm" 
+                      colorScheme="red" 
+                      bg="#CE0037" 
+                      _hover={{ bg: "#9b0028" }}
+                      onClick={() => {
+                        if (inviteEmail) {
+                          inviteAdmin.mutate({ 
+                            email: inviteEmail, 
+                            role: inviteRole,
+                            redirectTo: `${window.location.origin}/admin/reset-password`
+                          });
+                        }
+                      }}
+                      isLoading={inviteAdmin.isPending}
+                      isDisabled={!inviteEmail}
+                    >
+                      Invite
+                    </Button>
+                  </Flex>
+                </SettingRow>
+              </SectionCard>
+              
+              <SectionCard title="Existing Admins" icon={Users}>
+                {adminUsers?.map((admin: any) => (
+                  <SettingRow key={admin.id} label={`${admin.firstName || "Unknown"} ${admin.lastName || ""} (${admin.email})`} desc={`Last active: ${admin.lastActiveAt ? new Date(admin.lastActiveAt).toLocaleString() : 'Never'}`}>
+                    <Select
+                      size="sm"
+                      w="160px"
+                      bg="white"
+                      value={roleChanges[admin.id] || admin.role || "admin"}
+                      onChange={(e) => {
+                        const newRole = e.target.value as any;
+                        track(() => {
+                           setRoleChanges(prev => ({ ...prev, [admin.id]: newRole }));
+                        });
+                      }}
+                      isDisabled={updateAdminRole.isPending}
+                    >
+                      <option value="super_admin">Super Admin</option>
+                      <option value="admin">Admin</option>
+                      <option value="viewer">Viewer</option>
+                    </Select>
+                  </SettingRow>
+                ))}
+              </SectionCard>
+            </>
           )}
 
        

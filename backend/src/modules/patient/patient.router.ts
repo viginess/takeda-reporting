@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { eq, desc } from "drizzle-orm";
-import { router, publicProcedure, rateLimitedProcedure } from "../../trpc/trpc.js";
+import { router, publicProcedure } from "../../trpc/init.js";
+import { rateLimitedProcedure } from "../../trpc/procedures.js";
 import { db } from "../../db/index.js";
 import { patientReports, notifications } from "../../db/schema.js";
 import { createPatientSchema, updatePatientSchema } from "./patient.validation.js";
