@@ -2,6 +2,7 @@ import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
 import { FiHome, FiSettings, FiFileText, FiBell, FiLogOut } from "react-icons/fi";
 import { Box, Flex, Image, Text, Link } from '@chakra-ui/react';
 import { supabase } from "../../utils/supabaseClient";
+import { trpc } from "../../utils/trpc";
 
 const navItems = [
   { icon: <FiHome size={18} />, label: "Dashboard", href: "/admin" },
@@ -13,6 +14,7 @@ const navItems = [
 export default function Sidebar({ expanded }: { expanded: boolean }) {
   const location = useLocation();
   const navigate = useNavigate();
+  const { data: user } = trpc.admin.getMe.useQuery();
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -23,6 +25,17 @@ export default function Sidebar({ expanded }: { expanded: boolean }) {
       if (item.href === "/admin") return location.pathname === "/admin";
       return location.pathname.startsWith(item.href);
   })?.label || "Home";
+
+  const filteredNavItems = navItems.filter(item => {
+    if (user?.role === "viewer") {
+      return item.label === "Dashboard" || item.label === "Reports";
+    }
+    // Only super_admin and admin see Settings
+    if (item.label === "Settings" && user?.role !== "super_admin" && user?.role !== "admin") {
+      return false; // Safegaurd
+    }
+    return true;
+  });
 
   return (
     <Box
@@ -72,7 +85,7 @@ export default function Sidebar({ expanded }: { expanded: boolean }) {
 
       {/* Nav Items */}
       <Flex as="nav" direction="column" gap={1} w="full" px={2}>
-        {navItems.map(({ icon, label, href }) => {
+        {filteredNavItems.map(({ icon, label, href }) => {
           const isActive = activeLabel === label;
           return (
             <Link

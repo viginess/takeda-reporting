@@ -1,21 +1,14 @@
 import { z } from "zod";
 import { sql, eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
-import { mfaProtectedProcedure, protectedProcedure } from "../../trpc/trpc.js";
+import { superAdminProcedure, viewerProcedure } from "../../trpc/procedures.js";
 import { db } from "../../db/index.js";
 import { admins, notifications } from "../../db/schema.js";
 import { systemSettings } from "../../db/admin/settings.schema.js";
 import { auditLogs } from "../../db/audit/audit.schema.js";
 import { runArchiver } from "../../jobs/archiver.js";
 
-export const getSystemSettings = protectedProcedure.query(async ({ ctx }) => {
-  if (ctx.user.role !== "admin") {
-    throw new TRPCError({
-      code: "UNAUTHORIZED",
-      message: "Admin access required",
-    });
-  }
-
+export const getSystemSettings = viewerProcedure.query(async () => {
   let [settings] = await db
     .select()
     .from(systemSettings)
@@ -31,7 +24,7 @@ export const getSystemSettings = protectedProcedure.query(async ({ ctx }) => {
   return settings;
 });
 
-export const updateSystemSettings = mfaProtectedProcedure
+export const updateSystemSettings = superAdminProcedure
   .input(
     z.object({
       defaultLanguage: z.string().min(1).optional(),
@@ -60,13 +53,6 @@ export const updateSystemSettings = mfaProtectedProcedure
     }),
   )
   .mutation(async ({ input, ctx }) => {
-    if (ctx.user.role !== "admin") {
-      throw new TRPCError({
-        code: "UNAUTHORIZED",
-        message: "Admin access required",
-      });
-    }
-
     const adminId = ctx.user?.id || "Admin";
 
     const [admin] = await db
@@ -125,15 +111,8 @@ export const updateSystemSettings = mfaProtectedProcedure
     });
   });
 
-export const getSettingsAuditLogs = mfaProtectedProcedure.query(
-  async ({ ctx }) => {
-    if (ctx.user.role !== "admin") {
-      throw new TRPCError({
-        code: "UNAUTHORIZED",
-        message: "Admin access required",
-      });
-    }
-
+export const getSettingsAuditLogs = superAdminProcedure.query(
+  async () => {
     const logs = await db
       .select()
       .from(auditLogs)
@@ -144,15 +123,8 @@ export const getSettingsAuditLogs = mfaProtectedProcedure.query(
   },
 );
 
-export const runManualArchiving = mfaProtectedProcedure.mutation(
-  async ({ ctx }) => {
-    if (ctx.user.role !== "admin") {
-      throw new TRPCError({
-        code: "UNAUTHORIZED",
-        message: "Admin access required",
-      });
-    }
-
+export const runManualArchiving = superAdminProcedure.mutation(
+  async () => {
     await runArchiver();
 
     return { success: true };

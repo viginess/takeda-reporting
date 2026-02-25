@@ -17,6 +17,7 @@ export default function AdminResetPassword() {
   const [mfaStep, setMfaStep]   = useState<"reset" | "2fa">("reset");
   const [otp, setOtp]           = useState(["", "", "", "", "", "", "", ""]);
   const [email, setEmail]       = useState("");
+  const [isInvite, setIsInvite] = useState(false);
   const navigate = useNavigate();
   const toast = useToast();
   const { data: authPolicy } = trpc.public.getAuthPolicy.useQuery();
@@ -26,10 +27,15 @@ export default function AdminResetPassword() {
     // Check if we have a session or recovery token in the URL
     // Supabase handles the recovery flow by putting the user in a temporary session
     const checkSession = async () => {
+      // Supabase magic links contain the token type in the URL hash
+      if (window.location.hash.includes("type=invite")) {
+        setIsInvite(true);
+      }
+
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         // If no session, the link might be invalid or expired
-        setError("Invalid or expired reset link. Please request a new one.");
+        setError("Invalid or expired link. Please request a new one.");
       } else {
         setEmail(session.user.email || "");
       }
@@ -82,8 +88,8 @@ export default function AdminResetPassword() {
         
         setSuccess(true);
         toast({
-          title: "Password Updated",
-          description: "Your password has been reset successfully. Redirecting...",
+          title: isInvite ? "Account Set Up" : "Password Updated",
+          description: isInvite ? "Your administrator account is ready. Redirecting..." : "Your password has been reset successfully. Redirecting...",
           status: "success",
           duration: 3000,
           isClosable: true,
@@ -148,7 +154,9 @@ export default function AdminResetPassword() {
             <CheckCircle size={40} color="#fff" />
           </motion.div>
           <motion.h2 {...({} as any)} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
-            style={{ color: "#fff", fontSize: 22, fontWeight: 700, margin: "0 0 8px" }}>Password Reset Successful</motion.h2>
+            style={{ color: "#fff", fontSize: 22, fontWeight: 700, margin: "0 0 8px" }}>
+              {isInvite ? "Setup Complete" : "Password Reset Successful"}
+          </motion.h2>
           <motion.p {...({} as any)} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}
             style={{ color: "#64748b", fontSize: 14 }}>Redirecting to Sign In...</motion.p>
         </motion.div>
@@ -180,11 +188,11 @@ export default function AdminResetPassword() {
             </div>
           </div>
           <h1 style={{ fontSize: 32, fontWeight: 800, color: "#fff", margin: "0 0 16px", lineHeight: 1.2, letterSpacing: "-1px" }}>
-            Drug Safety<br />Secure Your Account
+            Drug Safety<br />{isInvite ? "Set Up Account" : "Secure Your Account"}
           </h1>
           <p style={{ fontSize: 14, color: "rgba(255,255,255,0.7)", margin: "0 auto", lineHeight: 1.8, maxWidth: 320 }}>
             {mfaStep === "reset" 
-              ? "Enter a strong new password to regain access to the Takeda Drug Safety Reporting Portal."
+              ? (isInvite ? "Create a secure password to activate your Takeda administrator account." : "Enter a strong new password to regain access to the Takeda Drug Safety Reporting Portal.")
               : "For your security, we've sent a 2FA code to your email. Please verify it below."}
           </p>
         </div>
@@ -248,7 +256,7 @@ export default function AdminResetPassword() {
                     style={{ width: "100%", padding: "13px", borderRadius: 10, border: "none", background: "#CE0037", color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, transition: "all 0.2s" }}>
                     {loading
                       ? <div style={{ width: 18, height: 18, border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
-                      : <><Shield size={16} /> Continue to Verification <ArrowRight size={14} /></>}
+                      : <><Shield size={16} /> {isInvite ? "Activate Account" : "Continue to Verification"} <ArrowRight size={14} /></>}
                   </motion.button>
                 </form>
               </motion.div>
