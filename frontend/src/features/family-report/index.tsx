@@ -191,6 +191,7 @@ function FamilyForm({ onBack }: FamilyFormProps) {
         hasRelevantHistory: hasRelevantHistory || undefined,
         labTestsPerformed: labTestsPerformed || undefined,
         additionalDetails: additionalDetails || undefined,
+        agreedToTerms: params.agreedToTerms,
         status: 'new',
       };
 

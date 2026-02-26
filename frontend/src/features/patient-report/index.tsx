@@ -210,7 +210,7 @@ function PatientForm({ onBack }: PatientFormProps) {
       attachments: params.attachments ?? [],
 
       // ── Step 5: Confirm ──────────────────────────────
-      agreedToTerms: agreedToTerms,
+      agreedToTerms: params.agreedToTerms,
       reporterType: 'patient',
       status: 'new',
     });
