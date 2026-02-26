@@ -128,22 +128,33 @@ export default function AdminResetPassword() {
   const { data: authPolicy } = trpc.public.getAuthPolicy.useQuery();
   const syncPasswordChange = trpc.admin.syncPasswordChange.useMutation();
 
-  useEffect(() => {
-    const checkSession = async () => {
-      // Check if we are in an invite flow
-      if (window.location.hash.includes("type=invite")) {
-        setIsInvite(true);
-      }
+useEffect(() => {
+  const checkSession = async () => {
+    const { error } = await supabase.auth.exchangeCodeForSession(
+      window.location.href
+    );
 
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        setError("Invalid or expired link. Please request a new one.");
-      } else {
-        setEmail(session.user.email || "");
-      }
-    };
-    checkSession();
-  }, []);
+    if (error) {
+      setError("Invalid or expired reset link.");
+      return;
+    }
+
+    // keep your existing logic
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if (!session) {
+      setError("Invalid or expired link. Please request a new one.");
+    } else {
+      setEmail(session.user.email || "");
+    }
+
+    if (window.location.hash.includes("type=invite")) {
+      setIsInvite(true);
+    }
+  };
+
+  checkSession();
+}, []);
 
   useEffect(() => {
     if (success) {
