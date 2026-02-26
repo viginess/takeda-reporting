@@ -29,9 +29,10 @@ const server = createHTTPServer({
     res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, x-client-id");
     res.setHeader("Access-Control-Allow-Credentials", "true");
 
-    if (req.method === "OPTIONS") {
-      res.writeHead(204);
-      res.end();
+    const path = req.url?.split("?")[0] ?? "";
+    if (path === "/" || path === "/health") {
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ status: "running", timestamp: new Date().toISOString() }));
       return;
     }
 
