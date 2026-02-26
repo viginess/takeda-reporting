@@ -307,7 +307,7 @@ export function ReviewConfirm({
           <Link href="https://www.takeda.com/terms-and-conditions/" isExternal color="#CE0037" textDecoration="underline">
             Terms and Conditions
           </Link>
-          . I consent to Takeda sharing this report with regulatory authorities and other parties as required by law.
+          . I consent to Clin Solutions L.L.C. sharing this report with regulatory authorities and other parties as required by law.
         </Checkbox>
       </Box>
 

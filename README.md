@@ -1,6 +1,6 @@
-# Takeda Reporting Project
+# Clin Solutions L.L.C. Reporting Project
 
-A comprehensive clinical reporting system for Takeda Pharmaceuticals, built with a modern TypeScript stack. This project allows Patients, Health Care Professionals (HCPs), and Family members to submit various clinical and adverse event reports.
+A comprehensive clinical reporting system for Clin Solutions L.L.C. Pharmaceuticals, built with a modern TypeScript stack. This project allows Patients, Health Care Professionals (HCPs), and Family members to submit various clinical and adverse event reports.
 
 ## Project Structure
 
@@ -53,7 +53,7 @@ graph TD
 ## File Structure
 
 ```text
-takeda-reporting/
+clinsol-reporting/
 ├── frontend/               # React Application
 │   ├── src/
 │   │   ├── app/            # Main App component & Providers

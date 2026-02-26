@@ -1,6 +1,6 @@
-# Takeda Frontend Application
+# Clin Solutions L.L.C. Frontend Application
 
-This React application provides the user interface for Takeda's clinical reporting system.
+This React application provides the user interface for Clin Solutions L.L.C.'s clinical reporting system.
 
 ## Tech Stack
 
