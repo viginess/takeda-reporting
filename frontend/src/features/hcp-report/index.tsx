@@ -202,6 +202,7 @@ function HcpForm({ onBack }: HcpFormProps) {
         hasRelevantHistory: hasRelevantHistory || undefined,
         labTestsPerformed: labTestsPerformed || undefined,
         additionalDetails: additionalDetails || undefined,
+        agreedToTerms: params.agreedToTerms,
         status: 'new',
       };
 
