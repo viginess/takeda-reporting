@@ -27,7 +27,9 @@
       "zod": ["node_modules/zod"],
       "jsonwebtoken": ["node_modules/@types/jsonwebtoken", "node_modules/jsonwebtoken"],
       "@trpc/server": ["node_modules/@trpc/server"],
-      "@trpc/server/*": ["node_modules/@trpc/server/*"]
+      "@trpc/server/*": ["node_modules/@trpc/server/*"],
+      "@supabase/supabase-js": ["node_modules/@supabase/supabase-js"],
+      "@supabase/supabase-js/*": ["node_modules/@supabase/supabase-js/*"]
     }
   },
   "include": ["src"]
