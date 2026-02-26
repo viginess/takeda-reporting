@@ -189,7 +189,7 @@ export const inviteAdmin = superAdminProcedure
       if (authError.message.includes("already been registered") || authError.status === 422) {
         // Ghost account check
         const { data: usersData } = await supabaseAdmin.auth.admin.listUsers();
-        const existingUser = usersData.users.find((u) => u.email === input.email);
+        const existingUser = usersData.users.find((u: any) => u.email === input.email);
 
         if (existingUser) {
           // If they've never actually signed in (ghost / unconfirmed account), it's safe to clear them out
