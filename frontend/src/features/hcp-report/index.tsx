@@ -20,7 +20,7 @@ import {
 } from '@saas-ui/react';
 import { StepForm } from '@saas-ui/forms';
 
-import takedaLogo from '../../assets/takeda-logo.png';
+import logo from '../../assets/logo.jpg';
 import { HcpProductDetails } from './components/HcpProductDetails';
 import { HcpEventDetails } from './components/HcpEventDetails';
 import { HcpPatientDetails } from './components/HcpPatientDetails';
@@ -238,11 +238,11 @@ function HcpForm({ onBack }: HcpFormProps) {
       >
         {onBack ? (
           <Box as="button" onClick={onBack} p={0} minW="auto" h="auto">
-            <Image src={takedaLogo} alt="Takeda" h="42px" cursor="pointer" />
+            <Image src={logo} alt="Clin Solutions L.L.C." h="48px" cursor="pointer" filter="drop-shadow(0 2px 4px rgba(0,0,0,0.1))" />
           </Box>
         ) : (
           <Link href="/">
-            <Image src={takedaLogo} alt="Takeda" h="42px" cursor="pointer" />
+            <Image src={logo} alt="Clin Solutions L.L.C." h="48px" cursor="pointer" filter="drop-shadow(0 2px 4px rgba(0,0,0,0.1))" />
           </Link>
         )}
         <Heading as="h1" size="md" fontWeight="600" color="gray.800">
@@ -402,7 +402,7 @@ function HcpForm({ onBack }: HcpFormProps) {
           everywhere.
         </Text>
         <Text mt={1} fontSize="xs">
-          Copyright © 2026 Takeda
+          Copyright © 2026 Clin Solutions L.L.C.
         </Text>
       </Box>
     </Flex>
