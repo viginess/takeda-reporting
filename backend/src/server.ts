@@ -52,12 +52,18 @@ server.on("error", (err: NodeJS.ErrnoException) => {
 
 const port = process.env.PORT ? parseInt(process.env.PORT) : 3000;
 
-server.listen(port, () => {
-  console.log(`🚀 tRPC server ready on http://localhost:${port}`);
-  
-  // Schedule archiving job: Every Sunday at midnight
-  cron.schedule("0 0 * * 0", async () => {
-    await runArchiver();
+// Export for Vercel serverless environment
+export default server;
+
+// Only listen when running directly (local development)
+if (process.env.NODE_ENV !== "production" || !process.env.VERCEL) {
+  server.listen(port, () => {
+    console.log(`🚀 tRPC server ready on http://localhost:${port}`);
+    
+    // Schedule archiving job: Every Sunday at midnight
+    cron.schedule("0 0 * * 0", async () => {
+      await runArchiver();
+    });
+    console.log("⏰ Report archiving cron job scheduled (Every Sunday at 00:00)");
   });
-  console.log("⏰ Report archiving cron job scheduled (Every Sunday at 00:00)");
-});
+}
