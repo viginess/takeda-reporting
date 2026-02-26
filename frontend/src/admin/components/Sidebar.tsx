@@ -3,6 +3,7 @@ import { FiHome, FiSettings, FiFileText, FiBell, FiLogOut } from "react-icons/fi
 import { Box, Flex, Image, Text, Link } from '@chakra-ui/react';
 import { supabase } from "../../utils/supabaseClient";
 import { trpc } from "../../utils/trpc";
+import logo from "../../assets/logo.jpg";
 
 const navItems = [
   { icon: <FiHome size={18} />, label: "Dashboard", href: "/admin" },
@@ -74,11 +75,12 @@ export default function Sidebar({ expanded }: { expanded: boolean }) {
           overflow="hidden"
         >
           <Image
-            src="/src/assets/takeda-logo.png"
-            alt="Takeda Logo"
-            w="24px"
-            h="24px"
+            src={logo}
+            alt="Clin Solutions L.L.C. Logo"
+            w="32px"
+            h="32px"
             objectFit="contain"
+            filter="drop-shadow(0 1px 2px rgba(0,0,0,0.1))"
           />
         </Flex>
       </Flex>
@@ -92,7 +94,7 @@ export default function Sidebar({ expanded }: { expanded: boolean }) {
               as={RouterLink}
               key={label}
               to={href}
-              title={!expanded ? label : undefined}
+              title={!expanded ? label : "Clin Solutions L.L.C. Admin Panel"}
               display="flex"
               alignItems="center"
               justifyContent={expanded ? "flex-start" : "center"}

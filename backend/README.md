@@ -1,6 +1,6 @@
-# Takeda Backend API
+# Clin Solutions L.L.C. Backend API
 
-The backend is a lightweight Node.js server powered by tRPC and Drizzle ORM.
+Backend service for Clin Solutions L.L.C. project.js server powered by tRPC and Drizzle ORM.
 
 ## Features
 

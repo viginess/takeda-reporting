@@ -8,9 +8,9 @@ import AdminLayout from '../admin/components/AdminLayout';
 import DashBoard from '../admin/pages/DashBoard';
 import ReportManagementPage from '../admin/pages/ReportManagementPage';
 import NotificationsPage from '../admin/pages/NotificationsPage';
-import SettingsPage from '../admin/pages/SettingsPage';
 import AdminLogin from '../admin/pages/AdminLogin';
 import AdminResetPassword from '../admin/pages/AdminResetPassword';
+import SystemSettings from '../admin/pages/settings/SystemSettings';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -57,8 +57,7 @@ function App() {
               <Route index element={<DashBoard />} />
               <Route path="reports" element={<ReportManagementPage />} />
               <Route path="notifications" element={<NotificationsPage />} />
-              <Route path="users" element={<div style={{ padding: "20px", color: "#a1a1aa", fontFamily: "system-ui, sans-serif" }}>Users Page (Coming Soon)</div>} />
-              <Route path="settings" element={<SettingsPage />} />
+              <Route path="settings" element={<SystemSettings />} />
             </Route>
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin/reset-password" element={<AdminResetPassword />} />

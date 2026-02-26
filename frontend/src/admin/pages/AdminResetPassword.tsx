@@ -1,40 +1,142 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { useToast } from "@chakra-ui/react";
+import {
+  Box,
+  Flex,
+  VStack,
+  HStack,
+  Text,
+  Heading,
+  Input,
+  Button,
+  IconButton,
+  FormControl,
+  FormLabel,
+  InputGroup,
+  InputLeftElement,
+  InputRightElement,
+  useToast,
+  Alert,
+  AlertIcon,
+  Image,
+} from "@chakra-ui/react";
+import {
+  Shield,
+  Lock,
+  Eye,
+  EyeOff,
+  CheckCircle,
+  ArrowRight,
+  Activity,
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Shield, Lock, Eye, EyeOff, AlertCircle, CheckCircle, ArrowRight } from "lucide-react";
 import { supabase } from "../../utils/supabaseClient";
 import { trpc } from "../../utils/trpc";
-import takedaLogo from "../../assets/takeda-logo.png";
+import logo from "../../assets/logo.jpg";
+
+// Motion components
+const MotionBox = motion(Box);
+const MotionFlex = motion(Flex);
+const MotionVStack = motion(VStack);
+const MotionHeading = motion(Heading);
+const MotionText = motion(Text);
+
+// --- Sub-component: OTP Input ---
+function OtpInput({ onComplete, isLoading }: { onComplete: (code: string) => void; isLoading: boolean }) {
+  const [otp, setOtp] = useState(["", "", "", "", "", "", "", ""]);
+  const inputs = useRef<(HTMLInputElement | null)[]>([]);
+
+  const handleChange = (v: string, i: number) => {
+    if (!/^\d*$/.test(v)) return;
+    const digit = v.slice(-1);
+    const newOtp = [...otp];
+    newOtp[i] = digit;
+    setOtp(newOtp);
+
+    if (digit && i < 7) {
+      inputs.current[i + 1]?.focus();
+    }
+    
+    if (newOtp.every((d) => d !== "") && newOtp.length === 8) {
+      onComplete(newOtp.join(""));
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent, i: number) => {
+    if (e.key === "Backspace" && !otp[i] && i > 0) {
+      inputs.current[i - 1]?.focus();
+    }
+  };
+
+  return (
+    <HStack spacing={{ base: 1, sm: 2 }} justify="center">
+      {otp.map((digit, i) => (
+        <MotionBox
+          key={i}
+          initial={{ scale: 0.98, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ 
+            type: "spring", 
+            stiffness: 260, 
+            damping: 20
+          }}
+        >
+          <Input
+            ref={(el) => { inputs.current[i] = el; }}
+            id={`otp-${i}`}
+            w={{ base: "28px", xs: "32px", sm: "40px", md: "52px" }}
+            h={{ base: "40px", xs: "44px", sm: "52px", md: "64px" }}
+            flexShrink={0}
+            minW="0"
+            p={0}
+            textAlign="center"
+            fontSize={{ base: "lg", sm: "xl", md: "3xl" }}
+            fontWeight="700"
+            fontFamily="'DM Sans', monospace"
+            value={digit}
+            onChange={(e) => handleChange(e.target.value, i)}
+            onKeyDown={(e) => handleKeyDown(e, i)}
+            bg={digit ? "rgba(206, 0, 55, 0.04)" : "rgba(255, 255, 255, 0.02)"}
+            border="1px solid"
+            borderColor={digit ? "#CE0037" : "whiteAlpha.100"}
+            borderRadius="12px"
+            _focus={{ borderColor: "#CE0037", boxShadow: "0 0 0 2px rgba(206, 0, 55, 0.2)" }}
+            _hover={{ borderColor: digit ? "#CE0037" : "whiteAlpha.300" }}
+            color={digit ? "#CE0037" : "white"}
+            isDisabled={isLoading}
+            transition="all 0.15s ease-out"
+          />
+        </MotionBox>
+      ))}
+    </HStack>
+  );
+}
 
 export default function AdminResetPassword() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
-  const [loading, setLoading]   = useState(false);
-  const [error, setError]       = useState("");
-  const [success, setSuccess]   = useState(false);
-  const [mfaStep, setMfaStep]   = useState<"reset" | "2fa">("reset");
-  const [otp, setOtp]           = useState(["", "", "", "", "", "", "", ""]);
-  const [email, setEmail]       = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
+  const [mfaStep, setMfaStep] = useState<"reset" | "2fa">("reset");
+  const [email, setEmail] = useState("");
   const [isInvite, setIsInvite] = useState(false);
+
   const navigate = useNavigate();
   const toast = useToast();
   const { data: authPolicy } = trpc.public.getAuthPolicy.useQuery();
   const syncPasswordChange = trpc.admin.syncPasswordChange.useMutation();
 
   useEffect(() => {
-    // Check if we have a session or recovery token in the URL
-    // Supabase handles the recovery flow by putting the user in a temporary session
     const checkSession = async () => {
-      // Supabase magic links contain the token type in the URL hash
+      // Check if we are in an invite flow
       if (window.location.hash.includes("type=invite")) {
         setIsInvite(true);
       }
 
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        // If no session, the link might be invalid or expired
         setError("Invalid or expired link. Please request a new one.");
       } else {
         setEmail(session.user.email || "");
@@ -46,7 +148,7 @@ export default function AdminResetPassword() {
   useEffect(() => {
     if (success) {
       const timer = setTimeout(() => {
-        navigate('/admin/login');
+        navigate("/admin/login");
       }, 2000);
       return () => clearTimeout(timer);
     }
@@ -55,7 +157,7 @@ export default function AdminResetPassword() {
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!password) { setError("Please enter a new password."); return; }
-    if (password.length < 6) { setError("Password must be at least 6 characters."); return; }
+    if (password.length < 8) { setError("Password must be at least 8 characters."); return; }
     if (password !== confirmPassword) { setError("Passwords do not match."); return; }
 
     setLoading(true);
@@ -83,7 +185,7 @@ export default function AdminResetPassword() {
           status: "info",
         });
       } else {
-        // ── Backend Sync ──
+        // Backend Sync
         await syncPasswordChange.mutateAsync();
         
         setSuccess(true);
@@ -102,21 +204,7 @@ export default function AdminResetPassword() {
     }
   };
 
-  const handleOtp = (val: string, idx: number) => {
-    if (!/^\d?$/.test(val)) return;
-    const next = [...otp];
-    next[idx] = val;
-    setOtp(next);
-    if (val && idx < 7) document.getElementById(`otp-${idx + 1}`)?.focus();
-  };
-
-  const handleOtpKey = (e: React.KeyboardEvent, idx: number) => {
-    if (e.key === "Backspace" && !otp[idx] && idx > 0)
-      document.getElementById(`otp-${idx - 1}`)?.focus();
-  };
-
-  const handleVerifyOtp = async () => {
-    const code = otp.join("");
+  const handleVerifyOtp = async (code: string) => {
     if (code.length < 8) { setError("Please enter the complete 8-digit code."); return; }
     setLoading(true);
     try {
@@ -128,8 +216,7 @@ export default function AdminResetPassword() {
 
       if (verifyError) throw verifyError;
 
-      // ── Backend Sync ──
-      // Notify our DB that the password has changed to reset the Password Expiry timer
+      // Backend Sync
       await syncPasswordChange.mutateAsync();
 
       setSuccess(true);
@@ -147,165 +234,371 @@ export default function AdminResetPassword() {
 
   if (success) {
     return (
-      <div style={{ minHeight: "100vh", background: "#0f172a", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'DM Sans', system-ui, sans-serif" }}>
-        <motion.div {...({} as any)} initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: "spring", stiffness: 300 }} style={{ textAlign: "center" }}>
-          <motion.div {...({} as any)} initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.2, type: "spring", stiffness: 400 }}
-            style={{ width: 80, height: 80, borderRadius: "50%", background: "#CE0037", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
-            <CheckCircle size={40} color="#fff" />
-          </motion.div>
-          <motion.h2 {...({} as any)} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
-            style={{ color: "#fff", fontSize: 22, fontWeight: 700, margin: "0 0 8px" }}>
-              {isInvite ? "Setup Complete" : "Password Reset Successful"}
-          </motion.h2>
-          <motion.p {...({} as any)} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}
-            style={{ color: "#64748b", fontSize: 14 }}>Redirecting to Sign In...</motion.p>
-        </motion.div>
-      </div>
+      <MotionFlex
+        minH="100vh"
+        align="center"
+        justify="center"
+        bg="#0f172a"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        style={{ fontFamily: "'DM Sans', system-ui, sans-serif" }}
+      >
+        <MotionVStack
+          spacing={6}
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: "spring", stiffness: 300, damping: 25 }}
+        >
+          <MotionBox
+            initial={{ scale: 0, rotate: -45 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{ delay: 0.2, type: "spring", stiffness: 400, damping: 20 }}
+            w="80px"
+            h="80px"
+            borderRadius="50%"
+            bg="#CE0037"
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            boxShadow="0 10px 25px -5px rgba(206, 0, 55, 0.4)"
+          >
+            <CheckCircle size={40} color="white" />
+          </MotionBox>
+          <MotionHeading color="white" size="lg" fontWeight="800">
+            {isInvite ? "Setup Complete" : "Password Reset Successful"}
+          </MotionHeading>
+          <MotionText color="gray.400" fontSize="md">Redirecting to Sign In...</MotionText>
+        </MotionVStack>
+      </MotionFlex>
     );
   }
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", fontFamily: "'DM Sans', system-ui, sans-serif", background: "#0f172a" }}>
-      
-      {/* ── LEFT — Takeda Brand Panel ── */}
-      <motion.div {...({} as any)} initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }}
-        style={{
-          width: "44%", display: "flex", flexDirection: "column", justifyContent: "center",
-          padding: "48px 52px", position: "relative", overflow: "hidden",
-          background: "linear-gradient(155deg, #CE0037 0%, #9b0028 55%, #5c0018 100%)"
-        }}>
-        <div style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "hidden" }}>
-          <div style={{ position: "absolute", top: -100, right: -100, width: 380, height: 380, borderRadius: "50%", background: "rgba(255,255,255,0.04)" }} />
-          <div style={{ position: "absolute", bottom: -80, left: -80, width: 300, height: 300, borderRadius: "50%", background: "rgba(255,255,255,0.04)" }} />
-        </div>
+    <Flex minH="100vh" bg="#0f172a" overflow="hidden" position="relative" style={{ fontFamily: "'DM Sans', system-ui, sans-serif" }}>
+      {/* Background Decorative Elements */}
+      <Box position="absolute" inset={0} pointerEvents="none" zIndex={0}>
+        <Box
+          position="absolute"
+          top="-10%"
+          right="-5%"
+          w="50%"
+          h="50%"
+          bgGradient="radial(#CE003715, transparent)"
+          filter="blur(100px)"
+        />
+        <Box
+          position="absolute"
+          bottom="-10%"
+          left="-5%"
+          w="40%"
+          h="40%"
+          bgGradient="radial(#CE003708, transparent)"
+          filter="blur(80px)"
+        />
+        <Box position="absolute" inset={0} opacity={0.1}>
+          {Array.from({ length: 120 }).map((_, i) => (
+            <Box
+              key={i}
+              position="absolute"
+              left={`${(i % 15) * 6.6 + 1}%`}
+              top={`${Math.floor(i / 15) * 12 + 2}%`}
+              w="2px"
+              h="2px"
+              borderRadius="50%"
+              bg="white"
+            />
+          ))}
+        </Box>
+      </Box>
 
-        <div style={{ position: "relative", textAlign: "center" }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 14, marginBottom: 32, background: "rgba(255,255,255,0.1)", padding: "12px 20px", borderRadius: 16, border: "1px solid rgba(255,255,255,0.2)", backdropFilter: "blur(10px)" }}>
-            <img src={takedaLogo} alt="Takeda Logo" style={{ height: 32, width: "auto" }} />
-            <div style={{ textAlign: "left" }}>
-              <p style={{ margin: 0, fontSize: 18, fontWeight: 800, color: "#fff", letterSpacing: "-0.5px" }}>TAKEDA</p>
-              <p style={{ margin: 0, fontSize: 10, color: "rgba(255,255,255,0.6)", fontWeight: 500, letterSpacing: "0.08em", textTransform: "uppercase" }}>Pharmaceutical</p>
-            </div>
-          </div>
-          <h1 style={{ fontSize: 32, fontWeight: 800, color: "#fff", margin: "0 0 16px", lineHeight: 1.2, letterSpacing: "-1px" }}>
-            Drug Safety<br />{isInvite ? "Set Up Account" : "Secure Your Account"}
-          </h1>
-          <p style={{ fontSize: 14, color: "rgba(255,255,255,0.7)", margin: "0 auto", lineHeight: 1.8, maxWidth: 320 }}>
-            {mfaStep === "reset" 
-              ? (isInvite ? "Create a secure password to activate your Takeda administrator account." : "Enter a strong new password to regain access to the Takeda Drug Safety Reporting Portal.")
-              : "For your security, we've sent a 2FA code to your email. Please verify it below."}
-          </p>
-        </div>
-      </motion.div>
+      {/* LEFT PANEL */}
+      <MotionFlex
+        w={{ base: "0%", lg: "44%" }}
+        display={{ base: "none", lg: "flex" }}
+        direction="column"
+        justify="space-between"
+        p={16}
+        bgGradient="linear(to-br, #CE0037, #800022)"
+        color="white"
+        initial={{ x: -60, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+        position="relative"
+        zIndex={1}
+      >
+        <Box position="absolute" inset={0} overflow="hidden" pointerEvents="none" opacity={0.5}>
+          <Box position="absolute" top="-100px" right="-100px" w="400px" h="400px" borderRadius="50%" border="1px solid rgba(255,255,255,0.1)" />
+          <Box position="absolute" bottom="-80px" left="-80px" w="300px" h="300px" borderRadius="50%" border="1px solid rgba(255,255,255,0.05)" />
+        </Box>
 
-      {/* ── RIGHT — Form Panel ── */}
-      <motion.div {...({} as any)} initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }}
-        style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "48px 64px" }}>
-        
-        <div style={{ width: "100%", maxWidth: 400 }}>
-          <AnimatePresence {...({} as any)}>
-            {mfaStep === "reset" ? (
-              <motion.div {...({} as any)} key="reset-form" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-                <form onSubmit={handleUpdatePassword}>
-                  <div style={{ marginBottom: 16 }}>
-                    <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#64748b", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>New Password</label>
-                    <div style={{ position: "relative" }}>
-                      <Lock size={14} color="#475569" style={{ position: "absolute", left: 13, top: "50%", transform: "translateY(-50%)" }} />
-                      <input
-                        name="new-password"
-                        autoComplete="new-password"
-                        type={showPass ? "text" : "password"}
-                        value={password}
-                        onChange={(e) => { setPassword(e.target.value); setError(""); }}
-                        placeholder="••••••••••"
-                        style={{ width: "100%", paddingLeft: 38, paddingRight: 44, paddingTop: 11, paddingBottom: 11, background: "#1e293b", border: `1px solid ${error && !password ? "#ef4444" : "#334155"}`, borderRadius: 10, fontSize: 14, color: "#f1f5f9", outline: "none", boxSizing: "border-box" }}
-                      />
-                      <button type="button" onClick={() => setShowPass(!showPass)}
-                        style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#475569", padding: 4 }}>
-                        {showPass ? <EyeOff size={14} /> : <Eye size={14} />}
-                      </button>
-                    </div>
-                  </div>
+        <VStack align="start" spacing={14} position="relative">
+          <HStack spacing={4}>
+            <MotionBox
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+              bg="white"
+              p={3}
+              borderRadius="16px"
+              boxShadow="0 10px 20px -5px rgba(0, 0, 0, 0.2)"
+              border="1px solid whiteAlpha.300"
+            >
+              <Image src={logo} h="60px" w="auto" alt="Clin Solutions L.L.C. Logo" objectFit="contain" />
+            </MotionBox>
+            <VStack align="start" spacing={0}>
+              <Text fontWeight="800" letterSpacing="-0.5px" fontSize="xl" lineHeight="1">CLIN SOLUTIONS L.L.C.</Text>
+              <Text fontSize="10px" color="whiteAlpha.700" fontWeight="600" letterSpacing="0.1em" textTransform="uppercase">Pharmaceutical</Text>
+            </VStack>
+          </HStack>
 
-                  <div style={{ marginBottom: 24 }}>
-                    <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#64748b", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.06em" }}>Confirm Password</label>
-                    <div style={{ position: "relative" }}>
-                      <Lock size={14} color="#475569" style={{ position: "absolute", left: 13, top: "50%", transform: "translateY(-50%)" }} />
-                      <input
-                        name="confirm-new-password"
-                        autoComplete="new-password"
-                        type={showPass ? "text" : "password"}
-                        value={confirmPassword}
-                        onChange={(e) => { setConfirmPassword(e.target.value); setError(""); }}
-                        placeholder="••••••••••"
-                        style={{ width: "100%", paddingLeft: 38, paddingRight: 12, paddingTop: 11, paddingBottom: 11, background: "#1e293b", border: `1px solid ${error && password !== confirmPassword ? "#ef4444" : "#334155"}`, borderRadius: 10, fontSize: 14, color: "#f1f5f9", outline: "none", boxSizing: "border-box" }}
-                      />
-                    </div>
-                  </div>
+          <VStack align="start" spacing={6}>
+            <MotionHeading size="2xl" lineHeight="1.1" letterSpacing="-1px">
+              Drug Safety <br />
+              {isInvite ? "Set Up Account" : "Secure Your Account"}
+            </MotionHeading>
+            <MotionText fontSize="lg" color="whiteAlpha.800" maxW="380px" lineHeight="1.6">
+              {isInvite 
+                ? "Create a secure password to activate your Clin Solutions L.L.C. administrator account." 
+                : "Regain access to the Clin Solutions L.L.C. Drug Safety Reporting Portal with a strong new password."}
+            </MotionText>
+          </VStack>
+        </VStack>
+
+        <VStack align="start" spacing={4} position="relative">
+          {[
+            { icon: Shield, label: "Advanced security protocols" },
+            { icon: Lock, label: "Encrypted credential update" },
+            { icon: Activity, label: "System access verified" },
+          ].map(({ icon: Icon, label }) => (
+            <HStack key={label} spacing={3}>
+              <Box w="32px" h="32px" borderRadius="10px" bg="whiteAlpha.100" display="flex" alignItems="center" justifyContent="center">
+                <Icon size={14} color="rgba(255,255,255,0.9)" />
+              </Box>
+              <Text fontSize="13px" color="whiteAlpha.800" fontWeight="500">{label}</Text>
+            </HStack>
+          ))}
+        </VStack>
+      </MotionFlex>
+
+      {/* RIGHT PANEL */}
+      <Flex flex="1" align="center" justify="center" p={{ base: 4, md: 8 }} zIndex={1}>
+        <MotionBox
+          w="100%"
+          maxW="420px"
+          initial={{ y: 30, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
+        >
+          <VStack 
+            spacing={{ base: 6, md: 8 }} 
+            align="stretch" 
+            bg="rgba(15, 23, 42, 0.4)" 
+            p={{ base: 5, sm: 8, md: 10 }} 
+            borderRadius="32px" 
+            border="1px solid" 
+            borderColor="whiteAlpha.100" 
+            backdropFilter="blur(24px)" 
+            boxShadow="0 25px 50px -12px rgba(0, 0, 0, 0.5)"
+          >
+            {/* Mobile Branding */}
+            <VStack spacing={3} align="center" mb={4} display={{ base: "flex", lg: "none" }}>
+              <Box bg="white" p={2.5} borderRadius="14px" border="1px solid whiteAlpha.200" boxShadow="sm">
+                <Image src={logo} h="40px" w="auto" alt="Clin Solutions L.L.C. Logo" objectFit="contain" />
+              </Box>
+              <VStack spacing={0}>
+                <Text fontWeight="800" color="white" fontSize="lg" lineHeight="1">CLIN SOLUTIONS L.L.C.</Text>
+                <Text fontSize="9px" color="whiteAlpha.600" fontWeight="600" letterSpacing="0.1em" textTransform="uppercase">Pharmaceutical</Text>
+              </VStack>
+            </VStack>
+
+            <AnimatePresence exitBeforeEnter>
+              {mfaStep === "reset" ? (
+                <MotionVStack
+                  key="reset-form"
+                  spacing={7}
+                  align="stretch"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  as="form"
+                  onSubmit={handleUpdatePassword}
+                >
+                  <VStack align="start" spacing={2}>
+                    <Heading size="lg" color="white" fontWeight="800" letterSpacing="-0.5px">
+                      {isInvite ? "Create Password" : "Reset Password"}
+                    </Heading>
+                    <Text color="#64748b" fontSize="sm">
+                      Enter a strong password to continue
+                    </Text>
+                  </VStack>
 
                   {error && (
-                    <motion.div {...({} as any)} initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}
-                      style={{ display: "flex", alignItems: "center", gap: 8, background: "#1e0a0a", border: "1px solid #7f1d1d", borderRadius: 8, padding: "10px 12px", marginBottom: 20 }}>
-                      <AlertCircle size={14} color="#ef4444" style={{ flexShrink: 0 }} />
-                      <span style={{ fontSize: 13, color: "#f87171" }}>{error}</span>
-                    </motion.div>
+                    <Alert status="error" borderRadius="16px" bg="#1e0a0a" color="#f87171" border="1px solid" borderColor="#7f1d1d" py={3}>
+                      <AlertIcon color="#ef4444" />
+                      <Text fontSize="sm" fontWeight="500">{error}</Text>
+                    </Alert>
                   )}
 
-                  <motion.button {...({} as any)} type="submit" whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }}
-                    disabled={loading}
-                    style={{ width: "100%", padding: "13px", borderRadius: 10, border: "none", background: "#CE0037", color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, transition: "all 0.2s" }}>
-                    {loading
-                      ? <div style={{ width: 18, height: 18, border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
-                      : <><Shield size={16} /> {isInvite ? "Activate Account" : "Continue to Verification"} <ArrowRight size={14} /></>}
-                  </motion.button>
-                </form>
-              </motion.div>
-            ) : (
-              <motion.div {...({} as any)} key="otp-form" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-                <div style={{ marginBottom: 20 }}>
-                  <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#64748b", marginBottom: 12, textTransform: "uppercase", letterSpacing: "0.06em", textAlign: "center" }}>Enter 8-Digit Code</label>
-                  <div style={{ display: "flex", gap: 6, justifyContent: "center" }}>
-                    {otp.map((digit, i) => (
-                      <input
-                        key={i}
-                        id={`otp-${i}`}
-                        name={i === 0 ? "one-time-code" : `otp-${i}`}
-                        autoComplete={i === 0 ? "one-time-code" : "off"}
-                        value={digit}
-                        onChange={(e) => handleOtp(e.target.value, i)}
-                        onKeyDown={(e) => handleOtpKey(e, i)}
-                        maxLength={1}
-                        inputMode="numeric"
-                        style={{ width: 44, height: 50, textAlign: "center", fontSize: 20, fontWeight: 800, background: "#1e293b", border: `2px solid ${digit ? "#CE0037" : "#334155"}`, borderRadius: 10, color: "#f1f5f9", outline: "none" }}
-                      />
-                    ))}
-                  </div>
-                </div>
+                  <VStack spacing={5} align="stretch">
+                    <FormControl>
+                      <FormLabel color="#64748b" fontSize="11px" fontWeight="700" letterSpacing="0.08em" textTransform="uppercase" mb={2}>NEW PASSWORD</FormLabel>
+                      <InputGroup size="lg">
+                        <InputLeftElement pointerEvents="none">
+                          <Lock size={16} color="#475569" />
+                        </InputLeftElement>
+                        <Input
+                          autoComplete="new-password"
+                          type={showPass ? "text" : "password"}
+                          value={password}
+                          onChange={(e) => { setPassword(e.target.value); setError(""); }}
+                          bg="rgba(30, 41, 59, 0.5)"
+                          border="1px solid"
+                          borderColor="whiteAlpha.100"
+                          _focus={{ borderColor: "#CE0037", boxShadow: "0 0 0 2px rgba(206, 0, 55, 0.2)" }}
+                          _hover={{ borderColor: "whiteAlpha.300" }}
+                          color="white"
+                          borderRadius="16px"
+                          fontSize="16px"
+                          h="52px"
+                          px={12}
+                          placeholder="••••••••"
+                        />
+                        <InputRightElement>
+                          <IconButton
+                            aria-label="toggle password"
+                            size="sm"
+                            variant="ghost"
+                            color="whiteAlpha.400"
+                            _hover={{ color: "white", bg: "transparent" }}
+                            icon={showPass ? <EyeOff size={16} /> : <Eye size={16} />}
+                            onClick={() => setShowPass(!showPass)}
+                          />
+                        </InputRightElement>
+                      </InputGroup>
+                    </FormControl>
 
-                {error && (
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, background: "#1e0a0a", border: "1px solid #7f1d1d", borderRadius: 8, padding: "10px 12px", marginBottom: 20 }}>
-                    <AlertCircle size={14} color="#ef4444" style={{ flexShrink: 0 }} />
-                    <span style={{ fontSize: 13, color: "#f87171" }}>{error}</span>
-                  </div>
-                )}
+                    <FormControl>
+                      <FormLabel color="#64748b" fontSize="11px" fontWeight="700" letterSpacing="0.08em" textTransform="uppercase" mb={2}>CONFIRM PASSWORD</FormLabel>
+                      <InputGroup size="lg">
+                        <InputLeftElement pointerEvents="none">
+                          <Lock size={16} color="#475569" />
+                        </InputLeftElement>
+                        <Input
+                          autoComplete="new-password"
+                          type={showPass ? "text" : "password"}
+                          value={confirmPassword}
+                          onChange={(e) => { setConfirmPassword(e.target.value); setError(""); }}
+                          bg="rgba(30, 41, 59, 0.5)"
+                          border="1px solid"
+                          borderColor="whiteAlpha.100"
+                          _focus={{ borderColor: "#CE0037", boxShadow: "0 0 0 2px rgba(206, 0, 55, 0.2)" }}
+                          _hover={{ borderColor: "whiteAlpha.300" }}
+                          color="white"
+                          borderRadius="16px"
+                          fontSize="16px"
+                          h="52px"
+                          px={12}
+                          placeholder="••••••••"
+                        />
+                      </InputGroup>
+                    </FormControl>
 
-                <motion.button {...({} as any)} onClick={handleVerifyOtp} whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }}
-                  disabled={loading || otp.join("").length < 8}
-                  style={{ width: "100%", padding: "13px", borderRadius: 10, border: "none", background: otp.join("").length === 8 ? "#CE0037" : "#1e293b", color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-                  {loading
-                    ? <div style={{ width: 18, height: 18, border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
-                    : <><CheckCircle size={16} /> Finalize Password Reset</>}
-                </motion.button>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                    <Button
+                      size="lg"
+                      type="submit"
+                      h="56px"
+                      bg="#CE0037"
+                      color="white"
+                      borderRadius="16px"
+                      _hover={{ bg: "#a1002b", transform: "translateY(-1px)", boxShadow: "0 10px 20px -5px rgba(206, 0, 55, 0.4)" }}
+                      _active={{ bg: "#73001e", transform: "translateY(0)" }}
+                      isLoading={loading}
+                      rightIcon={<ArrowRight size={18} />}
+                      fontWeight="700"
+                      transition="all 0.2s cubic-bezier(0.16, 1, 0.3, 1)"
+                    >
+                      Continue
+                    </Button>
+                  </VStack>
+                </MotionVStack>
+              ) : (
+                <MotionVStack
+                  key="otp-form"
+                  spacing={10}
+                  align="stretch"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                >
+                  <VStack align="start" spacing={4}>
+                    <Box bg="white" p={2.5} borderRadius="14px" border="1px solid whiteAlpha.200" boxShadow="sm">
+                      <Image src={logo} h={6} w="auto" alt="Clin Solutions L.L.C. Logo" />
+                    </Box>
+                    <VStack align="start" spacing={1}>
+                      <Heading size="lg" color="white" fontWeight="800" letterSpacing="-0.5px">Verify Identity</Heading>
+                      <MotionText color="#64748b" fontSize="sm">
+                        Enter the 8-digit code sent to<br />
+                        <Text as="span" color="whiteAlpha.800" fontWeight="700">{email}</Text>
+                      </MotionText>
+                    </VStack>
+                  </VStack>
 
-          <button onClick={() => navigate('/admin/login')}
-            style={{ display: "block", margin: "24px auto 0", background: "none", border: "none", cursor: "pointer", fontSize: 12, color: "#475569", fontWeight: 500 }}>
-            ← Back to login
-          </button>
-        </div>
-      </motion.div>
-    </div>
+                  {error && (
+                    <Alert status="error" borderRadius="16px" bg="#1e0a0a" color="#f87171" border="1px solid" borderColor="#7f1d1d">
+                      <AlertIcon color="#ef4444" />
+                      <Text fontSize="sm" fontWeight="500">{error}</Text>
+                    </Alert>
+                  )}
+
+                  <OtpInput
+                    onComplete={handleVerifyOtp}
+                    isLoading={loading}
+                  />
+
+                  <VStack spacing={5}>
+                    <Button
+                      w="100%"
+                      size="lg"
+                      h="56px"
+                      bg="#CE0037"
+                      color="white"
+                      borderRadius="16px"
+                      _hover={{ bg: "#a1002b", boxShadow: "0 10px 20px -5px rgba(206, 0, 55, 0.4)" }}
+                      onClick={() => {
+                        // This fallback is only if they click the button instead of auto-completing
+                        // But since we want "fluid" feel, we rely on onComplete
+                      }}
+                      display="none" // Hide it and rely on auto-complete for better fluidity
+                      isLoading={loading}
+                      fontWeight="700"
+                    >
+                      Verify & Finalize
+                    </Button>
+                    <VStack spacing={3}>
+                      <Text fontSize="xs" color="#64748b" fontWeight="600">
+                        Didn't receive a code?{" "}
+                        <Text as="span" color="#CE0037" cursor="pointer" onClick={() => {}} fontWeight="800">Resend</Text>
+                      </Text>
+                    </VStack>
+                  </VStack>
+                </MotionVStack>
+              )}
+            </AnimatePresence>
+
+            <Button
+              variant="ghost"
+              size="sm"
+              color="#64748b"
+              _hover={{ color: "white", bg: "whiteAlpha.100" }}
+              onClick={() => navigate("/admin/login")}
+              fontSize="12px"
+              leftIcon={<ArrowRight size={14} style={{ transform: "rotate(180deg)" }} />}
+            >
+              Back to login
+            </Button>
+          </VStack>
+        </MotionBox>
+      </Flex>
+    </Flex>
   );
 }

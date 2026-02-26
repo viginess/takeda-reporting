@@ -12,7 +12,8 @@ import {
 import {
   Box, Flex, Text, Heading, Button, Badge, Input,
   InputGroup, InputLeftElement, SimpleGrid, VStack,
-   IconButton as ChakraIconButton, useToast, Spinner, Center
+   IconButton as ChakraIconButton, useToast, Spinner, Center,
+   Image
 } from "@chakra-ui/react";
 import { trpc } from "../../utils/trpc";
 
@@ -131,10 +132,16 @@ const DataDisplay = ({ data, depth = 0 }: { data: any; depth?: number }): any =>
     if (typeof data === "string" && data.startsWith("data:image/")) {
       return (
         <Box mt={2} borderRadius="lg" overflow="hidden" border="1px solid" borderColor="#e2e8f0" maxW="300px">
-          <img src={data} alt="Attachment" style={{ width: "100%", height: "auto", display: "block" }} />
+        <Image
+            src={data}
+            alt="Attachment"
+            w="100%"
+            h="auto"
+            display="block"
+          />
         </Box>
       );
-    }
+    } 
     return (
       <Text as="span" fontSize="sm" color="#0f172a" fontWeight="500">
         {str}
