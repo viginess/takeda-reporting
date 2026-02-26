@@ -278,7 +278,7 @@ export default function AdminDashboard() {
           ) : urgentReports.length === 0 ? (
             <Flex p={10} justify="center"><Text color="#64748b" fontSize="sm">No urgent reports found</Text></Flex>
           ) : (
-            urgentReports.map((r, i) => {
+            urgentReports.map((r: any, i: number) => {
               const s = r.severity === "Critical" 
                         ? { bg: "red.50", text: "red.600", dot: "red.600" } 
                         : { bg: "orange.50", text: "orange.600", dot: "orange.600" };
@@ -390,7 +390,7 @@ export default function AdminDashboard() {
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie data={statusDistribution} dataKey="value" nameKey="name" outerRadius={80} innerRadius={46} paddingAngle={3} cx="50%" cy="50%">
-                      {statusDistribution.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} stroke="none" />)}
+                      {statusDistribution.map((_: any, i: number) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} stroke="none" />)}
                     </Pie>
                     <Tooltip formatter={(v: any, n: any) => [v, n]} contentStyle={{ borderRadius: 10, border: "1px solid #e2e8f0", fontSize: 13 }} />
                   </PieChart>
@@ -398,8 +398,8 @@ export default function AdminDashboard() {
               )}
             </Box>
             <VStack flex={1} align="stretch" spacing={3}>
-              {statusDistribution.map((d, i) => {
-                const total = statusDistribution.reduce((s, r) => s + (r.value || 0), 0);
+              {statusDistribution.map((d: any, i: number) => {
+                const total = statusDistribution.reduce((s: number, r: any) => s + (r.value || 0), 0);
                 const pct = total > 0 ? Math.round(((d.value || 0) / total) * 100) : 0;
                 return (
                   <Box key={d.name}>
