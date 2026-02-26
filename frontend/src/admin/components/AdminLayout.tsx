@@ -95,7 +95,7 @@ export default function AdminLayout() {
             _hover={{ bg: "gray.100", color: "gray.800" }}
           />
           <Box as="span" color="gray.800" fontSize="sm" fontWeight="600">
-            Takeda Admin Panel
+            Clin Solutions L.L.C. Admin Panel
           </Box>
         </Flex>
 

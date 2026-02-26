@@ -15,7 +15,7 @@ import {
 } from '@chakra-ui/react';
 import { useState } from 'react';
 
-import takedaLogo from './assets/takeda-logo.png';
+import logo from './assets/logo.jpg';
 import PatientForm from './features/patient-report';
 import FamilyForm from './features/family-report';
 import HcpForm from './features/hcp-report';
@@ -68,7 +68,7 @@ function WelcomePage() {
         borderColor="gray.100"
       >
         <Link href="/">
-    <Image src={takedaLogo} alt="Takeda" h="42px" cursor="pointer" />
+    <Image src={logo} alt="Clin Solutions L.L.C." h="48px" cursor="pointer" filter="drop-shadow(0 2px 4px rgba(0,0,0,0.1))" />
   </Link>
         <Heading
           as="h1"
@@ -127,7 +127,7 @@ function WelcomePage() {
                   position="relative"
                   zIndex={1}
                 >
-                  <Image src={takedaLogo} alt="Takeda" h="32px" />
+                  <Image src={logo} alt="Clin Solutions L.L.C." h="60px" w="auto" objectFit="contain" />
                 </Box>
                 <Heading 
                   as="h2" 

@@ -1,7 +1,7 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "Backend service for Takeda project",
+  "description": "Backend service for Clin Solutions L.L.C. project",
   "main": "src/server.ts",
   "type": "module",
   "scripts": {
