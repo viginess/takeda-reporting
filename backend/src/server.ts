@@ -17,17 +17,29 @@ const server = createHTTPServer({
     const allowedOrigins = [
       "http://localhost:5173",
       "http://localhost:5174",
+      "https://takeda-reporting-frontend.vercel.app",
       process.env.FRONTEND_URL ?? "",
     ].filter(Boolean);
 
     const origin = req.headers.origin ?? "";
-    if (allowedOrigins.includes(origin) || process.env.NODE_ENV !== "production") {
-      res.setHeader("Access-Control-Allow-Origin", origin || "*");
+    const isAllowedOrigin =
+      allowedOrigins.includes(origin) ||
+      (process.env.NODE_ENV !== "production") ||
+      (origin.endsWith(".vercel.app") && origin.includes("takeda-reporting-frontend"));
+
+    if (origin && isAllowedOrigin) {
+      res.setHeader("Access-Control-Allow-Origin", origin);
     }
 
     res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
     res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, x-client-id");
     res.setHeader("Access-Control-Allow-Credentials", "true");
+
+    if (req.method === "OPTIONS") {
+      res.writeHead(204);
+      res.end();
+      return;
+    }
 
     const path = req.url?.split("?")[0] ?? "";
     if (path === "/" || path === "/health") {
