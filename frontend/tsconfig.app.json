@@ -4,7 +4,7 @@
     "useDefineForClassFields": true,
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
-    "types": ["vite/client"],
+    "types": ["vite/client", "node"],
 
     "skipLibCheck": true,
     "moduleResolution": "bundler",
@@ -18,7 +18,17 @@
     "forceConsistentCasingInFileNames": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    "baseUrl": ".",
+    "paths": {
+      "drizzle-orm/*": ["node_modules/drizzle-orm/*"],
+      "drizzle-orm": ["node_modules/drizzle-orm"],
+      "pg": ["node_modules/@types/pg", "node_modules/pg"],
+      "zod": ["node_modules/zod"],
+      "jsonwebtoken": ["node_modules/@types/jsonwebtoken", "node_modules/jsonwebtoken"],
+      "@trpc/server": ["node_modules/@trpc/server"],
+      "@trpc/server/*": ["node_modules/@trpc/server/*"]
+    }
   },
   "include": ["src"]
 }

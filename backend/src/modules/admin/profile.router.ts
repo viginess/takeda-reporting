@@ -7,7 +7,6 @@ import {
   viewerProcedure,
   superAdminProcedure,
 } from "../../trpc/procedures.js";
-import { router, publicProcedure } from "../../trpc/init.js";
 import { db } from "../../db/index.js";
 import { admins } from "../../db/schema.js";
 

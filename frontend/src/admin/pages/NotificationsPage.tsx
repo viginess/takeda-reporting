@@ -60,7 +60,7 @@ export default function NotificationsPage() {
   const deleteNotif = (id: number) => deleteNotifMutation.mutate({ id });
   const clearAll = () => clearAllMutation.mutate();
 
-  const filtered = notifications.filter((n) => {
+  const filtered = (notifications as any[]).filter((n: any) => {
     const matchType   = filter === "all" || n.type === filter;
     const matchSearch = n.title.toLowerCase().includes(search.toLowerCase()) ||
                         n.desc.toLowerCase().includes(search.toLowerCase());
@@ -68,14 +68,14 @@ export default function NotificationsPage() {
     return matchType && matchSearch && matchUnread;
   });
 
-  const grouped = filtered.reduce<Record<string, any[]>>((acc, n) => {
+  const grouped = (filtered as any[]).reduce<Record<string, any[]>>((acc, n: any) => {
     const date = n.date || "Earlier";
     if (!acc[date]) acc[date] = [];
     acc[date].push(n);
     return acc;
   }, {});
 
-  const unreadCount = notifications.filter((n) => !n.read).length;
+  const unreadCount = (notifications as any[]).filter((n: any) => !n.read).length;
 
   return (
     <Box minH="100%" bg="#f8fafc" fontFamily="'DM Sans', system-ui, sans-serif" p={8}>
@@ -219,8 +219,8 @@ export default function NotificationsPage() {
       >
         {(["urgent", "warning", "approved", "info", "system"]).map((type) => {
           const cfg = typeConfig[type];
-          const count = notifications.filter((n) => n.type === type).length;
-          const unread = notifications.filter((n) => n.type === type && !n.read).length;
+          const count = (notifications as any[]).filter((n: any) => n.type === type).length;
+          const unread = (notifications as any[]).filter((n: any) => n.type === type && !n.read).length;
           return (
             <Box
               as={motion.div}
@@ -278,7 +278,7 @@ export default function NotificationsPage() {
           <Text fontSize="sm">Try changing your filters or search query</Text>
         </Flex>
       ) : (
-        Object.entries(grouped).map(([date, items]) => (
+        Object.entries(grouped).map(([date, items]: [string, any[]]) => (
           <Box key={date} mb={7}>
             {/* Date group header */}
             <Flex align="center" gap={3} mb={4}>
@@ -295,7 +295,7 @@ export default function NotificationsPage() {
             {/* Cards */}
             <Flex direction="column" gap={2}>
               <AnimatePresence>
-                {items.map((n, i) => {
+                {items.map((n: any, i: number) => {
                   const cfg = typeConfig[n.type];
                   return (
                     <Flex
