@@ -14,6 +14,7 @@ import {
   Box, Flex, Text, Heading, Button, IconButton, Badge, SimpleGrid,
   Card, CardBody, HStack, VStack, Spinner
 } from "@chakra-ui/react";
+import { getRelativeTime } from "../../utils/date-utils";
 
 // ── Colors ────────────────────────────────────────────────────────────────────
 const PIE_COLORS     = ["#CE0037", "#f59e0b", "#10b981", "#64748b"];
@@ -185,7 +186,7 @@ export default function AdminDashboard() {
                           <Box flex={1}>
                             <Text fontWeight="semibold" fontSize="xs" color="#0f172a" m={0}>{n.title}</Text>
                             <Text fontSize="xs" color="#64748b" mt={1} mb={1}>{n.desc}</Text>
-                            <Text fontSize="2xs" color="#94a3b8">{n.time}</Text>
+                            <Text fontSize="2xs" color="#94a3b8">{getRelativeTime(n.createdAt)}</Text>
                           </Box>
                           <IconButton
                             aria-label="dismiss"

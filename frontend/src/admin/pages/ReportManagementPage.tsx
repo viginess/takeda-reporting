@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FileText, Edit3, ChevronDown, Search,
+  Plus,
   X, AlertTriangle, User, Calendar, Activity,
   Save, AlertCircle,
   Clock,
@@ -42,6 +43,7 @@ interface Report {
   severity: Severity;
   submitted: string;
   description: string;
+  adminNotes?: string | null;
   audit: AuditEntry[];
   fullDetails?: any;
 }
@@ -286,7 +288,7 @@ export default function ReportManagementPage() {
   const [filterType, setFilterType] = useState<string>("All");
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [mode, setMode] = useState<"view" | "edit">("view");
-  const [editData, setEditData] = useState<Partial<Report>>({});
+  const [editData, setEditData] = useState<{ status?: Status; severity?: Severity; adminNotes: string }>({ adminNotes: "" });
   const [showAudit, setShowAudit] = useState(false);
   const [showFullDetails, setShowFullDetails] = useState(true);
   const [saved, setSaved] = useState(false);
@@ -326,7 +328,11 @@ export default function ReportManagementPage() {
 
   const openReport = (r: Report) => {
     setSelectedReport(r);
-    setEditData({ status: r.status, severity: r.severity, description: r.description });
+    setEditData({ 
+      status: r.status, 
+      severity: r.severity, 
+      adminNotes: r.adminNotes || "" 
+    });
     setMode("view");
     setShowAudit(false);
     setShowFullDetails(true);
@@ -360,7 +366,7 @@ export default function ReportManagementPage() {
       updates: {
         status: statusValue,
         severity: severityValue,
-        adminNotes: editData.description || undefined
+        adminNotes: editData.adminNotes
       }
     });
 
@@ -593,20 +599,38 @@ export default function ReportManagementPage() {
                 </Flex>
                 <Flex gap={2}>
                   {mode === "view" ? (
-                    <Button
-                      as={motion.button}
-                      {...({} as any)}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => setMode("edit")}
-                      bg="#CE0037"
-                      color="white"
-                      size="sm"
-                      leftIcon={<Edit3 size={13} />}
-                      _hover={{ bg: "#b3002f" }}
-                    >
-                      Edit Report
-                    </Button>
+                    <>
+                      {!selectedReport.adminNotes && (
+                        <Button
+                          as={motion.button}
+                          {...({} as any)}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => setMode("edit")}
+                          variant="ghost"
+                          color="#64748b"
+                          size="sm"
+                          leftIcon={<Plus size={14} color="#CE0037" />}
+                          _hover={{ bg: "#f1f5f9" }}
+                        >
+                          Add Note
+                        </Button>
+                      )}
+                      <Button
+                        as={motion.button}
+                        {...({} as any)}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => setMode("edit")}
+                        bg="#CE0037"
+                        color="white"
+                        size="sm"
+                        leftIcon={<Edit3 size={13} />}
+                        _hover={{ bg: "#b3002f" }}
+                      >
+                        Edit Report
+                      </Button>
+                    </>
                   ) : (
                     <>
                       <Button
@@ -762,6 +786,51 @@ export default function ReportManagementPage() {
                     )}
                   </Box>
                 </SimpleGrid>
+
+                {/* Admin Notes Section */}
+                {(mode === "edit" || selectedReport.adminNotes) && (
+                  <Box mb={5}>
+                    <Flex align="center" gap={2} mb={2}>
+                      <Edit3 size={12} color="#94a3b8" />
+                      <Text fontSize="2xs" color="#94a3b8" fontWeight="bold" textTransform="uppercase" letterSpacing="0.05em">Admin Internal Notes</Text>
+                    </Flex>
+                    {mode === "edit" ? (
+                      <Box>
+                        <Input
+                          as="textarea"
+                          value={editData.adminNotes}
+                          onChange={(e) => setEditData({ ...editData, adminNotes: e.target.value })}
+                          placeholder="Add internal notes about this report (visible only to admins)..."
+                          size="sm"
+                          minH="100px"
+                          py={3}
+                          bg="white"
+                          borderColor="#e2e8f0"
+                          borderRadius="xl"
+                          fontSize="sm"
+                          _focus={{ borderColor: "#CE0037", boxShadow: "0 0 0 1px #CE0037" } as any}
+                        />
+                      </Box>
+                    ) : (
+                      <Box bg="#f8fafc" borderRadius="xl" p={4} border="1px solid" borderColor="#f1f5f9" position="relative">
+                        <Text fontSize="sm" color="#0f172a" lineHeight="tall">
+                          {selectedReport.adminNotes}
+                        </Text>
+                        <ChakraIconButton
+                            aria-label="Edit notes"
+                            icon={<Edit3 size={11} />}
+                            size="xs"
+                            variant="ghost"
+                            position="absolute"
+                            top={2}
+                            right={2}
+                            color="#94a3b8"
+                            onClick={() => setMode("edit")}
+                        />
+                      </Box>
+                    )}
+                  </Box>
+                )}
 
 
                 {/* ── Full Form Details — improved ── */}

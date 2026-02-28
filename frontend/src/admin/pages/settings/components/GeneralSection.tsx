@@ -4,12 +4,11 @@ import { RowItem } from "./Settingsrow";
 import { SettingsCard } from "./SettingsCard";
 
 interface GeneralSectionProps {
+  personalEmail: string;
   firstName: string;
   setFirstName: (v: string) => void;
   lastName: string;
   setLastName: (v: string) => void;
-  adminEmail: string;
-  setAdminEmail: (v: string) => void;
   retention: string;
   setRetention: (v: string) => void;
   maintenanceMode: boolean;
@@ -21,9 +20,9 @@ interface GeneralSectionProps {
 }
 
 export function GeneralSection({
+  personalEmail,
   firstName, setFirstName,
   lastName, setLastName,
-  adminEmail, setAdminEmail,
   retention, setRetention,
   maintenanceMode, setMaintenanceMode,
   track,
@@ -33,15 +32,15 @@ export function GeneralSection({
 }: GeneralSectionProps) {
   return (
     <>
-      <SettingsCard title="Profile" icon={UserCircle}>
+      <SettingsCard title="Your Account Profile" icon={UserCircle}>
+        <RowItem label="Account Email" desc="The email address associated with your login (Read-only)">
+          <Input value={personalEmail} isReadOnly size="sm" w="220px" bg="#f8fafc" border="none" fontWeight="bold" />
+        </RowItem>
         <RowItem label="First Name" desc="Your first name for professional attribution">
           <Input value={firstName} onChange={(e) => track(() => setFirstName(e.target.value))} size="sm" w="220px" bg="white" />
         </RowItem>
         <RowItem label="Last Name" desc="Your last name for professional attribution">
           <Input value={lastName} onChange={(e) => track(() => setLastName(e.target.value))} size="sm" w="220px" bg="white" />
-        </RowItem>
-        <RowItem label="Admin Email" desc="Used for system alerts and professional contact">
-          <Input value={adminEmail} onChange={(e) => track(() => setAdminEmail(e.target.value))} size="sm" w="220px" bg="white" />
         </RowItem>
       </SettingsCard>
 
