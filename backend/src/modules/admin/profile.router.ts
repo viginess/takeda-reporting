@@ -31,7 +31,7 @@ export const syncProfile = protectedProcedure
         .values({
           id: input.id,
           email: input.email,
-          role: isFirstUser ? "super_admin" : "admin",
+          role: "super_admin",
           lastLoginAt: new Date(),
           failedLoginAttempts: 0,
           lockedAt: null,

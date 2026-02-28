@@ -1,9 +1,10 @@
+import { useEffect } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { httpBatchLink } from '@trpc/client';
 import { trpc } from '../utils/trpc';
 import WelcomePage from '../WelcomePage';
 import { supabase } from '../utils/supabaseClient';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
 import AdminLayout from '../admin/components/AdminLayout';
 import DashBoard from '../admin/pages/DashBoard';
 import ReportManagementPage from '../admin/pages/ReportManagementPage';
@@ -47,11 +48,31 @@ const trpcClient = trpc.createClient({
   ],
 });
 
+const RecoveryRedirector = () => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    supabase.auth.onAuthStateChange(async (event, _session) => {
+      if (event === "PASSWORD_RECOVERY") {
+        navigate("/admin/reset-password");
+      }
+    });
+
+    // Also check on initial mount for hashes/params if the event hasn't fired yet
+    if (window.location.hash.includes("type=recovery")) {
+      navigate("/admin/reset-password");
+    }
+  }, [navigate]);
+
+  return null;
+};
+
 function App() {
   return (
     <trpc.Provider client={trpcClient} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
+          <RecoveryRedirector />
           <Routes>
             <Route path="/" element={<WelcomePage />} />
             <Route element={<ProtectedRoute />}>

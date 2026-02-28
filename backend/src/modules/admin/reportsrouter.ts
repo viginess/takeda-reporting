@@ -211,6 +211,7 @@ export const getAllReports = viewerProcedure.query(async () => {
         day: "numeric",
         year: "numeric",
       }),
+      adminNotes: row.adminNotes || null,
       description:
         row.adminNotes ||
         row.additionalDetails ||

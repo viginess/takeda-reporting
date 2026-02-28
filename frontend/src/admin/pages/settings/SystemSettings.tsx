@@ -264,9 +264,9 @@ export default function SystemSettings() {
 
           {active === "general" && (
             <GeneralSection
+              personalEmail={user?.email || ""}
               firstName={firstName} setFirstName={setFirstName}
               lastName={lastName} setLastName={setLastName}
-              adminEmail={adminEmail} setAdminEmail={setAdminEmail}
               retention={retention} setRetention={setRetention}
               maintenanceMode={maintenanceMode} setMaintenanceMode={setMaintenanceMode}
               track={track}

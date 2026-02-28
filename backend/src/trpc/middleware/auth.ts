@@ -40,37 +40,7 @@ export const isAuthed = t.middleware(async ({ ctx, next }) => {
 
   // 2. Verify JWT
   try {
-    let payload: any;
-    try {
-      // DEBUG LOGS FOR USER - WARNING: EXPOSING FULL SECRET IN LOGS
-      console.log(`[AUTH DEBUG] Server JWT_SECRET: ${jwtSecret}`);
-      console.log(`[AUTH DEBUG] Secret Length: ${jwtSecret?.length}`);
-      console.log(`[AUTH DEBUG] Token Length: ${ctx.token?.length}`);
-
-      // Decode header to see Key ID (kid)
-      try {
-        const [headerB64] = ctx.token.split(".");
-        const header = JSON.parse(Buffer.from(headerB64, "base64").toString("utf8"));
-        console.log(`[AUTH DEBUG] Token Header (kid): ${header.kid || "NONE"}`);
-      } catch (e) {
-        console.warn("[AUTH DEBUG] Failed to decode header:", e);
-      }
-
-      payload = jwt.verify(ctx.token, jwtSecret) as any;
-      console.log("[AUTH DEBUG] JWT verified successfully");
-    } catch (e: any) {
-      console.error("[AUTH DEBUG] JWT Verification Failed:", e.message);
-      
-      if (process.env.NODE_ENV === "production") {
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-          message: `Invalid or tampered token signature. Access denied. (Debug: ${e.message})`,
-        });
-      }
-      const [, body] = ctx.token.split(".");
-      payload = JSON.parse(Buffer.from(body, "base64").toString("utf8"));
-    }
-
+    const payload = jwt.verify(ctx.token, jwtSecret) as any;
     const userId = payload.sub;
     if (!userId) {
       throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid admin token payload" });

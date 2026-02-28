@@ -12,7 +12,7 @@ import {
   Spinner,
 
 } from "@chakra-ui/react";
-
+import { getRelativeTime, getGroupDate } from "../../utils/date-utils";
 
 
 // ── Config ────────────────────────────────────────────────────────────────────
@@ -33,6 +33,8 @@ const filterOptions: { label: string; value: string }[] = [
   { label: "System",   value: "system"   },
 ];
 
+// ── Helpers removed, now imported ──
+
 // ── Component ─────────────────────────────────────────────────────────────────
 export default function NotificationsPage() {
   const utils = trpc.useContext();
@@ -42,6 +44,7 @@ export default function NotificationsPage() {
   const [search, setSearch] = useState("");
   const [showUnreadOnly, setShowUnreadOnly] = useState(false);
 
+  // ... (mutations same)
   const markAllReadMutation = trpc.notifications.markAllAsRead.useMutation({
     onSuccess: () => utils.notifications.getAll.invalidate(),
   });
@@ -69,9 +72,9 @@ export default function NotificationsPage() {
   });
 
   const grouped = (filtered as any[]).reduce<Record<string, any[]>>((acc, n: any) => {
-    const date = n.date || "Earlier";
-    if (!acc[date]) acc[date] = [];
-    acc[date].push(n);
+    const dateLabel = getGroupDate(n.createdAt);
+    if (!acc[dateLabel]) acc[dateLabel] = [];
+    acc[dateLabel].push(n);
     return acc;
   }, {});
 
@@ -342,7 +345,7 @@ export default function NotificationsPage() {
                             {n.title}
                           </Text>
                           <Flex align="center" gap={2} shrink={0}>
-                            <Text fontSize="xs" color="#94a3b8" whiteSpace="nowrap">{n.time}</Text>
+                             <Text fontSize="xs" color="#94a3b8" whiteSpace="nowrap">{getRelativeTime(n.createdAt)}</Text>
                             {!n.read && (
                               <Box w="8px" h="8px" borderRadius="full" bg={cfg.color} flexShrink={0} />
                             )}
