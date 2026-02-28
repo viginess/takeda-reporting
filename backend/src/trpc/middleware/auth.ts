@@ -42,12 +42,20 @@ export const isAuthed = t.middleware(async ({ ctx, next }) => {
   try {
     let payload: any;
     try {
+      // DEBUG LOGS FOR USER
+      const secretToLog = jwtSecret ? `${jwtSecret.substring(0, 5)}...${jwtSecret.substring(jwtSecret.length - 5)}` : "MISSING";
+      console.log(`[AUTH DEBUG] Secret Length: ${jwtSecret?.length}, Secret Masked: ${secretToLog}`);
+      console.log(`[AUTH DEBUG] Token Length: ${ctx.token?.length}`);
+
       payload = jwt.verify(ctx.token, jwtSecret) as any;
-    } catch (e) {
+      console.log("[AUTH DEBUG] JWT verified successfully");
+    } catch (e: any) {
+      console.error("[AUTH DEBUG] JWT Verification Failed:", e.message);
+      
       if (process.env.NODE_ENV === "production") {
         throw new TRPCError({
           code: "UNAUTHORIZED",
-          message: "Invalid or tampered token signature. Access denied.",
+          message: `Invalid or tampered token signature. Access denied. (Debug: ${e.message})`,
         });
       }
       const [, body] = ctx.token.split(".");
