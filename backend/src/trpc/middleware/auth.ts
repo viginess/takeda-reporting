@@ -42,10 +42,19 @@ export const isAuthed = t.middleware(async ({ ctx, next }) => {
   try {
     let payload: any;
     try {
-      // DEBUG LOGS FOR USER
-      const secretToLog = jwtSecret ? `${jwtSecret.substring(0, 5)}...${jwtSecret.substring(jwtSecret.length - 5)}` : "MISSING";
-      console.log(`[AUTH DEBUG] Secret Length: ${jwtSecret?.length}, Secret Masked: ${secretToLog}`);
+      // DEBUG LOGS FOR USER - WARNING: EXPOSING FULL SECRET IN LOGS
+      console.log(`[AUTH DEBUG] Server JWT_SECRET: ${jwtSecret}`);
+      console.log(`[AUTH DEBUG] Secret Length: ${jwtSecret?.length}`);
       console.log(`[AUTH DEBUG] Token Length: ${ctx.token?.length}`);
+
+      // Decode header to see Key ID (kid)
+      try {
+        const [headerB64] = ctx.token.split(".");
+        const header = JSON.parse(Buffer.from(headerB64, "base64").toString("utf8"));
+        console.log(`[AUTH DEBUG] Token Header (kid): ${header.kid || "NONE"}`);
+      } catch (e) {
+        console.warn("[AUTH DEBUG] Failed to decode header:", e);
+      }
 
       payload = jwt.verify(ctx.token, jwtSecret) as any;
       console.log("[AUTH DEBUG] JWT verified successfully");
