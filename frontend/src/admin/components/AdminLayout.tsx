@@ -13,22 +13,13 @@ export default function AdminLayout() {
   const { data: systemSettings } = trpc.admin.getSystemSettings.useQuery();
 
   useEffect(() => {
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        navigate('/admin/login');
-      }
-    };
-    
-    checkSession();
-
+    // ── Inactivity Auto-Logout ──
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!session) {
         navigate('/admin/login');
       }
     });
 
-    // ── Inactivity Auto-Logout ──
     let timeoutId: NodeJS.Timeout;
     const sessionTimeout = systemSettings?.clinicalConfig?.sessionTimeout;
 

@@ -11,6 +11,7 @@ import NotificationsPage from '../admin/pages/NotificationsPage';
 import AdminLogin from '../admin/pages/AdminLogin';
 import AdminResetPassword from '../admin/pages/AdminResetPassword';
 import SystemSettings from '../admin/pages/settings/SystemSettings';
+import ProtectedRoute from '../admin/components/ProtectedRoute';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -53,11 +54,13 @@ function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<WelcomePage />} />
-            <Route path="/admin" element={<AdminLayout />}>
-              <Route index element={<DashBoard />} />
-              <Route path="reports" element={<ReportManagementPage />} />
-              <Route path="notifications" element={<NotificationsPage />} />
-              <Route path="settings" element={<SystemSettings />} />
+            <Route element={<ProtectedRoute />}>
+              <Route path="/admin" element={<AdminLayout />}>
+                <Route index element={<DashBoard />} />
+                <Route path="reports" element={<ReportManagementPage />} />
+                <Route path="notifications" element={<NotificationsPage />} />
+                <Route path="settings" element={<SystemSettings />} />
+              </Route>
             </Route>
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin/reset-password" element={<AdminResetPassword />} />
