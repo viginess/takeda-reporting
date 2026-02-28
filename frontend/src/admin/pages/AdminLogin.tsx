@@ -259,29 +259,45 @@ export default function AdminLogin() {
     setError("");
 
     try {
-      const { error } = await supabase.auth.verifyOtp({
+      // 1. Verify OTP with Supabase
+      const { error: otpError } = await supabase.auth.verifyOtp({
         email,
         token: code,
         type: authMode === "register" ? "signup" : "email",
       });
 
-      if (error) throw error;
+      if (otpError) {
+        throw new Error(otpError.message || "Invalid or expired verification code.");
+      }
 
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      // 2. Get the authenticated user
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) {
+        throw new Error("Verification successful, but failed to retrieve user data.");
+      }
 
-      if (user) {
+      // 3. Sync profile with Backend
+      try {
         await syncAdmin.mutateAsync({
           id: user.id,
           email: user.email!,
         });
+      } catch (syncErr: any) {
+        console.error("Profile sync error:", syncErr);
+        // Specific message for the JWT secret mismatch we've been debugging
+        if (syncErr.message?.includes("token signature") || syncErr.data?.httpStatus === 401) {
+          throw new Error("Authentication successful, but server configuration is incorrect (JWT Secret mismatch). Please contact your administrator.");
+        }
+        throw new Error("Verification successful, but failed to sync your profile with the backend server.");
       }
 
       setSuccess(true);
     } catch (err: any) {
-      setError(err.message || "Invalid or expired code.");
-      setOtp(["", "", "", "", "", "", "", ""]);
+      setError(err.message || "An unexpected error occurred during verification.");
+      // Root cause for OTP failure is usually the code itself, so reset it
+      if (!err.message?.includes("server configuration") && !err.message?.includes("sync")) {
+        setOtp(["", "", "", "", "", "", "", ""]);
+      }
     } finally {
       setLoading(false);
     }
