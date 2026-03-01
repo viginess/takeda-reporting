@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider, QueryCache, MutationCache } from '@tanstack/react-query';
+import { TRPCClientError } from '@trpc/client';
 import { httpBatchLink } from '@trpc/client';
 import { trpc } from '../utils/trpc';
 import WelcomePage from '../WelcomePage';
@@ -19,6 +20,22 @@ const queryClient = new QueryClient({
     queries: { retry: 1 },
     mutations: { retry: 0 },
   },
+  queryCache: new QueryCache({
+    onError: async (err: any) => {
+      if (err instanceof TRPCClientError && err.data?.code === 'UNAUTHORIZED') {
+        console.warn('Backend session expired. Signing out...');
+        await supabase.auth.signOut();
+      }
+    },
+  }),
+  mutationCache: new MutationCache({
+    onError: async (err: any) => {
+      if (err instanceof TRPCClientError && err.data?.code === 'UNAUTHORIZED') {
+        console.warn('Backend session expired during mutation. Signing out...');
+        await supabase.auth.signOut();
+      }
+    },
+  }),
 });
 
 // Simple helper to get or create a persistent guest ID
@@ -34,9 +51,7 @@ const getGuestId = () => {
 const trpcClient = trpc.createClient({
   links: [
     httpBatchLink({
-      url: import.meta.env.VITE_API_URL
-        ? `${import.meta.env.VITE_API_URL}`
-        : 'http://localhost:3000',
+      url: import.meta.env.VITE_API_URL || 'http://localhost:3000',
       headers: async () => {
         const { data: { session } } = await supabase.auth.getSession();
         return {
