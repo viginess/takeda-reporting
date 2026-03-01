@@ -15,11 +15,10 @@ const server = createHTTPServer({
   },
   middleware(req, res, next) {
     const allowedOrigins = [
-      "http://localhost:5173",
-      "http://localhost:5174",
-      "https://takeda-reporting-frontend.vercel.app",
-      process.env.FRONTEND_URL ?? "",
-    ].filter(Boolean);
+      process.env.NODE_ENV !== "production" ? "http://localhost:5173" : null,
+      process.env.NODE_ENV !== "production" ? "http://localhost:5174" : null,
+      process.env.FRONTEND_URL,
+    ].filter(Boolean) as string[];
 
     const origin = req.headers.origin ?? "";
     const isAllowedOrigin =
@@ -48,6 +47,23 @@ const server = createHTTPServer({
       return;
     }
 
+    // Vercel Cron Job Endpoint
+    if (path === "/api/cron/archive") {
+      const authHeader = req.headers.authorization;
+      if (authHeader !== `Bearer ${process.env.CRON_SECRET}` && process.env.NODE_ENV === "production") {
+        res.writeHead(401, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ error: "Unauthorized" }));
+        return;
+      }
+
+      console.log("cron: Received archive trigger");
+      runArchiver().catch(console.error);
+      
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ success: true, message: "Archiving job triggered" }));
+      return;
+    }
+
     next();
   },
 });
@@ -71,7 +87,7 @@ export default server;
 // Only listen when running directly (local development)
 if (process.env.NODE_ENV !== "production" || !process.env.VERCEL) {
   server.listen(port, () => {
-    console.log(`🚀 tRPC server ready on http://localhost:${port}`);
+    console.log(`🚀 tRPC server ready on port ${port}`);
     
     // Schedule archiving job: Every Sunday at midnight
     cron.schedule("0 0 * * 0", async () => {

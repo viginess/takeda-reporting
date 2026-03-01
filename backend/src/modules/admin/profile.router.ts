@@ -23,7 +23,7 @@ export const syncProfile = protectedProcedure
       const [{ count }] = await db
         .select({ count: sql`count(*)`.mapWith(Number) })
         .from(admins);
-      
+
       const isFirstUser = count === 0;
 
       const [row] = await db
@@ -31,7 +31,7 @@ export const syncProfile = protectedProcedure
         .values({
           id: input.id,
           email: input.email,
-          role: "super_admin",
+          role: isFirstUser ? "super_admin" : "admin",
           lastLoginAt: new Date(),
           failedLoginAttempts: 0,
           lockedAt: null,
@@ -79,26 +79,25 @@ export const updateAdminProfile = viewerProcedure
     return { success: true, data: row };
   });
 
-export const syncPasswordChange = protectedProcedure.mutation(async ({ ctx }) => {
-  const adminId = ctx.user.id;
-  const [row] = await db
-    .update(admins)
-    .set({
-      passwordChangedAt: new Date(),
-      updatedAt: new Date(),
-    })
-    .where(eq(admins.id, adminId))
-    .returning();
+export const syncPasswordChange = protectedProcedure.mutation(
+  async ({ ctx }) => {
+    const adminId = ctx.user.id;
+    const [row] = await db
+      .update(admins)
+      .set({
+        passwordChangedAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(eq(admins.id, adminId))
+      .returning();
 
-  return { success: true, data: row };
-});
+    return { success: true, data: row };
+  },
+);
 
 export const getMe = viewerProcedure.query(async ({ ctx }) => {
   const adminId = ctx.user.id;
-  const [admin] = await db
-    .select()
-    .from(admins)
-    .where(eq(admins.id, adminId));
+  const [admin] = await db.select().from(admins).where(eq(admins.id, adminId));
 
   if (!admin) {
     throw new TRPCError({
@@ -160,11 +159,13 @@ export const inviteAdmin = superAdminProcedure
   .mutation(async ({ input }) => {
     const supabaseUrl = process.env.VITE_SUPABASE_URL;
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
 
     if (!supabaseUrl || !serviceRoleKey) {
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
-        message: "Supabase Service Role Key is not configured. Cannot invite users.",
+        message:
+          "Supabase Service Role Key is not configured. Cannot invite users.",
       });
     }
 
@@ -178,45 +179,55 @@ export const inviteAdmin = superAdminProcedure
     let authDataFinal;
 
     // 1. Invite user via Supabase Auth
-    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
-      input.email,
-      {
-        redirectTo: input.redirectTo || "http://localhost:5173/admin/reset-password",
-      }
-    );
+    const { data: authData, error: authError } =
+      await supabaseAdmin.auth.admin.inviteUserByEmail(input.email, {
+        redirectTo:
+          input.redirectTo || `${frontendUrl}/admin/reset-password`,
+      });
 
     if (authError) {
-      if (authError.message.includes("already been registered") || authError.status === 422) {
+      if (
+        authError.message.includes("already been registered") ||
+        authError.status === 422
+      ) {
         // Ghost account check
         const { data: usersData } = await supabaseAdmin.auth.admin.listUsers();
-        const existingUser = usersData.users.find((u: any) => u.email === input.email);
+        const existingUser = usersData.users.find(
+          (u: any) => u.email === input.email,
+        );
 
         if (existingUser) {
           // If they've never actually signed in (ghost / unconfirmed account), it's safe to clear them out
           if (!existingUser.last_sign_in_at) {
             await supabaseAdmin.auth.admin.deleteUser(existingUser.id);
             // Re-invite them cleanly so they get the fresh setup email
-            const { data: retryData, error: retryError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
-              input.email,
-              { redirectTo: input.redirectTo || "http://localhost:5173/admin/reset-password" }
-            );
+            const { data: retryData, error: retryError } =
+              await supabaseAdmin.auth.admin.inviteUserByEmail(input.email, {
+                redirectTo:
+                  input.redirectTo ||
+                  `${frontendUrl}/admin/reset-password`,
+              });
 
             if (retryError) {
-              throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to re-invite the user." });
+              throw new TRPCError({
+                code: "INTERNAL_SERVER_ERROR",
+                message: "Failed to re-invite the user.",
+              });
             }
             authDataFinal = retryData;
           } else {
             // They have actually logged in before, meaning they have a real password and session.
             throw new TRPCError({
               code: "CONFLICT",
-              message: "This user is already an active administrator. To change their access, modify their role in the 'Existing Admins' list.",
+              message:
+                "This user is already an active administrator. To change their access, modify their role in the 'Existing Admins' list.",
             });
           }
         } else {
-           throw new TRPCError({
-             code: "CONFLICT",
-             message: "This email address is already registered in the system.",
-           });
+          throw new TRPCError({
+            code: "CONFLICT",
+            message: "This email address is already registered in the system.",
+          });
         }
       } else {
         console.error("Error inviting user via Supabase:", authError);
