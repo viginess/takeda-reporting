@@ -26,6 +26,7 @@ import { ProductImageUpload } from '../../../shared/components/ProductImageUploa
 import { HiQuestionMarkCircle, HiPlus } from 'react-icons/hi2';
 import { useFormContext, useFieldArray } from 'react-hook-form';
 import batchImg from '../../../assets/batch.png';
+import { useTranslation } from 'react-i18next';
 
 interface HcpProductDetailsProps {
   inputStyles: any;
@@ -34,6 +35,7 @@ interface HcpProductDetailsProps {
 }
 
 export function HcpProductDetails({ inputStyles, index = 0, onAddProduct }: HcpProductDetailsProps) {
+  const { t } = useTranslation();
   const { setValue, register, control, watch } = useFormContext();
 
   const { fields: conditionFields, append: appendCondition, remove: removeCondition } = useFieldArray({
@@ -65,29 +67,29 @@ export function HcpProductDetails({ inputStyles, index = 0, onAddProduct }: HcpP
   return (
     <>
       <Heading as="h2" size="lg" mb={2} color="gray.800" fontWeight="600">
-        Enter product information
+        {t('forms.patient.productDetails.title')}
       </Heading>
       <Text fontSize="sm" color="gray.600" mb={6}>
-        For which product do you want to report a potential concern?
+        {t('forms.patient.productDetails.subtitle')}
       </Text>
 
       <FormControl mb={6} isRequired>
         <Input
-          placeholder="Enter product name"
+          placeholder={t('forms.patient.productDetails.productNamePlaceholder')}
           {...inputStyles}
-          {...register(`${prefix}.productName`, { required: 'Product name is required' })}
+          {...register(`${prefix}.productName`, { required: t('forms.patient.productDetails.productNameRequired') })}
         />
       </FormControl>
 
       <FormControl mb={6}>
         <FormLabel fontWeight="500" color="gray.700">
-          What condition is the patient treating?
+          {t('forms.patient.productDetails.conditionLabel')}
         </FormLabel>
         <VStack align="stretch" spacing={3}>
           {conditionFields.map((field, cIdx) => (
             <Flex key={field.id} gap={3} flexWrap="wrap">
               <Input
-                placeholder="Enter condition name"
+                placeholder={t('forms.patient.productDetails.conditionPlaceholder')}
                 flex="1"
                 minW="200px"
                 {...inputStyles}
@@ -99,11 +101,11 @@ export function HcpProductDetails({ inputStyles, index = 0, onAddProduct }: HcpP
                 borderColor="gray.300"
                 onClick={() => setValue(`${prefix}.conditions.${cIdx}.name`, 'Unknown')}
               >
-                Unknown
+                {t('forms.patient.common.unknown')}
               </Button>
               {cIdx > 0 && (
                 <Button variant="ghost" colorScheme="red" size="lg" onClick={() => removeCondition(cIdx)}>
-                  Remove
+                  {t('forms.patient.common.remove')}
                 </Button>
               )}
             </Flex>
@@ -117,13 +119,13 @@ export function HcpProductDetails({ inputStyles, index = 0, onAddProduct }: HcpP
           leftIcon={<HiPlus />}
           onClick={() => appendCondition({ name: '' })}
         >
-          Add condition
+          {t('forms.patient.productDetails.addCondition')}
         </Button>
       </FormControl>
 
       <Box mt={10} mb={6}>
         <Text fontWeight="600" color="gray.700">
-          Please enter the following product information
+          {t('forms.patient.productDetails.batchTitle')}
         </Text>
         <Box borderBottom="2px solid" borderColor="#CE0037" mt={2} mb={6} w="full" maxW="200px" />
       </Box>
@@ -133,21 +135,21 @@ export function HcpProductDetails({ inputStyles, index = 0, onAddProduct }: HcpP
           {bIdx > 0 && (
             <Flex justify="flex-end" mb={2}>
               <Button size="xs" variant="ghost" colorScheme="red" onClick={() => removeBatch(bIdx)}>
-                Remove batch
+                {t('forms.patient.productDetails.removeBatch')}
               </Button>
             </Flex>
           )}
           <FormControl mb={6} isRequired>
             <FormLabel fontWeight="500" color="gray.700" mb={2}>
-              Batch/lot number
+              {t('forms.patient.productDetails.batchLotNumberLabel')}
             </FormLabel>
             <Flex gap={3} flexWrap="wrap">
               <InputGroup flex="1" minW="200px">
                 <Input
-                  placeholder="Enter batch number"
+                  placeholder={t('forms.patient.productDetails.batchNumberPlaceholder')}
                   {...inputStyles}
                   pr="40px"
-                  {...register(`${prefix}.batches.${bIdx}.batchNumber`, { required: 'Batch number is required' })}
+                  {...register(`${prefix}.batches.${bIdx}.batchNumber`, { required: t('forms.patient.productDetails.batchNumberRequired') })}
                 />
                 <InputRightElement height="100%" width="40px">
                   <Popover placement="right" trigger="click">
@@ -166,7 +168,7 @@ export function HcpProductDetails({ inputStyles, index = 0, onAddProduct }: HcpP
                         <PopoverArrow />
                         <PopoverCloseButton />
                         <PopoverHeader fontWeight="600" fontSize="md" pb={3}>
-                          Where to find the batch number
+                          {t('forms.hcp.productDetails.batchNumberHelp')}
                         </PopoverHeader>
                         <PopoverBody p={4}>
                           <Box
@@ -179,7 +181,7 @@ export function HcpProductDetails({ inputStyles, index = 0, onAddProduct }: HcpP
                           >
                             <Image
                               src={batchImg}
-                              alt="Example of where to find batch/lot number on packaging"
+                              alt={t('forms.hcp.productDetails.batchNumberFind')}
                               w="full"
                               h="auto"
                               objectFit="cover"
@@ -187,7 +189,7 @@ export function HcpProductDetails({ inputStyles, index = 0, onAddProduct }: HcpP
                             />
                           </Box>
                           <Text fontSize="sm" color="gray.600">
-                            Look for the batch/lot number on the packaging...
+                            {t('forms.hcp.productDetails.batchNumberFind')}
                           </Text>
                         </PopoverBody>
                       </PopoverContent>
@@ -201,24 +203,22 @@ export function HcpProductDetails({ inputStyles, index = 0, onAddProduct }: HcpP
                 borderColor="gray.300"
                 onClick={() => setValue(`${prefix}.batches.${bIdx}.batchNumber`, 'Unknown')}
               >
-                Unknown
+                {t('forms.patient.common.unknown')}
               </Button>
             </Flex>
              <Text fontSize="xs" color="gray.500" mt={2}>
-                      The batch or lot number and expiry date are usually printed on the outer carton or
-                      container, often inside a black rectangle or near the barcode. On some packs,
-                      they may appear as plain text or beside a QR code.
+                      {t('forms.hcp.productDetails.batchNumberDetails')}
                     </Text>
           </FormControl>
 
           <FormControl mb={6}>
             <FormLabel fontWeight="500" color="gray.700">
-              Expiry date
+              {t('forms.patient.productDetails.expiryDateLabel')}
             </FormLabel>
             <Flex gap={3} flexWrap="wrap">
               <Input
                 type={watch(`${prefix}.batches.${bIdx}.expiryDate`) === 'Unknown' ? 'text' : 'date'}
-                placeholder="e.g. 24 February 2020"
+                placeholder={t('forms.patient.productDetails.expiryDatePlaceholder')}
                 flex="1"
                 minW="200px"
                 {...inputStyles}
@@ -230,19 +230,19 @@ export function HcpProductDetails({ inputStyles, index = 0, onAddProduct }: HcpP
                 borderColor="gray.300"
                 onClick={() => setValue(`${prefix}.batches.${bIdx}.expiryDate`, 'Unknown')}
               >
-                Unknown
+                {t('forms.patient.common.unknown')}
               </Button>
             </Flex>
           </FormControl>
 
           <FormControl mb={6}>
             <FormLabel fontWeight="500" color="gray.700">
-              When did the patient start/stop using this batch?
+              {t('forms.hcp.productDetails.startDateStop')}
             </FormLabel>
             <Flex gap={3} flexWrap="wrap" align="center" mb={2}>
               <Input
                 type={watch(`${prefix}.batches.${bIdx}.startDate`) === 'Unknown' ? 'text' : 'date'}
-                placeholder="Select start date"
+                placeholder={t('forms.patient.productDetails.startDatePlaceholder')}
                 flex="1"
                 minW="140px"
                 {...inputStyles}
@@ -254,13 +254,13 @@ export function HcpProductDetails({ inputStyles, index = 0, onAddProduct }: HcpP
                 borderColor="gray.300"
                 onClick={() => setValue(`${prefix}.batches.${bIdx}.startDate`, 'Unknown')}
               >
-                Unknown
+                {t('forms.patient.common.unknown')}
               </Button>
             </Flex>
             <Flex gap={3} flexWrap="wrap" align="center">
               <Input
                 type={['Unknown', 'Ongoing'].includes(watch(`${prefix}.batches.${bIdx}.endDate`)) ? 'text' : 'date'}
-                placeholder="Select end date"
+                placeholder={t('forms.patient.productDetails.endDatePlaceholder')}
                 flex="1"
                 minW="140px"
                 {...inputStyles}
@@ -272,7 +272,7 @@ export function HcpProductDetails({ inputStyles, index = 0, onAddProduct }: HcpP
                 borderColor="gray.300"
                 onClick={() => setValue(`${prefix}.batches.${bIdx}.endDate`, 'Unknown')}
               >
-                Unknown
+                {t('forms.patient.common.unknown')}
               </Button>
               <Button
                 variant="outline"
@@ -280,58 +280,58 @@ export function HcpProductDetails({ inputStyles, index = 0, onAddProduct }: HcpP
                 borderColor="gray.300"
                 onClick={() => setValue(`${prefix}.batches.${bIdx}.endDate`, 'Ongoing')}
               >
-                Ongoing
+                {t('forms.patient.common.ongoing')}
               </Button>
             </Flex>
           </FormControl>
             <Flex gap={6} mb={6} flexWrap="wrap">
         <FormControl flex="1" minW="250px">
           <FormLabel fontWeight="500" color="gray.700">
-            Pharmaceutical dose form
+            {t('forms.hcp.productDetails.doseFormLabel')}
           </FormLabel>
-          <Select placeholder="Select option" {...inputStyles} {...register(`${prefix}.doseForm`)}>
-            <option value="tablet">Tablet</option>
-            <option value="capsule">Capsule</option>
-            <option value="injection">Injection</option>
-            <option value="cream">Cream</option>
-            <option value="syrup">Syrup</option>
-            <option value="other">Other</option>
+          <Select placeholder={t('forms.patient.common.selectOption')} {...inputStyles} {...register(`${prefix}.doseForm`)}>
+            <option value="tablet">{t('forms.hcp.productDetails.doseForms.tablet')}</option>
+            <option value="capsule">{t('forms.hcp.productDetails.doseForms.capsule')}</option>
+            <option value="injection">{t('forms.hcp.productDetails.doseForms.injection')}</option>
+            <option value="cream">{t('forms.hcp.productDetails.doseForms.cream')}</option>
+            <option value="syrup">{t('forms.hcp.productDetails.doseForms.syrup')}</option>
+            <option value="other">{t('forms.hcp.productDetails.doseForms.other')}</option>
           </Select>
         </FormControl>
 
         <FormControl flex="1" minW="250px">
           <FormLabel fontWeight="500" color="gray.700">
-            Administration route of dose
+            {t('forms.hcp.productDetails.routeLabel')}
           </FormLabel>
-          <Select placeholder="Select option" {...inputStyles} {...register(`${prefix}.route`)}>
-            <option value="oral">Oral</option>
-            <option value="sublingual">Sublingual</option>
-            <option value="inhaled">Inhaled</option>
-            <option value="intramuscular">Intramuscular injection</option>
-            <option value="intravenous">Intravenous injection</option>
-            <option value="iv-infusion">Intravenous infusion/drip</option>
-            <option value="subcutaneous">Subcutaneous injection</option>
-            <option value="intradermal">Intradermal injection</option>
-            <option value="infusion">Infusion</option>
-            <option value="topical">Topical/cream</option>
-            <option value="eye-drops">Eye drops</option>
-            <option value="eye-cream">Eye cream</option>
-            <option value="ear-drop">Ear drop</option>
-            <option value="rectal">Rectal</option>
-            <option value="vaginal">Vaginal</option>
-            <option value="implant">Implant</option>
-            <option value="other">Other</option>
-            <option value="unknown">Unknown</option>
+          <Select placeholder={t('forms.patient.common.selectOption')} {...inputStyles} {...register(`${prefix}.route`)}>
+            <option value="oral">{t('forms.hcp.productDetails.routes.oral')}</option>
+            <option value="sublingual">{t('forms.hcp.productDetails.routes.sublingual')}</option>
+            <option value="inhaled">{t('forms.hcp.productDetails.routes.inhaled')}</option>
+            <option value="intramuscular">{t('forms.hcp.productDetails.routes.intramuscular')}</option>
+            <option value="intravenous">{t('forms.hcp.productDetails.routes.intravenous')}</option>
+            <option value="iv-infusion">{t('forms.hcp.productDetails.routes.iv-infusion')}</option>
+            <option value="subcutaneous">{t('forms.hcp.productDetails.routes.subcutaneous')}</option>
+            <option value="intradermal">{t('forms.hcp.productDetails.routes.intradermal')}</option>
+            <option value="infusion">{t('forms.hcp.productDetails.routes.infusion')}</option>
+            <option value="topical">{t('forms.hcp.productDetails.routes.topical')}</option>
+            <option value="eye-drops">{t('forms.hcp.productDetails.routes.eye-drops')}</option>
+            <option value="eye-cream">{t('forms.hcp.productDetails.routes.eye-cream')}</option>
+            <option value="ear-drop">{t('forms.hcp.productDetails.routes.ear-drop')}</option>
+            <option value="rectal">{t('forms.hcp.productDetails.routes.rectal')}</option>
+            <option value="vaginal">{t('forms.hcp.productDetails.routes.vaginal')}</option>
+            <option value="implant">{t('forms.hcp.productDetails.routes.implant')}</option>
+            <option value="other">{t('forms.hcp.productDetails.routes.other')}</option>
+            <option value="unknown">{t('forms.hcp.productDetails.routes.unknown')}</option>
           </Select>
         </FormControl>
       </Flex>
 
       <FormControl mb={8}>
         <FormLabel fontWeight="500" color="gray.700">
-          Dosage
+          {t('forms.patient.productDetails.dosageLabel')}
         </FormLabel>
         <Input
-          placeholder="Enter dose (e.g. 30mg per day)"
+          placeholder={t('forms.patient.productDetails.dosagePlaceholder')}
           {...inputStyles}
           {...register(`${prefix}.dosage`)}
         />
@@ -349,21 +349,21 @@ export function HcpProductDetails({ inputStyles, index = 0, onAddProduct }: HcpP
         leftIcon={<HiPlus />}
         onClick={() => appendBatch({ batchNumber: '', expiryDate: '', startDate: '', endDate: '' })}
       >
-        Add product batch
+        {t('forms.patient.productDetails.addBatch')}
       </Button>
 
       <FormControl mb={8}>
         <FormLabel fontWeight="500" color="gray.700">
-          What was the action taken for the drug due to the event?
+          {t('forms.hcp.productDetails.actionTakenLabel')}
         </FormLabel>
-        <Select placeholder="Select option" {...inputStyles} {...register(`${prefix}.actionTaken`)}>
-          <option value="no-change">No change</option>
-          <option value="dose-decreased">Dose decreased</option>
-          <option value="dose-increased">Dose increased</option>
-          <option value="withdrawn">Withdrawn</option>
-          <option value="unknown">Unknown</option>
-          <option value="not-applicable">Not Applicable</option>
-          <option value="suspended-interrupted">Suspended/Interrupted</option>
+        <Select placeholder={t('forms.patient.common.selectOption')} {...inputStyles} {...register(`${prefix}.actionTaken`)}>
+          <option value="no-change">{t('forms.hcp.productDetails.actions.no-change')}</option>
+          <option value="dose-decreased">{t('forms.hcp.productDetails.actions.dose-decreased')}</option>
+          <option value="dose-increased">{t('forms.hcp.productDetails.actions.dose-increased')}</option>
+          <option value="withdrawn">{t('forms.hcp.productDetails.actions.withdrawn')}</option>
+          <option value="unknown">{t('forms.hcp.productDetails.actions.unknown')}</option>
+          <option value="not-applicable">{t('forms.hcp.productDetails.actions.not-applicable')}</option>
+          <option value="suspended-interrupted">{t('forms.hcp.productDetails.actions.suspended-interrupted')}</option>
         </Select>
       </FormControl>
 
@@ -380,7 +380,7 @@ export function HcpProductDetails({ inputStyles, index = 0, onAddProduct }: HcpP
           leftIcon={<HiPlus />}
           onClick={onAddProduct}
         >
-          Add another product
+          {t('forms.patient.productDetails.anotherProduct')}
         </Button>
       )}
     </>

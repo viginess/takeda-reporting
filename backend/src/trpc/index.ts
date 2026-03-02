@@ -7,6 +7,7 @@ import { hcpRouter } from "../modules/hcp/hcp.router.js";
 import { patientRouter } from "../modules/patient/patient.router.js";
 import { familyRouter } from "../modules/family/family.router.js";
 import { notificationsRouter } from "../modules/notifications/notifications.router.js";
+import { translationRouter } from "../modules/translation/translationRouter.js";
 
 export const appRouter = router({
   admin: adminRouter,
@@ -15,6 +16,7 @@ export const appRouter = router({
   patient: patientRouter,
   family: familyRouter,
   notifications: notificationsRouter,
+  translation: translationRouter,
 });
 
 export type AppRouter = typeof appRouter;

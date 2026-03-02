@@ -14,6 +14,7 @@ import {
 import { useStepperContext } from '@saas-ui/react';
 import { useFormContext } from 'react-hook-form';
 import ReCAPTCHA from 'react-google-recaptcha';
+import { useTranslation, Trans } from 'react-i18next';
 
 interface ReviewRowProps {
   label: string;
@@ -68,6 +69,7 @@ export function HcpReviewConfirm({
   setCaptchaChecked,
   onBack,
 }: HcpReviewConfirmProps) {
+  const { t } = useTranslation();
   const { setStep } = useStepperContext();
   const { watch, setValue, register } = useFormContext();
   const formData = watch();
@@ -75,7 +77,7 @@ export function HcpReviewConfirm({
   return (
     <>
       <Heading as="h2" size="lg" mb={4} color="gray.800" fontWeight="600">
-        Review and confirm all sections of the report
+        {t('forms.hcp.reviewConfirm.title')}
       </Heading>
       <Flex justify="flex-end" mb={4}>
         <Button
@@ -84,7 +86,7 @@ export function HcpReviewConfirm({
           color="gray.600"
           onClick={() => setAccordionIndex([])}
         >
-          Hide all
+          {t('forms.hcp.reviewConfirm.hideAll')}
         </Button>
       </Flex>
 
@@ -107,7 +109,7 @@ export function HcpReviewConfirm({
             _expanded={{ bg: 'gray.50' }}
             justifyContent="space-between"
           >
-            <Text>Please select who you are.</Text>
+            <Text>{t('forms.hcp.reviewConfirm.sections.whoAreYou')}</Text>
             <Button
               size="sm"
               variant="ghost"
@@ -117,13 +119,13 @@ export function HcpReviewConfirm({
                 onBack?.();
               }}
             >
-              Edit
+              {t('forms.hcp.reviewConfirm.edit')}
             </Button>
           </AccordionButton>
           <AccordionPanel pb={4} bg="white">
             <Flex justify="space-between" py={2} borderBottom="1px solid" borderColor="gray.100">
-              <Text color="gray.600">I am...</Text>
-              <Text fontWeight="500">A Healthcare Professional</Text>
+              <Text color="gray.600">{t('forms.hcp.reviewConfirm.labels.iam')}</Text>
+              <Text fontWeight="500">{t('forms.hcp.reviewConfirm.labels.hcp')}</Text>
             </Flex>
           </AccordionPanel>
         </AccordionItem>
@@ -135,7 +137,10 @@ export function HcpReviewConfirm({
             _expanded={{ bg: 'gray.50' }}
             justifyContent="space-between"
           >
-            <Text>Product details {formData.products?.length > 1 && `(${formData.products.length} products)`}</Text>
+            <Text>
+              {t('forms.hcp.reviewConfirm.sections.productDetails')}{' '}
+              {formData.products?.length > 1 && t('forms.hcp.reviewConfirm.sections.productsCount', { count: formData.products.length })}
+            </Text>
             <Button
               size="sm"
               variant="ghost"
@@ -145,18 +150,18 @@ export function HcpReviewConfirm({
                 setStep('product');
               }}
             >
-              Edit
+              {t('forms.hcp.reviewConfirm.edit')}
             </Button>
           </AccordionButton>
           <AccordionPanel pb={4} bg="white">
             {(formData.products || []).map((p: any, index: number) => (
               <Box key={index} mb={index < formData.products.length - 1 ? 6 : 0}>
-                {formData.products.length > 1 && <SectionTitle>Product {index + 1}</SectionTitle>}
-                <ReviewRow label="Product name" value={v(p.productName)} />
-                <ReviewRow label="Condition" value={v(p.conditions?.[0]?.name)} />
-                <ReviewRow label="Batch/lot number" value={v(p.batches?.[0]?.batchNumber)} />
-                <ReviewRow label="Pharmaceutical dose form" value={v(p.doseForm)} />
-                <ReviewRow label="Administration route" value={v(p.route)} />
+                {formData.products.length > 1 && <SectionTitle>{t('forms.patient.additionalDetails.productIndex', { index: index + 1 })}</SectionTitle>}
+                <ReviewRow label={t('forms.hcp.reviewConfirm.labels.productName')} value={v(p.productName)} />
+                <ReviewRow label={t('forms.hcp.reviewConfirm.labels.condition')} value={v(p.conditions?.[0]?.name)} />
+                <ReviewRow label={t('forms.hcp.reviewConfirm.labels.batchNumber')} value={v(p.batches?.[0]?.batchNumber)} />
+                <ReviewRow label={t('forms.hcp.reviewConfirm.labels.doseForm')} value={v(p.doseForm)} />
+                <ReviewRow label={t('forms.hcp.reviewConfirm.labels.route')} value={v(p.route)} />
               </Box>
             ))}
           </AccordionPanel>
@@ -169,7 +174,10 @@ export function HcpReviewConfirm({
             _expanded={{ bg: 'gray.50' }}
             justifyContent="space-between"
           >
-            <Text>Adverse event details {formData.symptoms?.length > 1 && `(${formData.symptoms.length} symptoms)`}</Text>
+            <Text>
+              {t('forms.hcp.reviewConfirm.sections.eventDetails')}{' '}
+              {formData.symptoms?.length > 1 && t('forms.hcp.reviewConfirm.sections.symptomsCount', { count: formData.symptoms.length })}
+            </Text>
             <Button
               size="sm"
               variant="ghost"
@@ -179,16 +187,19 @@ export function HcpReviewConfirm({
                 setStep('event');
               }}
             >
-              Edit
+              {t('forms.hcp.reviewConfirm.edit')}
             </Button>
           </AccordionButton>
           <AccordionPanel pb={4} bg="white">
             {(formData.symptoms || []).map((s: any, index: number) => (
               <Box key={index} mb={index < formData.symptoms.length - 1 ? 6 : 0}>
-                {formData.symptoms.length > 1 && <SectionTitle>Event {index + 1}</SectionTitle>}
-                <ReviewRow label="Symptom" value={v(s.name)} />
-                <ReviewRow label="Dates" value={(s.eventStartDate || s.eventEndDate) ? `${s.eventStartDate || '?'} to ${s.eventEndDate || 'Ongoing'}` : '—'} />
-                <ReviewRow label="Relationship to product" value={v(s.relationship)} />
+                {formData.symptoms.length > 1 && <SectionTitle>{t('forms.patient.eventDetails.symptomIndex', { index: index + 1 })}</SectionTitle>}
+                <ReviewRow label={t('forms.hcp.reviewConfirm.labels.symptom')} value={v(s.name)} />
+                <ReviewRow 
+                  label={t('forms.hcp.reviewConfirm.labels.dates')} 
+                  value={(s.eventStartDate || s.eventEndDate) ? `${s.eventStartDate || '?'} to ${s.eventEndDate || t('forms.patient.common.ongoing')}` : '—'} 
+                />
+                <ReviewRow label={t('forms.hcp.reviewConfirm.labels.relationship')} value={v(s.relationship)} />
               </Box>
             ))}
           </AccordionPanel>
@@ -201,7 +212,7 @@ export function HcpReviewConfirm({
             _expanded={{ bg: 'gray.50' }}
             justifyContent="space-between"
           >
-            <Text>Patient details</Text>
+            <Text>{t('forms.hcp.reviewConfirm.sections.patientDetails')}</Text>
             <Button
               size="sm"
               variant="ghost"
@@ -211,15 +222,15 @@ export function HcpReviewConfirm({
                 setStep('patient');
               }}
             >
-              Edit
+              {t('forms.hcp.reviewConfirm.edit')}
             </Button>
           </AccordionButton>
           <AccordionPanel pb={4} bg="white">
-            <ReviewRow label="Patient Initials" value={v(formData.patientInitials)} />
-            <ReviewRow label="Age/DOB" value={v(formData.age || formData.dob)} />
-            <ReviewRow label="Sex" value={v(formData.gender)} />
-            <ReviewRow label="Height" value={v(formData.height)} />
-            <ReviewRow label="Weight" value={v(formData.weight)} />
+            <ReviewRow label={t('forms.hcp.reviewConfirm.labels.patientInitials')} value={v(formData.patientInitials)} />
+            <ReviewRow label={t('forms.hcp.reviewConfirm.labels.ageDob')} value={v(formData.age || formData.dob)} />
+            <ReviewRow label={t('forms.hcp.reviewConfirm.labels.sex')} value={v(formData.gender)} />
+            <ReviewRow label={t('forms.hcp.reviewConfirm.labels.height')} value={v(formData.height)} />
+            <ReviewRow label={t('forms.hcp.reviewConfirm.labels.weight')} value={v(formData.weight)} />
           </AccordionPanel>
         </AccordionItem>
 
@@ -230,7 +241,7 @@ export function HcpReviewConfirm({
             _expanded={{ bg: 'gray.50' }}
             justifyContent="space-between"
           >
-            <Text>Reporter information</Text>
+            <Text>{t('forms.hcp.reviewConfirm.sections.reporterInfo')}</Text>
             <Button
               size="sm"
               variant="ghost"
@@ -240,76 +251,76 @@ export function HcpReviewConfirm({
                 setStep('you');
               }}
             >
-              Edit
+              {t('forms.hcp.reviewConfirm.edit')}
             </Button>
           </AccordionButton>
           <AccordionPanel pb={4} bg="white">
-            <ReviewRow label="Name" value={[v(formData.firstName), v(formData.lastName)].filter(x => x !== '—').join(' ') || '—'} />
-            <ReviewRow label="Hospital/Institution" value={v(formData.institution)} />
-            <ReviewRow label="Email" value={v(formData.email)} />
-            <ReviewRow label="Phone" value={v(formData.phone)} />
-            <ReviewRow label="Address" value={[v(formData.address), v(formData.city), v(formData.state), v(formData.country)].filter(x => x !== '—').join(', ') || '—'} />
-            <ReviewRow label="Contact Permission" value={v(formData.contactPermission)} />
+            <ReviewRow label={t('forms.hcp.reviewConfirm.labels.name')} value={[v(formData.firstName), v(formData.lastName)].filter(x => x !== '—').join(' ') || '—'} />
+            <ReviewRow label={t('forms.hcp.reviewConfirm.labels.institution')} value={v(formData.institution)} />
+            <ReviewRow label={t('forms.hcp.reviewConfirm.labels.email')} value={v(formData.email)} />
+            <ReviewRow label={t('forms.hcp.reviewConfirm.labels.phone')} value={v(formData.phone)} />
+            <ReviewRow label={t('forms.hcp.reviewConfirm.labels.address')} value={[v(formData.address), v(formData.city), v(formData.state), v(formData.country)].filter(x => x !== '—').join(', ') || '—'} />
+            <ReviewRow label={t('forms.hcp.reviewConfirm.labels.contactPermission')} value={v(formData.contactPermission)} />
           </AccordionPanel>
         </AccordionItem>
 
         <AccordionItem>
           <AccordionButton fontWeight="600" color="gray.800" _expanded={{ bg: 'gray.50' }} justifyContent="space-between">
-            <Text>Additional details</Text>
-            <Button size="sm" variant="ghost" leftIcon={<span>✎</span>} onClick={(e) => { e.stopPropagation(); setStep('additional'); }}>Edit</Button>
+            <Text>{t('forms.hcp.reviewConfirm.sections.additionalDetails')}</Text>
+            <Button size="sm" variant="ghost" leftIcon={<span>✎</span>} onClick={(e) => { e.stopPropagation(); setStep('additional'); }}>{t('forms.hcp.reviewConfirm.edit')}</Button>
           </AccordionButton>
           <AccordionPanel pb={4} bg="white">
             {/* Other medications */}
             {(formData.otherMedications?.length > 0) ? (
               <>
-                <SectionTitle>Other medications ({formData.otherMedications.length})</SectionTitle>
+                <SectionTitle>{t('forms.hcp.reviewConfirm.labels.otherMedicationsCount', { count: formData.otherMedications.length })}</SectionTitle>
                 {formData.otherMedications.map((m: any, i: number) => (
                   <Box key={i} mb={2}>
-                    <ReviewRow label={`Medication ${i + 1}`} value={v(m?.product)} />
-                    <ReviewRow label="Condition" value={v(m?.condition)} />
+                    <ReviewRow label={t('forms.patient.additionalDetails.medicationIndex', { index: i + 1 })} value={v(m?.product)} />
+                    <ReviewRow label={t('forms.hcp.reviewConfirm.labels.condition')} value={v(m?.condition)} />
                   </Box>
                 ))}
               </>
             ) : (
-              <ReviewRow label="Other medications" value="None" />
+              <ReviewRow label={t('forms.hcp.reviewConfirm.labels.otherMedications')} value={t('forms.patient.common.none')} />
             )}
 
             {/* Medical history */}
             {(formData.medicalHistory?.length > 0) ? (
               <>
-                <SectionTitle>Medical history ({formData.medicalHistory.length})</SectionTitle>
+                <SectionTitle>{t('forms.hcp.reviewConfirm.labels.medicalHistoryCount', { count: formData.medicalHistory.length })}</SectionTitle>
                 {formData.medicalHistory.map((h: any, i: number) => (
                   <Box key={i} mb={2}>
-                    <ReviewRow label={`Condition ${i + 1}`} value={v(h?.conditionName)} />
-                    {h?.info && <ReviewRow label="Additional info" value={v(h?.info)} />}
+                    <ReviewRow label={t('forms.patient.additionalDetails.historyIndex', { index: i + 1 })} value={v(h?.conditionName)} />
+                    {h?.info && <ReviewRow label={t('forms.hcp.reviewConfirm.labels.additionalInfo')} value={v(h?.info)} />}
                   </Box>
                 ))}
               </>
             ) : (
-              <ReviewRow label="Medical history" value="None" />
+              <ReviewRow label={t('forms.hcp.reviewConfirm.labels.medicalHistory')} value={t('forms.patient.common.none')} />
             )}
 
             {/* Lab tests */}
             {(formData.labTests?.length > 0) ? (
               <>
-                <SectionTitle>Lab tests ({formData.labTests.length})</SectionTitle>
-                {formData.labTests.map((t: any, i: number) => (
+                <SectionTitle>{t('forms.hcp.reviewConfirm.labels.labTestsCount', { count: formData.labTests.length })}</SectionTitle>
+                {formData.labTests.map((t_item: any, i: number) => (
                   <Box key={i} mb={2}>
-                    <ReviewRow label={`Test ${i + 1}`} value={v(t?.testName)} />
-                    <ReviewRow label="Result" value={[v(t?.testQualifier), v(t?.testValue)].filter(x => x !== '—').join(' ') || '—'} />
-                    {t?.outcome?.length > 0 && <ReviewRow label="Outcome" value={arr(t?.outcome)} />}
-                    {t?.testComments && <ReviewRow label="Comments" value={v(t?.testComments)} />}
+                    <ReviewRow label={t('forms.patient.additionalDetails.testIndex', { index: i + 1 })} value={v(t_item?.testName)} />
+                    <ReviewRow label={t('forms.hcp.reviewConfirm.labels.testResult')} value={[v(t_item?.testQualifier), v(t_item?.testValue)].filter(x => x !== '—').join(' ') || '—'} />
+                    {t_item?.outcome?.length > 0 && <ReviewRow label={t('forms.hcp.reviewConfirm.labels.outcome')} value={arr(t_item?.outcome)} />}
+                    {t_item?.testComments && <ReviewRow label={t('forms.hcp.reviewConfirm.labels.comments')} value={v(t_item?.testComments)} />}
                   </Box>
                 ))}
               </>
             ) : (
-              <ReviewRow label="Lab tests" value="None" />
+              <ReviewRow label={t('forms.hcp.reviewConfirm.labels.labTests')} value={t('forms.patient.common.none')} />
             )}
 
             {/* Additional Info */}
-            <SectionTitle>Other information</SectionTitle>
-            <ReviewRow label="Additional details" value={v(formData.additionalDetails)} />
-            <ReviewRow label="Attachments" value={formData.attachments?.length ? `${formData.attachments.length} file(s)` : 'None'} />
+            <SectionTitle>{t('forms.hcp.reviewConfirm.sections.otherInformation')}</SectionTitle>
+            <ReviewRow label={t('forms.hcp.reviewConfirm.labels.additionalDetails')} value={v(formData.additionalDetails)} />
+            <ReviewRow label={t('forms.hcp.reviewConfirm.labels.attachments')} value={formData.attachments?.length ? t('forms.hcp.reviewConfirm.labels.filesCount', { count: formData.attachments.length }) : t('forms.patient.common.none')} />
           </AccordionPanel>
         </AccordionItem>
       </Accordion>
@@ -349,26 +360,41 @@ export function HcpReviewConfirm({
             setValue('agreedToTerms', e.target.checked, { shouldValidate: true });
           }}
         >
-          I agree to the processing of my information as described in the{' '}
-          <Link href="https://www.takeda.com/privacy-notice/" isExternal color="#CE0037" textDecoration="underline">
-            Privacy Notice
-          </Link>{' '}
-          and{' '}
-          <Link href="https://www.takeda.com/terms-and-conditions/" isExternal color="#CE0037" textDecoration="underline">
-            Terms and Conditions
-          </Link>
-          . I consent to Clin Solutions L.L.C. sharing this report with regulatory authorities and
-          other parties as required by law.
+          <Trans
+            i18nKey="forms.hcp.reviewConfirm.terms.agreeLabel"
+            values={{
+              privacy: t('forms.hcp.reviewConfirm.terms.privacy'),
+              terms: t('forms.hcp.reviewConfirm.terms.terms')
+            }}
+            components={{
+              privacy: (
+                <Link
+                  href="https://www.takeda.com/privacy-notice/"
+                  isExternal
+                  color="#CE0037"
+                  textDecoration="underline"
+                />
+              ),
+              terms: (
+                <Link
+                  href="https://www.takeda.com/terms-and-conditions/"
+                  isExternal
+                  color="#CE0037"
+                  textDecoration="underline"
+                />
+              )
+            }}
+          />
         </Checkbox>
       </Box>
 
       {(!agreedToTerms || !captchaChecked) && (
         <Text fontSize="xs" color="red.400" mb={2}>
           {!captchaChecked && !agreedToTerms
-            ? 'Please confirm you are not a robot and agree to the terms to submit.'
+            ? t('forms.hcp.reviewConfirm.terms.captchaError')
             : !captchaChecked
-            ? 'Please confirm you are not a robot.'
-            : 'Please agree to the terms to submit.'}
+            ? t('forms.hcp.reviewConfirm.terms.captchaOnly')
+            : t('forms.hcp.reviewConfirm.terms.termsOnly')}
         </Text>
       )}
     </>

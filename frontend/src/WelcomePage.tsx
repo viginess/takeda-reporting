@@ -12,6 +12,7 @@ import {
   CardBody,
   SimpleGrid,
   Link,
+  HStack,
 } from '@chakra-ui/react';
 import { useState } from 'react';
 
@@ -21,10 +22,13 @@ import FamilyForm from './features/family-report';
 import HcpForm from './features/hcp-report';
 import { countries } from './utils/countries';
 import { languages } from './utils/languages';
+import { useTranslation } from 'react-i18next';
+import { LanguageSelector } from './components/LanguageSelector';
 
 type Step = 'select' | 'audience' | 'patient' | 'family' | 'hcp';
 
 function WelcomePage() {
+  const { t } = useTranslation();
   const [step, setStep] = useState<Step>('select');
   const [country, setCountry] = useState('');
   const [language, setLanguage] = useState('');
@@ -70,15 +74,18 @@ function WelcomePage() {
         <Link href="/">
     <Image src={logo} alt="Clin Solutions L.L.C." h="48px" cursor="pointer" filter="drop-shadow(0 2px 4px rgba(0,0,0,0.1))" />
   </Link>
-        <Heading
-          as="h1"
-          size="md"
-          fontWeight="600"
-          letterSpacing="tight"
-          color="gray.800"
-        >
-          Let's take the next step toward better health
-        </Heading>
+        <HStack spacing={4}>
+          <LanguageSelector />
+          <Heading
+            as="h1"
+            size="md"
+            fontWeight="600"
+            letterSpacing="tight"
+            color="gray.800"
+          >
+            {t('welcome.title')}
+          </Heading>
+        </HStack>
       </Flex>
 
       {/* Main Content */}
@@ -149,7 +156,7 @@ function WelcomePage() {
                   position="relative"
                   zIndex={1}
                 >
-                  Better Health for People, Brighter Future for the World
+                  {t('welcome.subtitle')}
                 </Text>
               </Box>
 
@@ -158,10 +165,10 @@ function WelcomePage() {
                 {step === 'select' ? (
                   <>
                     <Heading as="h2" size="lg" mb={2} color="gray.800" fontWeight="600">
-                      Get Started
+                      {t('welcome.getStarted')}
                     </Heading>
                     <Text fontSize="sm" color="gray.600" mb={8}>
-                      Please select your country and preferred language
+                      {t('welcome.select_country_language', 'Please select your country and preferred language')}
                     </Text>
 
                     {/* Country Field */}

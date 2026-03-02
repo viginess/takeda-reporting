@@ -10,6 +10,7 @@ import {
   Radio,
 } from '@chakra-ui/react';
 import { useFormContext } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 
 interface ReporterDetailsProps {
   inputStyles: any;
@@ -26,24 +27,25 @@ export function ReporterDetails({
   hcpContactPermission,
   setHcpContactPermission,
 }: ReporterDetailsProps) {
+  const { t } = useTranslation();
   const { register, setValue, watch } = useFormContext();
 
   return (
     <>
       <Heading as="h2" size="lg" mb={2} color="gray.800" fontWeight="600">
-        Enter your information
+        {t('forms.shared.reporterDetails.title')}
       </Heading>
       <Text fontSize="sm" color="gray.600" mb={4}>
-        Please enter your details
+        {t('forms.shared.reporterDetails.subtitle')}
       </Text>
       <Box borderBottom="2px solid" borderColor="#CE0037" mb={6} w="full" maxW="200px" />
 
       <FormControl mb={4}>
         <FormLabel fontWeight="500" color="gray.700">
-          First name
+          {t('forms.shared.reporterDetails.firstNameLabel')}
         </FormLabel>
         <Input 
-          placeholder="Enter first name" 
+          placeholder={t('forms.shared.reporterDetails.firstNamePlaceholder')}
           {...inputStyles} 
           {...register('hcpDetails.firstName')} 
         />
@@ -51,10 +53,10 @@ export function ReporterDetails({
 
       <FormControl mb={4}>
         <FormLabel fontWeight="500" color="gray.700">
-          Last name
+          {t('forms.shared.reporterDetails.lastNameLabel')}
         </FormLabel>
         <Input 
-          placeholder="Enter last name" 
+          placeholder={t('forms.shared.reporterDetails.lastNamePlaceholder')}
           {...inputStyles} 
           {...register('hcpDetails.lastName')} 
         />
@@ -62,14 +64,14 @@ export function ReporterDetails({
 
       <FormControl mb={6}>
         <FormLabel fontWeight="500" color="gray.700">
-          Relationship to patient
+          {t('forms.shared.reporterDetails.relationshipLabel')}
         </FormLabel>
-        <Input placeholder="Enter relationship to patient" {...inputStyles} {...register('hcpDetails.relationship')} />
+        <Input placeholder={t('forms.shared.reporterDetails.relationshipPlaceholder')} {...inputStyles} {...register('hcpDetails.relationship')} />
       </FormControl>
 
       <FormControl mb={6} isRequired>
         <FormLabel fontWeight="500" color="gray.700">
-          Do we have permission to contact you?
+          {t('forms.patient.personalDetails.contactPermissionLabel')}
         </FormLabel>
         <RadioGroup
           value={watch('hcpDetails.contactPermission') || contactPermission}
@@ -92,11 +94,11 @@ export function ReporterDetails({
       {contactPermission === 'yes' && (
         <Box mb={6} p={4} bg="gray.50" borderRadius="lg" borderWidth="1px" borderColor="gray.200">
           <Text fontWeight="600" mb={4} color="gray.700">
-            Your contact information
+            {t('forms.patient.personalDetails.contactInfoTitle')}
           </Text>
           <FormControl mb={4} isRequired>
             <FormLabel fontWeight="500" color="gray.700">
-              Email address
+              {t('forms.patient.personalDetails.emailLabel')}
             </FormLabel>
             <Input 
               placeholder="client@gmail.com" 
@@ -113,10 +115,10 @@ export function ReporterDetails({
           </FormControl>
           <FormControl isRequired>
             <FormLabel fontWeight="500" color="gray.700">
-              Phone number
+              {t('forms.patient.personalDetails.phoneLabel')}
             </FormLabel>
             <Input 
-              placeholder="Enter your phone number" 
+              placeholder={t('forms.patient.personalDetails.phonePlaceholder')} 
               {...inputStyles} 
               {...register('hcpDetails.phone', { 
                 required: 'Phone number is required',
@@ -132,8 +134,7 @@ export function ReporterDetails({
 
       <FormControl mb={8}>
         <FormLabel fontWeight="500" color="gray.700">
-          Do we have permission to contact your Healthcare Professional (HCP) about this
-          report?
+          {t('forms.patient.personalDetails.hcpPermissionLabel')}
         </FormLabel>
         <RadioGroup
           value={watch('hcpDetails.hcpContactPermission') || hcpContactPermission}
@@ -156,32 +157,32 @@ export function ReporterDetails({
       {hcpContactPermission === 'yes' && (
         <Box mb={8} p={4} bg="gray.50" borderRadius="lg" borderWidth="1px" borderColor="gray.200">
           <Text fontWeight="600" mb={4} color="gray.700">
-            HCP contact information
+            {t('forms.patient.personalDetails.hcpTitle')}
           </Text>
           <FormControl mb={4}>
             <FormLabel fontWeight="500" color="gray.700">
-              First name
+              {t('forms.patient.personalDetails.firstNameLabel')}
             </FormLabel>
             <Input placeholder="Enter first name" {...inputStyles} {...register('hcpDetails.hcpFirstName')} />
           </FormControl>
           <FormControl mb={4}>
             <FormLabel fontWeight="500" color="gray.700">
-              Last name
+              {t('forms.patient.personalDetails.lastNameLabel')}
             </FormLabel>
             <Input placeholder="Enter last name" {...inputStyles} {...register('hcpDetails.hcpLastName')} />
           </FormControl>
           <Text fontWeight="600" mb={3} color="gray.700" fontSize="sm">
-            How do we contact them? (complete at least one of these fields)
+            {t('forms.patient.personalDetails.hcpContactMethodSubtitle')}
           </Text>
           <FormControl mb={4}>
             <FormLabel fontWeight="500" color="gray.700">
-              Email
+              {t('forms.patient.personalDetails.emailLabel')}
             </FormLabel>
             <Input placeholder="Enter email address" type="email" {...inputStyles} {...register('hcpDetails.hcpEmail')} />
           </FormControl>
           <FormControl mb={4}>
             <FormLabel fontWeight="500" color="gray.700">
-              Phone number
+              {t('forms.patient.personalDetails.phoneLabel')}
             </FormLabel>
             <Input placeholder="Enter number including area code" type="tel" {...inputStyles} {...register('hcpDetails.hcpPhone')} />
           </FormControl>

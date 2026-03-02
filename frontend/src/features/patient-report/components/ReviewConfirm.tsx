@@ -16,8 +16,10 @@ import {
 import { useStepperContext } from '@saas-ui/react';
 import { useFormContext, useWatch } from 'react-hook-form';
 import ReCAPTCHA from 'react-google-recaptcha';
+import { useTranslation, Trans } from 'react-i18next';
 
 function EditLink({ onClick }: { onClick: () => void }) {
+  const { t } = useTranslation();
   return (
     <Box
       as="span"
@@ -27,7 +29,7 @@ function EditLink({ onClick }: { onClick: () => void }) {
       _hover={{ color: '#CE0037', bg: 'red.50' }}
       onClick={(e: React.MouseEvent) => { e.stopPropagation(); onClick(); }}
     >
-      ✎ Edit
+      ✎ {t('forms.patient.reviewConfirm.edit')}
     </Box>
   );
 }
@@ -65,6 +67,7 @@ export function ReviewConfirm({
   captchaChecked,
   setCaptchaChecked,
 }: ReviewConfirmProps) {
+  const { t } = useTranslation();
   const { setStep } = useStepperContext();
   const { control, setValue, register } = useFormContext();
 
@@ -82,19 +85,19 @@ export function ReviewConfirm({
   const v = (val: any) => (val && String(val).trim() ? String(val) : '—');
   const arr = (val: any) => Array.isArray(val) ? val.join(', ') : '—';
   const ageDisplay = patientDetails.dob
-    ? `DOB: ${patientDetails.dob}`
+    ? `${t('forms.patient.personalDetails.dobLabel')}: ${patientDetails.dob}`
     : patientDetails.ageValue
-    ? `${patientDetails.ageValue} years`
+    ? `${patientDetails.ageValue} ${t('forms.patient.personalDetails.years').toLowerCase()}`
     : '—';
 
   return (
     <>
       <Heading as="h2" size="lg" mb={4} color="gray.800" fontWeight="600">
-        Review and confirm your report
+        {t('forms.patient.reviewConfirm.title')}
       </Heading>
       <Flex justify="flex-end" mb={4}>
         <Button variant="ghost" size="sm" color="gray.600" onClick={() => setAccordionIndex([])}>
-          Hide all
+          {t('forms.patient.reviewConfirm.hideAll')}
         </Button>
       </Flex>
 
@@ -108,34 +111,34 @@ export function ReviewConfirm({
         <AccordionItem>
           <AccordionButton fontWeight="600" color="gray.800" _expanded={{ bg: 'gray.50' }} justifyContent="space-between">
             <Flex align="center" gap={2}>
-              <Text>Product details</Text>
+              <Text>{t('forms.patient.productDetails.title')}</Text>
               {products.length > 0 && <Badge colorScheme="red" fontSize="xs">{products.length}</Badge>}
             </Flex>
             <EditLink onClick={() => setStep('product')} />
           </AccordionButton>
           <AccordionPanel pb={4} bg="white">
-            {products.length === 0 && <Text fontSize="sm" color="gray.400">No products added.</Text>}
+            {products.length === 0 && <Text fontSize="sm" color="gray.400">{t('forms.patient.reviewConfirm.noProducts')}</Text>}
             {products.map((p: any, i: number) => (
               <Box key={i} mb={i < products.length - 1 ? 4 : 0}>
-                {products.length > 1 && <SectionTitle>Product {i + 1}</SectionTitle>}
-                <ReviewRow label="Product name" value={v(p?.productName)} />
+                {products.length > 1 && <SectionTitle>{t('forms.patient.reviewConfirm.productNum', { num: i + 1 })}</SectionTitle>}
+                <ReviewRow label={t('forms.patient.productDetails.productNameLabel')} value={v(p?.productName)} />
                 {/* conditions array */}
                 {(p?.conditions ?? []).length > 0 && (
                   <ReviewRow
-                    label="Conditions"
+                    label={t('forms.patient.productDetails.conditionsLabel')}
                     value={(p.conditions as any[]).map((c: any) => c?.name).filter(Boolean).join(', ') || '—'}
                   />
                 )}
-                <ReviewRow label="Action taken" value={v(p?.actionTaken)} />
+                <ReviewRow label={t('forms.patient.productDetails.actionTakenLabel')} value={v(p?.actionTaken)} />
                 {/* batches */}
                 {(p?.batches ?? []).map((b: any, bi: number) => (
                   <Box key={bi} pl={3} borderLeft="2px solid" borderColor="gray.100" mt={2}>
-                    <Text fontSize="xs" fontWeight="600" color="gray.500" mb={1}>Batch {bi + 1}</Text>
-                    <ReviewRow label="Batch / lot number" value={v(b?.batchNumber)} />
-                    <ReviewRow label="Expiry date" value={v(b?.expiryDate)} />
-                    <ReviewRow label="Start date" value={v(b?.startDate)} />
-                    <ReviewRow label="End date" value={v(b?.endDate)} />
-                    <ReviewRow label="Dosage" value={v(b?.dosage)} />
+                    <Text fontSize="xs" fontWeight="600" color="gray.500" mb={1}>{t('forms.patient.productDetails.batchNum', { num: bi + 1 })}</Text>
+                    <ReviewRow label={t('forms.patient.productDetails.batchLotNumberLabel')} value={v(b?.batchNumber)} />
+                    <ReviewRow label={t('forms.patient.productDetails.expiryDateLabel')} value={v(b?.expiryDate)} />
+                    <ReviewRow label={t('forms.patient.productDetails.startDateLabel')} value={v(b?.startDate)} />
+                    <ReviewRow label={t('forms.patient.productDetails.endDateLabel')} value={v(b?.endDate)} />
+                    <ReviewRow label={t('forms.patient.productDetails.dosageLabel')} value={v(b?.dosage)} />
                   </Box>
                 ))}
                 {i < products.length - 1 && <Divider my={3} />}
@@ -148,23 +151,23 @@ export function ReviewConfirm({
         <AccordionItem>
           <AccordionButton fontWeight="600" color="gray.800" _expanded={{ bg: 'gray.50' }} justifyContent="space-between">
             <Flex align="center" gap={2}>
-              <Text>Adverse event details</Text>
+              <Text>{t('forms.patient.eventDetails.title')}</Text>
               {symptoms.length > 0 && <Badge colorScheme="orange" fontSize="xs">{symptoms.length}</Badge>}
             </Flex>
             <EditLink onClick={() => setStep('event')} />
           </AccordionButton>
           <AccordionPanel pb={4} bg="white">
-            {symptoms.length === 0 && <Text fontSize="sm" color="gray.400">No symptoms added.</Text>}
+            {symptoms.length === 0 && <Text fontSize="sm" color="gray.400">{t('forms.patient.reviewConfirm.noSymptoms')}</Text>}
             {symptoms.map((s: any, i: number) => (
               <Box key={i} mb={i < symptoms.length - 1 ? 4 : 0}>
-                {symptoms.length > 1 && <SectionTitle>Symptom {i + 1}</SectionTitle>}
-                <ReviewRow label="Symptom" value={v(s?.name)} />
-                <ReviewRow label="Start date" value={v(s?.eventStartDate)} />
-                <ReviewRow label="End date" value={v(s?.eventEndDate)} />
-                <ReviewRow label="Was it treated?" value={v(s?.symptomTreated)} />
-                {s?.symptomTreated === 'yes' && <ReviewRow label="Treatment" value={v(s?.treatment)} />}
-                <ReviewRow label="Seriousness" value={v(s?.seriousness)} />
-                <ReviewRow label="Outcome" value={v(s?.outcome)} />
+                {symptoms.length > 1 && <SectionTitle>{t('forms.patient.eventDetails.symptomIndex', { num: i + 1 })}</SectionTitle>}
+                <ReviewRow label={t('forms.patient.eventDetails.symptomLabel')} value={v(s?.name)} />
+                <ReviewRow label={t('forms.patient.eventDetails.startDateLabel')} value={v(s?.eventStartDate)} />
+                <ReviewRow label={t('forms.patient.eventDetails.endDateLabel')} value={v(s?.eventEndDate)} />
+                <ReviewRow label={t('forms.patient.eventDetails.treatedLabel')} value={v(s?.symptomTreated)} />
+                {s?.symptomTreated === 'yes' && <ReviewRow label={t('forms.patient.eventDetails.treatmentLabel')} value={v(s?.treatment)} />}
+                <ReviewRow label={t('forms.patient.eventDetails.seriousLabel')} value={v(s?.seriousness)} />
+                <ReviewRow label={t('forms.patient.eventDetails.outcomeLabel')} value={v(s?.outcome)} />
                 {i < symptoms.length - 1 && <Divider my={3} />}
               </Box>
             ))}
@@ -174,26 +177,26 @@ export function ReviewConfirm({
         {/* ── PERSONAL ── */}
         <AccordionItem>
           <AccordionButton fontWeight="600" color="gray.800" _expanded={{ bg: 'gray.50' }} justifyContent="space-between">
-            <Text>Personal details</Text>
+            <Text>{t('forms.patient.personalDetails.title')}</Text>
             <EditLink onClick={() => setStep('personal')} />
           </AccordionButton>
           <AccordionPanel pb={4} bg="white">
-            <SectionTitle>Patient</SectionTitle>
-            <ReviewRow label="Full name" value={v(patientDetails.name)} />
-            <ReviewRow label="Initials" value={v(patientDetails.initials)} />
-            <ReviewRow label="Gender" value={v(patientDetails.gender)} />
-            <ReviewRow label="Age / Date of birth" value={ageDisplay} />
-            <ReviewRow label="Email" value={v(patientDetails.email)} />
-            <ReviewRow label="Contact permission" value={v(patientDetails.contactPermission)} />
+            <SectionTitle>{t('forms.patient.reviewConfirm.patientReviewTitle')}</SectionTitle>
+            <ReviewRow label={t('forms.patient.reviewConfirm.fullName')} value={v(patientDetails.name)} />
+            <ReviewRow label={t('forms.patient.personalDetails.initialsLabel')} value={v(patientDetails.initials)} />
+            <ReviewRow label={t('forms.patient.personalDetails.sexLabel')} value={v(patientDetails.gender)} />
+            <ReviewRow label={t('forms.patient.reviewConfirm.ageDob')} value={ageDisplay} />
+            <ReviewRow label={t('forms.patient.personalDetails.emailLabel')} value={v(patientDetails.email)} />
+            <ReviewRow label={t('forms.patient.personalDetails.contactPermissionLabel')} value={v(patientDetails.contactPermission)} />
 
             {(hcpDetails.firstName || hcpDetails.lastName || hcpDetails.email || hcpDetails.phone) && (
               <>
-                <SectionTitle>Healthcare Professional (HCP)</SectionTitle>
-                <ReviewRow label="Name" value={[v(hcpDetails.firstName), v(hcpDetails.lastName)].filter(x => x !== '—').join(' ') || '—'} />
-                <ReviewRow label="Email" value={v(hcpDetails.email)} />
-                <ReviewRow label="Phone" value={v(hcpDetails.phone)} />
-                <ReviewRow label="Institution" value={v(hcpDetails.institution)} />
-                <ReviewRow label="Address" value={[v(hcpDetails.address), v(hcpDetails.city), v(hcpDetails.state), v(hcpDetails.country)].filter(x => x !== '—').join(', ') || '—'} />
+                <SectionTitle>{t('forms.patient.reviewConfirm.hcpReviewTitle')}</SectionTitle>
+                <ReviewRow label={t('forms.patient.personalDetails.nameLabel')} value={[v(hcpDetails.firstName), v(hcpDetails.lastName)].filter(x => x !== '—').join(' ') || '—'} />
+                <ReviewRow label={t('forms.patient.personalDetails.emailLabel')} value={v(hcpDetails.email)} />
+                <ReviewRow label={t('forms.patient.personalDetails.phoneLabel')} value={v(hcpDetails.phone)} />
+                <ReviewRow label={t('forms.patient.personalDetails.institutionLabel')} value={v(hcpDetails.institution)} />
+                <ReviewRow label={t('forms.patient.personalDetails.addressLabel')} value={[v(hcpDetails.address), v(hcpDetails.city), v(hcpDetails.state), v(hcpDetails.country)].filter(x => x !== '—').join(', ') || '—'} />
               </>
             )}
           </AccordionPanel>
@@ -202,62 +205,62 @@ export function ReviewConfirm({
         {/* ── ADDITIONAL ── */}
         <AccordionItem>
           <AccordionButton fontWeight="600" color="gray.800" _expanded={{ bg: 'gray.50' }} justifyContent="space-between">
-            <Text>Additional details</Text>
+            <Text>{t('forms.patient.additionalDetails.title')}</Text>
             <EditLink onClick={() => setStep('additional')} />
           </AccordionButton>
           <AccordionPanel pb={4} bg="white">
             {/* Other medications */}
             {otherMedications.length > 0 ? (
               <>
-                <SectionTitle>Other medications ({otherMedications.length})</SectionTitle>
+                <SectionTitle>{t('forms.patient.reviewConfirm.otherMedsReviewTitle', { count: otherMedications.length })}</SectionTitle>
                 {otherMedications.map((m: any, i: number) => (
                   <Box key={i} mb={2}>
-                    <ReviewRow label={`Medication ${i + 1}`} value={v(m?.product)} />
-                    <ReviewRow label="Condition" value={v(m?.condition)} />
+                    <ReviewRow label={t('forms.patient.additionalDetails.medicationIndex', { index: i + 1 })} value={v(m?.product)} />
+                    <ReviewRow label={t('forms.patient.productDetails.conditionLabel')} value={v(m?.condition)} />
                   </Box>
                 ))}
               </>
             ) : (
-              <ReviewRow label="Other medications" value="None" />
+              <ReviewRow label={t('forms.patient.additionalDetails.otherMedsLabel')} value={t('forms.patient.common.none')} />
             )}
 
             {/* Medical history */}
             {medicalHistory.length > 0 ? (
               <>
-                <SectionTitle>Medical history ({medicalHistory.length})</SectionTitle>
+                <SectionTitle>{t('forms.patient.reviewConfirm.medicalHistoryReviewTitle', { count: medicalHistory.length })}</SectionTitle>
                 {medicalHistory.map((h: any, i: number) => (
                   <Box key={i} mb={2}>
-                    <ReviewRow label={`Condition ${i + 1}`} value={v(h?.conditionName)} />
-                    {h?.info && <ReviewRow label="Additional info" value={v(h?.info)} />}
+                    <ReviewRow label={t('forms.patient.additionalDetails.historyIndex', { index: i + 1 })} value={v(h?.conditionName)} />
+                    {h?.info && <ReviewRow label={t('forms.patient.additionalDetails.historyInfoLabel')} value={v(h?.info)} />}
                   </Box>
                 ))}
               </>
             ) : (
-              <ReviewRow label="Medical history" value="None" />
+              <ReviewRow label={t('forms.patient.additionalDetails.medicalHistoryLabel')} value={t('forms.patient.common.none')} />
             )}
 
             {/* Lab tests */}
             {labTests.length > 0 ? (
               <>
-                <SectionTitle>Lab tests ({labTests.length})</SectionTitle>
+                <SectionTitle>{t('forms.patient.reviewConfirm.labTestsReviewTitle', { count: labTests.length })}</SectionTitle>
                 {labTests.map((t: any, i: number) => (
                   <Box key={i} mb={2}>
-                    <ReviewRow label={`Test ${i + 1}`} value={v(t?.testName)} />
-                    <ReviewRow label="Result" value={[v(t?.testQualifier), v(t?.testValue)].filter(x => x !== '—').join(' ') || '—'} />
-                    {t?.outcome?.length > 0 && <ReviewRow label="Outcome" value={arr(t?.outcome)} />}
-                    {t?.testComments && <ReviewRow label="Comments" value={v(t?.testComments)} />}
+                    <ReviewRow label={t('forms.patient.additionalDetails.testIndex', { index: i + 1 })} value={v(t?.testName)} />
+                    <ReviewRow label={t('forms.patient.additionalDetails.testResultLabel')} value={[v(t?.testQualifier), v(t?.testValue)].filter(x => x !== '—').join(' ') || '—'} />
+                    {t?.outcome?.length > 0 && <ReviewRow label={t('forms.patient.additionalDetails.testOutcomeLabel')} value={arr(t?.outcome)} />}
+                    {t?.testComments && <ReviewRow label={t('forms.patient.additionalDetails.testCommentsLabel')} value={v(t?.testComments)} />}
                   </Box>
                 ))}
               </>
             ) : (
-              <ReviewRow label="Lab tests" value="None" />
+              <ReviewRow label={t('forms.patient.additionalDetails.labTestsLabel')} value={t('forms.patient.common.none')} />
             )}
 
             {/* Attachments */}
             {attachments.length > 0 && (
               <>
-                <SectionTitle>Attachments</SectionTitle>
-                <ReviewRow label="Files uploaded" value={`${attachments.length} image(s)`} />
+                <SectionTitle>{t('forms.patient.reviewConfirm.attachmentsReviewTitle')}</SectionTitle>
+                <ReviewRow label={t('forms.patient.additionalDetails.attachmentsLabel')} value={t('forms.patient.reviewConfirm.filesUploaded', { count: attachments.length })} />
               </>
             )}
           </AccordionPanel>
@@ -299,25 +302,27 @@ export function ReviewConfirm({
             setValue('agreedToTerms', e.target.checked, { shouldValidate: true });
           }}
         >
-          I agree to the processing of my information as described in the{' '}
-          <Link href="https://www.takeda.com/privacy-notice/" isExternal color="#CE0037" textDecoration="underline">
-            Privacy Notice
-          </Link>{' '}
-          and{' '}
-          <Link href="https://www.takeda.com/terms-and-conditions/" isExternal color="#CE0037" textDecoration="underline">
-            Terms and Conditions
-          </Link>
-          . I consent to Clin Solutions L.L.C. sharing this report with regulatory authorities and other parties as required by law.
+          <Trans
+            i18nKey="forms.patient.reviewConfirm.terms.agreeLabel"
+            values={{
+              privacy: t('forms.patient.reviewConfirm.terms.privacy'),
+              terms: t('forms.patient.reviewConfirm.terms.terms')
+            }}
+            components={{
+              privacy: <Link href="https://www.takeda.com/privacy-notice/" isExternal color="#CE0037" textDecoration="underline" />,
+              terms: <Link href="https://www.takeda.com/terms-and-conditions/" isExternal color="#CE0037" textDecoration="underline" />
+            }}
+          />
         </Checkbox>
       </Box>
 
       {(!agreedToTerms || !captchaChecked) && (
         <Text fontSize="xs" color="red.400" mb={2}>
           {!captchaChecked && !agreedToTerms
-            ? 'Please confirm you are not a robot and agree to the terms to submit.'
+            ? t('forms.patient.reviewConfirm.bothRequired')
             : !captchaChecked
-            ? 'Please confirm you are not a robot.'
-            : 'Please agree to the terms to submit.'}
+            ? t('forms.patient.reviewConfirm.captchaRobot')
+            : t('forms.patient.reviewConfirm.termsAgreement')}
         </Text>
       )}
     </>
