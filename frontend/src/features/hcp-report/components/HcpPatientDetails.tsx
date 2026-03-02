@@ -12,6 +12,7 @@ import {
   Flex,
 } from '@chakra-ui/react';
 import { useFormContext } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 
 interface HcpPatientDetailsProps {
   inputStyles: any;
@@ -24,6 +25,7 @@ export function HcpPatientDetails({
   ageType,
   setAgeType,
 }: HcpPatientDetailsProps) {
+  const { t } = useTranslation();
   const { setValue, register, watch } = useFormContext();
 
   const setUnknown = (fieldName: string) => {
@@ -33,19 +35,19 @@ export function HcpPatientDetails({
   return (
     <>
       <Heading as="h2" size="lg" mb={2} color="gray.800" fontWeight="600">
-        Enter patient information
+        {t('forms.hcp.patientDetails.title')}
       </Heading>
       <Text fontSize="sm" color="gray.600" mb={2}>
-        Patient details (complete at least one of the fields)
+        {t('forms.hcp.patientDetails.subtitle')}
       </Text>
       <Box borderBottom="2px solid" borderColor="#CE0037" mb={6} w="full" maxW="200px" />
 
       <FormControl mb={6}>
         <FormLabel fontWeight="500" color="gray.700">
-          Name or initials
+          {t('forms.shared.patientDetails.nameInitialsLabel')}
         </FormLabel>
         <Input
-          placeholder="Enter name or initials"
+          placeholder={t('forms.shared.patientDetails.nameInitialsPlaceholder')}
           {...inputStyles}
           mb={2}
           {...register('patientInitials')}
@@ -56,28 +58,28 @@ export function HcpPatientDetails({
           color="gray.600"
           onClick={() => setUnknown('patientInitials')}
         >
-          Unknown
+          {t('forms.patient.common.unknown')}
         </Button>
       </FormControl>
 
       <FormControl mb={6}>
         <FormLabel fontWeight="500" color="gray.700">
-          Age (Select one)
+          {t('forms.patient.personalDetails.ageLabel')}
         </FormLabel>
         <RadioGroup value={ageType} onChange={(val) => setAgeType(val as 'dob' | 'age' | '')}>
           <Stack spacing={2}>
             <Radio value="dob" colorScheme="red">
-              Date of birth
+              {t('forms.patient.personalDetails.dobLabel')}
             </Radio>
             <Radio value="age" colorScheme="red">
-              Age
+              {t('forms.patient.personalDetails.ageValueLabel')}
             </Radio>
           </Stack>
         </RadioGroup>
         {ageType === 'dob' && (
           <Input
             type={watch('patientDob') === 'Unknown' ? 'text' : 'date'}
-            placeholder="Select date of birth"
+            placeholder={t('forms.patient.personalDetails.dobPlaceholder')}
             mt={3}
             {...inputStyles}
             {...register('patientDob')}
@@ -93,14 +95,14 @@ export function HcpPatientDetails({
               {...inputStyles}
               {...register('patientAge')}
             />
-            <Text color="gray.600">Years</Text>
+            <Text color="gray.600">{t('forms.patient.personalDetails.years')}</Text>
           </Flex>
         )}
       </FormControl>
 
       <FormControl mb={8}>
         <FormLabel fontWeight="500" color="gray.700">
-          Sex assigned at birth
+          {t('forms.patient.personalDetails.sexLabel')}
         </FormLabel>
         <RadioGroup 
           value={watch('patientGender') || ''} 
@@ -108,10 +110,10 @@ export function HcpPatientDetails({
         >
           <Stack direction="row" spacing={6}>
             <Radio value="male" colorScheme="red">
-              Male
+              {t('forms.patient.personalDetails.male')}
             </Radio>
             <Radio value="female" colorScheme="red">
-              Female
+              {t('forms.patient.personalDetails.female')}
             </Radio>
           </Stack>
         </RadioGroup>
@@ -119,10 +121,10 @@ export function HcpPatientDetails({
 
       <FormControl mb={8}>
         <FormLabel fontWeight="500" color="gray.700">
-          Patient ID or reference number (if known)
+          {t('forms.hcp.patientDetails.referenceLabel')}
         </FormLabel>
         <Input
-          placeholder="Enter Patient ID/reference number"
+          placeholder={t('forms.hcp.patientDetails.referencePlaceholder')}
           {...inputStyles}
           {...register('patientReference')}
         />
@@ -130,17 +132,17 @@ export function HcpPatientDetails({
 
       <Box mt={10} mb={6}>
         <Text fontWeight="600" color="gray.700">
-          Additional patient details
+          {t('forms.hcp.patientDetails.additionalTitle')}
         </Text>
         <Box borderBottom="2px solid" borderColor="#CE0037" mt={2} mb={6} w="full" maxW="200px" />
       </Box>
 
       <FormControl mb={6}>
         <FormLabel fontWeight="500" color="gray.700">
-          Height (centimetres or inches)
+          {t('forms.hcp.patientDetails.heightLabel')}
         </FormLabel>
         <Input
-          placeholder="Enter height e.g. 175"
+          placeholder={t('forms.hcp.patientDetails.heightPlaceholder')}
           {...inputStyles}
           {...register('patientHeight')}
         />
@@ -148,10 +150,10 @@ export function HcpPatientDetails({
 
       <FormControl mb={8}>
         <FormLabel fontWeight="500" color="gray.700">
-          Weight (kilograms or pounds)
+          {t('forms.hcp.patientDetails.weightLabel')}
         </FormLabel>
         <Input
-          placeholder="Enter weight e.g. 60"
+          placeholder={t('forms.hcp.patientDetails.weightPlaceholder')}
           {...inputStyles}
           {...register('patientWeight')}
         />

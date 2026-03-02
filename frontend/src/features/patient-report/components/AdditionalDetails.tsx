@@ -17,6 +17,7 @@ import {
   VStack,
 } from '@chakra-ui/react';
 import { useFormContext, useFieldArray } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { HiPlus } from 'react-icons/hi2';
 import { ProductImageUpload } from '../../../shared/components/ProductImageUpload';
 
@@ -43,6 +44,7 @@ export function AdditionalDetails({
   additionalDetails,
   setAdditionalDetails,
 }: AdditionalDetailsProps) {
+  const { t } = useTranslation();
   const { setValue, register, control, watch } = useFormContext();
 
   const {
@@ -86,17 +88,17 @@ export function AdditionalDetails({
   return (
     <>
       <Heading as="h2" size="lg" mb={2} color="gray.800" fontWeight="600">
-        Just a few more details (Optional)
+        {t('forms.patient.additionalDetails.title')}
       </Heading>
 
       <ProductImageUpload
-        label="Is there any additional documentation or evidence you would like to attach?"
+        label={t('forms.patient.additionalDetails.attachmentsLabel')}
         onChange={(base64Array) => setValue('attachments', base64Array)}
       />
 
       <FormControl mb={6}>
         <FormLabel fontWeight="500" color="gray.700">
-          Are you taking any other medication?
+          {t('forms.patient.additionalDetails.otherMedsLabel')}
         </FormLabel>
         <RadioGroup
           value={watch('takingOtherMeds') || takingOtherMeds}
@@ -129,51 +131,51 @@ export function AdditionalDetails({
             >
               <Flex justify="space-between" align="center" mb={4}>
                 <Text fontWeight="600" color="gray.700">
-                  Medication {index + 1}
+                  {t('forms.patient.additionalDetails.medicationIndex', { index: index + 1 })}
                 </Text>
                 {index > 0 && (
                   <Button size="xs" variant="ghost" colorScheme="red" onClick={() => removeOtherMed(index)}>
-                    Remove
+                    {t('forms.patient.common.remove')}
                   </Button>
                 )}
               </Flex>
               <FormControl mb={4}>
                 <FormLabel fontWeight="500" color="gray.700">
-                  Please tell us which product
+                  {t('forms.patient.productDetails.productNameLabel')}
                 </FormLabel>
                 <Input
-                  placeholder="Enter product name"
+                  placeholder={t('forms.patient.productDetails.productNamePlaceholder')}
                   {...inputStyles}
                   {...register(`otherMedications.${index}.product`)}
                 />
               </FormControl>
               <FormControl mb={4}>
                 <FormLabel fontWeight="500" color="gray.700">
-                  What condition are you treating?
+                  {t('forms.patient.productDetails.conditionLabel')}
                 </FormLabel>
                 <Input
-                  placeholder="Enter condition name"
+                  placeholder={t('forms.patient.productDetails.conditionPlaceholder')}
                   {...inputStyles}
                   {...register(`otherMedications.${index}.condition`)}
                 />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  mt={2}
-                  borderColor="gray.300"
-                  onClick={() => setValue(`otherMedications.${index}.condition`, 'Unknown')}
-                >
-                  Unknown
-                </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    mt={2}
+                    borderColor="gray.300"
+                    onClick={() => setValue(`otherMedications.${index}.condition`, 'Unknown')}
+                  >
+                    {t('forms.patient.common.unknown')}
+                  </Button>
               </FormControl>
               <FormControl mb={4}>
                 <FormLabel fontWeight="500" color="gray.700">
-                  When did you start/stop using this product?
+                  {t('forms.patient.additionalDetails.historyDatesLabel')}
                 </FormLabel>
                 <Flex gap={3} flexWrap="wrap" align="center" mb={2}>
                   <Input
                     type={watch(`otherMedications.${index}.startDate`) === 'Unknown' ? 'text' : 'date'}
-                    placeholder="Select start date"
+                    placeholder={t('forms.patient.productDetails.startDatePlaceholder')}
                     flex="1"
                     minW="140px"
                     {...inputStyles}
@@ -185,13 +187,13 @@ export function AdditionalDetails({
                     borderColor="gray.300"
                     onClick={() => setValue(`otherMedications.${index}.startDate`, 'Unknown')}
                   >
-                    Unknown
+                    {t('forms.patient.common.unknown')}
                   </Button>
                 </Flex>
                 <Flex gap={3} flexWrap="wrap" align="center">
                   <Input
                     type={['Unknown', 'Ongoing'].includes(watch(`otherMedications.${index}.endDate`)) ? 'text' : 'date'}
-                    placeholder="Select end date"
+                    placeholder={t('forms.patient.productDetails.endDatePlaceholder')}
                     flex="1"
                     minW="140px"
                     {...inputStyles}
@@ -203,7 +205,7 @@ export function AdditionalDetails({
                     borderColor="gray.300"
                     onClick={() => setValue(`otherMedications.${index}.endDate`, 'Unknown')}
                   >
-                    Unknown
+                    {t('forms.patient.common.unknown')}
                   </Button>
                   <Button
                     variant="outline"
@@ -211,7 +213,7 @@ export function AdditionalDetails({
                     borderColor="gray.300"
                     onClick={() => setValue(`otherMedications.${index}.endDate`, 'Ongoing')}
                   >
-                    Ongoing
+                    {t('forms.patient.common.ongoing')}
                   </Button>
                 </Flex>
               </FormControl>
@@ -225,14 +227,14 @@ export function AdditionalDetails({
             onClick={() => appendOtherMed({ product: '', condition: '' })}
             alignSelf="flex-start"
           >
-            Add another medication
+            {t('forms.patient.additionalDetails.addAnotherMed')}
           </Button>
         </VStack>
       )}
 
       <FormControl mb={6}>
         <FormLabel fontWeight="500" color="gray.700">
-          Is there any relevant medical history you would like to share?
+          {t('forms.patient.additionalDetails.medicalHistoryLabel')}
         </FormLabel>
         <RadioGroup
           value={watch('hasRelevantHistory') || hasRelevantHistory}
@@ -265,7 +267,7 @@ export function AdditionalDetails({
             >
               <Flex justify="space-between" align="center" mb={4}>
                 <Text fontWeight="600" color="gray.700">
-                  History {index + 1}
+                  {t('forms.patient.additionalDetails.historyIndex', { index: index + 1 })}
                 </Text>
                 {index > 0 && (
                   <Button size="xs" variant="ghost" colorScheme="red" onClick={() => removeHistory(index)}>
@@ -275,17 +277,17 @@ export function AdditionalDetails({
               </Flex>
               <FormControl mb={4}>
                 <FormLabel fontWeight="500" color="gray.700">
-                  Name of the medical condition
+                  {t('forms.patient.additionalDetails.conditionNameLabel')}
                 </FormLabel>
                 <Input
-                  placeholder="Enter name of medical condition"
+                  placeholder={t('forms.patient.additionalDetails.conditionNamePlaceholder')}
                   {...inputStyles}
                   {...register(`medicalHistory.${index}.conditionName`)}
                 />
               </FormControl>
               <FormControl mb={4}>
                 <FormLabel fontWeight="500" color="gray.700">
-                  Start and end date of medical condition
+                  {t('forms.patient.additionalDetails.historyDatesLabel')}
                 </FormLabel>
                 <Flex gap={3} flexWrap="wrap" align="center" mb={2}>
                   <Input
@@ -302,7 +304,7 @@ export function AdditionalDetails({
                     borderColor="gray.300"
                     onClick={() => setValue(`medicalHistory.${index}.startDate`, 'Unknown')}
                   >
-                    Unknown
+                    {t('forms.patient.common.unknown')}
                   </Button>
                 </Flex>
                 <Flex gap={3} flexWrap="wrap" align="center">
@@ -320,7 +322,7 @@ export function AdditionalDetails({
                     borderColor="gray.300"
                     onClick={() => setValue(`medicalHistory.${index}.endDate`, 'Unknown')}
                   >
-                    Unknown
+                    {t('forms.patient.common.unknown')}
                   </Button>
                   <Button
                     variant="outline"
@@ -328,16 +330,16 @@ export function AdditionalDetails({
                     borderColor="gray.300"
                     onClick={() => setValue(`medicalHistory.${index}.endDate`, 'Ongoing')}
                   >
-                    Ongoing
+                    {t('forms.patient.common.ongoing')}
                   </Button>
                 </Flex>
               </FormControl>
               <FormControl mb={4}>
                 <FormLabel fontWeight="500" color="gray.700">
-                  Additional information on the medical condition
+                  {t('forms.patient.additionalDetails.historyInfoLabel')}
                 </FormLabel>
                 <Textarea
-                  placeholder="Enter additional information here"
+                  placeholder={t('forms.patient.additionalDetails.historyInfoPlaceholder')}
                   rows={4}
                   maxLength={500}
                   {...inputStyles}
@@ -354,14 +356,14 @@ export function AdditionalDetails({
             onClick={() => appendHistory({ conditionName: '' })}
             alignSelf="flex-start"
           >
-            Add another condition
+            {t('forms.patient.additionalDetails.addAnotherCondition')}
           </Button>
         </VStack>
       )}
 
       <FormControl mb={6}>
         <FormLabel fontWeight="500" color="gray.700">
-          Were any laboratory or diagnostic tests performed?
+          {t('forms.patient.additionalDetails.labTestsLabel')}
         </FormLabel>
         <RadioGroup
           value={watch('labTestsPerformed') || labTestsPerformed}
@@ -394,46 +396,46 @@ export function AdditionalDetails({
             >
               <Flex justify="space-between" align="center" mb={4}>
                 <Text fontWeight="600" color="gray.700">
-                  Test {index + 1}
+                  {t('forms.patient.additionalDetails.testIndex', { index: index + 1 })}
                 </Text>
                 {index > 0 && (
                   <Button size="xs" variant="ghost" colorScheme="red" onClick={() => removeLabTest(index)}>
-                    Remove
+                    {t('forms.patient.common.remove')}
                   </Button>
                 )}
               </Flex>
               <FormControl mb={4}>
                 <FormLabel fontWeight="500" color="gray.700">
-                  Name of test
+                  {t('forms.patient.additionalDetails.testNameLabel')}
                 </FormLabel>
                 <Input
-                  placeholder="Enter test name"
+                  placeholder={t('forms.patient.additionalDetails.testNamePlaceholder')}
                   {...inputStyles}
                   {...register(`labTests.${index}.testName`)}
                 />
               </FormControl>
               <FormControl mb={4}>
                 <FormLabel fontWeight="500" color="gray.700">
-                  Test result (qualifier/value)
+                  {t('forms.patient.additionalDetails.testResultLabel')}
                 </FormLabel>
                 <Flex gap={3} flexWrap="wrap">
                   <Select
-                    placeholder="None"
+                    placeholder={t('forms.patient.common.none')}
                     flex="1"
                     {...inputStyles}
                     {...register(`labTests.${index}.testQualifier`)}
                   >
-                    <option value="none">None</option>
+                    <option value="none">{t('forms.patient.common.none')}</option>
                     <option value="greater-than">&gt;</option>
                     <option value="greater-than-equal">&gt;=</option>
                     <option value="less-than">&lt;</option>
                     <option value="less-than-equal">&lt;=</option>
                     <option value="equal">=</option>
-                    <option value="unknown">Unknown</option>
+                    <option value="unknown">{t('forms.patient.common.unknown')}</option>
                   </Select>
 
                   <Input
-                    placeholder="Enter value"
+                    placeholder={t('forms.patient.additionalDetails.testValuePlaceholder')}
                     flex="1"
                     minW="140px"
                     {...inputStyles}
@@ -443,7 +445,7 @@ export function AdditionalDetails({
               </FormControl>
               <FormControl mb={4}>
                 <FormLabel fontWeight="500" color="gray.700">
-                  Outcome of test
+                  {t('forms.patient.additionalDetails.testOutcomeLabel')}
                 </FormLabel>
                 <CheckboxGroup
                   colorScheme="red"
@@ -459,10 +461,10 @@ export function AdditionalDetails({
               </FormControl>
               <FormControl mb={4}>
                 <FormLabel fontWeight="500" color="gray.700">
-                  Test results comments
+                  {t('forms.patient.additionalDetails.testCommentsLabel')}
                 </FormLabel>
                 <Textarea
-                  placeholder="Enter additional information here"
+                  placeholder={t('forms.patient.additionalDetails.anythingElsePlaceholder')}
                   rows={4}
                   {...inputStyles}
                   {...register(`labTests.${index}.testComments`)}
@@ -478,17 +480,17 @@ export function AdditionalDetails({
             onClick={() => appendLabTest({ testName: '' })}
             alignSelf="flex-start"
           >
-            Add another test result
+            {t('forms.patient.additionalDetails.addAnotherTest')}
           </Button>
         </VStack>
       )}
 
       <FormControl mb={8}>
         <FormLabel fontWeight="500" color="gray.700">
-          Is there anything else you would like to share?
+          {t('forms.patient.additionalDetails.anythingElseLabel')}
         </FormLabel>
         <Textarea
-          placeholder="Enter additional details here"
+          placeholder={t('forms.patient.additionalDetails.anythingElsePlaceholder')}
           rows={5}
           maxLength={10000}
           value={watch('additionalDetails') ?? additionalDetails}

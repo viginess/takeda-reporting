@@ -12,6 +12,7 @@ import {
   Flex,
 } from '@chakra-ui/react';
 import { useFormContext } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 
 interface PersonalDetailsProps {
   inputStyles: any;
@@ -32,6 +33,7 @@ export function PersonalDetails({
   hcpContactPermission,
   setHcpContactPermission,
 }: PersonalDetailsProps) {
+  const { t } = useTranslation();
   const { setValue, register, watch } = useFormContext();
 
   const setUnknown = (fieldName: string) => {
@@ -41,20 +43,20 @@ export function PersonalDetails({
   return (
     <>
       <Heading as="h2" size="lg" mb={2} color="gray.800" fontWeight="600">
-        Now, a little about you.
+        {t('forms.patient.personalDetails.title')}
       </Heading>
       <Text fontSize="sm" color="gray.600" mb={2}>
-        Your details (complete at least one of the fields)
+        {t('forms.patient.personalDetails.subtitle')}
       </Text>
       <Box borderBottom="2px solid" borderColor="#CE0037" mb={6} w="full" maxW="200px" />
 
       {/* ── Patient Details ─────────────────────────────── */}
       <FormControl mb={6}>
         <FormLabel fontWeight="500" color="gray.700">
-          Initials
+          {t('forms.patient.personalDetails.initialsLabel')}
         </FormLabel>
         <Input
-          placeholder="Enter your initials"
+          placeholder={t('forms.patient.personalDetails.initialsPlaceholder')}
           {...inputStyles}
           mb={2}
           {...register('patientDetails.initials')}
@@ -65,28 +67,28 @@ export function PersonalDetails({
           color="gray.600"
           onClick={() => setUnknown('patientDetails.initials')}
         >
-          Prefer not to provide
+          {t('forms.patient.personalDetails.preferNotToProvide')}
         </Button>
       </FormControl>
 
       <FormControl mb={6}>
         <FormLabel fontWeight="500" color="gray.700">
-          Age (Select one)
+          {t('forms.patient.personalDetails.ageLabel')}
         </FormLabel>
         <RadioGroup value={ageType} onChange={(val) => setAgeType(val as 'dob' | 'age' | '')}>
           <Stack spacing={2}>
             <Radio value="dob" colorScheme="red">
-              Date of birth
+              {t('forms.patient.personalDetails.dobLabel')}
             </Radio>
             <Radio value="age" colorScheme="red">
-              Age
+              {t('forms.patient.personalDetails.ageOption')}
             </Radio>
           </Stack>
         </RadioGroup>
         {ageType === 'dob' && (
           <Input
             type={watch('patientDetails.dob') === 'Unknown' ? 'text' : 'date'}
-            placeholder="Select date of birth"
+            placeholder={t('forms.patient.personalDetails.dobPlaceholder')}
             mt={3}
             {...inputStyles}
             {...register('patientDetails.dob')}
@@ -102,24 +104,24 @@ export function PersonalDetails({
               {...inputStyles}
               {...register('patientDetails.ageValue')}
             />
-            <Text color="gray.600">Years</Text>
+            <Text color="gray.600">{t('forms.patient.personalDetails.years')}</Text>
           </Flex>
         )}
       </FormControl>
 
       <FormControl mb={6}>
         <FormLabel fontWeight="500" color="gray.700">
-          Sex assigned at birth
+          {t('forms.patient.personalDetails.sexLabel')}
         </FormLabel>
         <RadioGroup
           onChange={(val) => setValue('patientDetails.gender', val)}
         >
           <Stack direction="row" spacing={6}>
             <Radio value="male" colorScheme="red">
-              Male
+              {t('forms.patient.personalDetails.sexOptions.male')}
             </Radio>
             <Radio value="female" colorScheme="red">
-              Female
+              {t('forms.patient.personalDetails.sexOptions.female')}
             </Radio>
           </Stack>
         </RadioGroup>
@@ -127,7 +129,7 @@ export function PersonalDetails({
 
       <FormControl mb={6} isRequired>
         <FormLabel fontWeight="500" color="gray.700">
-          Do we have permission to contact you?
+          {t('forms.patient.personalDetails.contactPermissionLabel')}
         </FormLabel>
         <RadioGroup
           value={contactPermission}
@@ -150,14 +152,14 @@ export function PersonalDetails({
       {contactPermission === 'yes' && (
         <Box mb={6} p={4} bg="gray.50" borderRadius="lg" borderWidth="1px" borderColor="gray.200">
           <Text fontWeight="600" mb={4} color="gray.700">
-            Your contact information
+            {t('forms.patient.personalDetails.contactInfoTitle')}
           </Text>
           <FormControl mb={4}>
             <FormLabel fontWeight="500" color="gray.700">
-              Email address
+              {t('forms.patient.personalDetails.emailLabel')}
             </FormLabel>
             <Input
-              placeholder="client@gmail.com"
+              placeholder={t('forms.patient.personalDetails.emailPlaceholder')}
               type="email"
               {...inputStyles}
               {...register('patientDetails.email')}
@@ -165,10 +167,10 @@ export function PersonalDetails({
           </FormControl>
           <FormControl>
             <FormLabel fontWeight="500" color="gray.700">
-              Name
+              {t('forms.patient.personalDetails.nameLabel')}
             </FormLabel>
             <Input
-              placeholder="Enter your name"
+              placeholder={t('forms.patient.personalDetails.namePlaceholder')}
               {...inputStyles}
               {...register('patientDetails.name')}
             />
@@ -179,7 +181,7 @@ export function PersonalDetails({
       {/* ── HCP Details ──────────────────────────────────── */}
       <FormControl mb={8}>
         <FormLabel fontWeight="500" color="gray.700">
-          Do we have permission to contact your Healthcare Professional (HCP) about this report?
+          {t('forms.patient.personalDetails.hcpPermissionLabel')}
         </FormLabel>
         <RadioGroup
           value={hcpContactPermission}
@@ -202,33 +204,33 @@ export function PersonalDetails({
       {hcpContactPermission === 'yes' && (
         <Box mb={8} p={4} bg="gray.50" borderRadius="lg" borderWidth="1px" borderColor="gray.200">
           <Text fontWeight="600" mb={4} color="gray.700">
-            HCP contact information
+            {t('forms.patient.personalDetails.hcpTitle')}
           </Text>
           <FormControl mb={4}>
             <FormLabel fontWeight="500" color="gray.700">
-              First name
+              {t('forms.patient.personalDetails.firstNameLabel')}
             </FormLabel>
             <Input
-              placeholder="Enter first name"
+              placeholder={t('forms.patient.personalDetails.firstNamePlaceholder')}
               {...inputStyles}
               {...register('hcpDetails.firstName')}
             />
           </FormControl>
           <FormControl mb={4}>
             <FormLabel fontWeight="500" color="gray.700">
-              Last name
+              {t('forms.patient.personalDetails.lastNameLabel')}
             </FormLabel>
-            <Input placeholder="Enter last name" {...inputStyles} {...register('hcpDetails.lastName')} />
+            <Input placeholder={t('forms.patient.personalDetails.lastNamePlaceholder')} {...inputStyles} {...register('hcpDetails.lastName')} />
           </FormControl>
           <Text fontWeight="600" mb={3} color="gray.700" fontSize="sm">
-            How do we contact them? (complete at least one of these fields)
+            {t('forms.patient.personalDetails.hcpContactMethodSubtitle')}
           </Text>
           <FormControl mb={4}>
             <FormLabel fontWeight="500" color="gray.700">
-              Email
+              {t('forms.patient.personalDetails.emailLabel')}
             </FormLabel>
             <Input
-              placeholder="Enter email address"
+              placeholder={t('forms.patient.personalDetails.emailPlaceholder')}
               type="email"
               {...inputStyles}
               {...register('hcpDetails.email')}
@@ -236,65 +238,65 @@ export function PersonalDetails({
           </FormControl>
           <FormControl mb={4}>
             <FormLabel fontWeight="500" color="gray.700">
-              Phone number
+              {t('forms.patient.personalDetails.phoneLabel', 'Phone number')}
             </FormLabel>
             <Input
-              placeholder="Enter number including area code"
+              placeholder={t('forms.patient.personalDetails.phonePlaceholder', 'Enter number including area code')}
               type="tel"
               {...inputStyles}
               {...register('hcpDetails.phone')}
             />
           </FormControl>
           <Text fontWeight="600" mb={3} color="gray.700" fontSize="sm">
-            Healthcare professional additional contact details
+            {t('forms.patient.personalDetails.hcpAdditionalTitle')}
           </Text>
           <FormControl mb={4}>
             <FormLabel fontWeight="500" color="gray.700">
-              Hospital/Institution
+              {t('forms.patient.personalDetails.institutionLabel')}
             </FormLabel>
             <Input
-              placeholder="Enter hospital/institution"
+              placeholder={t('forms.patient.personalDetails.institutionPlaceholder')}
               {...inputStyles}
               {...register('hcpDetails.institution')}
             />
           </FormControl>
           <FormControl mb={4}>
             <FormLabel fontWeight="500" color="gray.700">
-              Address
+              {t('forms.patient.personalDetails.addressLabel')}
             </FormLabel>
-            <Input placeholder="Enter address" {...inputStyles} {...register('hcpDetails.address')} />
+            <Input placeholder={t('forms.patient.personalDetails.addressPlaceholder')} {...inputStyles} {...register('hcpDetails.address')} />
           </FormControl>
           <FormControl mb={4}>
             <FormLabel fontWeight="500" color="gray.700">
-              City/Town
+              {t('forms.patient.personalDetails.cityLabel')}
             </FormLabel>
-            <Input placeholder="Enter city/town" {...inputStyles} {...register('hcpDetails.city')} />
+            <Input placeholder={t('forms.patient.personalDetails.cityPlaceholder')} {...inputStyles} {...register('hcpDetails.city')} />
           </FormControl>
           <FormControl mb={4}>
             <FormLabel fontWeight="500" color="gray.700">
-              State/County/Province
+              {t('forms.patient.personalDetails.stateLabel')}
             </FormLabel>
             <Input
-              placeholder="Enter state/county/province"
+              placeholder={t('forms.patient.personalDetails.statePlaceholder')}
               {...inputStyles}
               {...register('hcpDetails.state')}
             />
           </FormControl>
           <FormControl mb={4}>
             <FormLabel fontWeight="500" color="gray.700">
-              ZIP/Postal code
+              {t('forms.patient.personalDetails.zipLabel')}
             </FormLabel>
             <Input
-              placeholder="Enter ZIP/Postal code"
+              placeholder={t('forms.patient.personalDetails.zipPlaceholder')}
               {...inputStyles}
               {...register('hcpDetails.zipCode')}
             />
           </FormControl>
           <FormControl>
             <FormLabel fontWeight="500" color="gray.700">
-              Country
+              {t('forms.patient.personalDetails.countryLabel')}
             </FormLabel>
-            <Input placeholder="Enter country" {...inputStyles} {...register('hcpDetails.country')} />
+            <Input placeholder={t('forms.patient.personalDetails.countryPlaceholder')} {...inputStyles} {...register('hcpDetails.country')} />
           </FormControl>
         </Box>
       )}
