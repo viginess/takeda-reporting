@@ -1,4 +1,4 @@
-import { supabaseAdmin } from "../../utils/supabase.js";
+import { getSupabaseAdmin } from "../../utils/supabase.js";
 
 const BUCKET_NAME = "locales";
 
@@ -10,7 +10,7 @@ export const storageService = {
    * Fetches a translation file from Supabase Storage.
    */
   getTranslation: async (languageCode: string): Promise<any | null> => {
-    const { data, error } = await supabaseAdmin.storage
+    const { data, error } = await getSupabaseAdmin().storage
       .from(BUCKET_NAME)
       .download(`${languageCode}.json`);
 
@@ -33,7 +33,7 @@ export const storageService = {
    * Uploads a translation file to Supabase Storage.
    */
   uploadTranslation: async (languageCode: string, content: any): Promise<void> => {
-    const { error } = await supabaseAdmin.storage
+    const { error } = await getSupabaseAdmin().storage
       .from(BUCKET_NAME)
       .upload(`${languageCode}.json`, JSON.stringify(content), {
         contentType: "application/json",
