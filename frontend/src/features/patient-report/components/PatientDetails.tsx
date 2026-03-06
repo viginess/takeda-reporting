@@ -12,6 +12,7 @@ import {
   Flex,
 } from '@chakra-ui/react';
 import { useFormContext } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 
 interface PatientDetailsProps {
   inputStyles: any;
@@ -24,50 +25,52 @@ export function PatientDetails({
   ageType,
   setAgeType,
 }: PatientDetailsProps) {
+  const { t } = useTranslation();
   const { register, setValue, watch } = useFormContext();
 
   const setUnknown = (fieldName: string) => {
-    setValue(fieldName, 'Unknown');
+    setValue(fieldName, t('forms.patient.common.unknown'));
   };
 
   return (
     <>
       <Heading as="h2" size="lg" mb={2} color="gray.800" fontWeight="600">
-        Enter patient information
+        {t('forms.shared.patientDetails.title')}
       </Heading>
       <Text fontSize="sm" color="gray.600" mb={2}>
-        Patient details (complete at least one of the fields)
+        {t('forms.shared.patientDetails.subtitle')}
       </Text>
       <Box borderBottom="2px solid" borderColor="#CE0037" mb={6} w="full" maxW="200px" />
 
       <FormControl mb={6}>
         <FormLabel fontWeight="500" color="gray.700">
-          Name or initials
+          {t('forms.shared.patientDetails.nameInitialsLabel')}
         </FormLabel>
-        <Input placeholder="Enter name or initials" {...inputStyles} mb={2} {...register('patientDetails.initials')} />
+        <Input placeholder={t('forms.shared.patientDetails.nameInitialsPlaceholder')} {...inputStyles} mb={2} {...register('patientDetails.initials')} />
         <Button variant="ghost" size="sm" color="gray.600" onClick={() => setUnknown('patientDetails.initials')}>
-          Prefer not to provide
+          {t('forms.patient.personalDetails.preferNotToProvide')}
         </Button>
       </FormControl>
 
       <FormControl mb={6}>
         <FormLabel fontWeight="500" color="gray.700">
-          Age (Select one)
+          {t('forms.patient.personalDetails.ageLabel')}
         </FormLabel>
         <RadioGroup value={ageType} onChange={(val) => setAgeType(val as 'dob' | 'age' | '')}>
           <Stack spacing={2}>
             <Radio value="dob" colorScheme="red">
-              Date of birth
+              {t('forms.patient.personalDetails.dobLabel')}
             </Radio>
             <Radio value="age" colorScheme="red">
-              Age
+              {t('forms.patient.personalDetails.ageOption')}
             </Radio>
           </Stack>
         </RadioGroup>
         {ageType === 'dob' && (
           <Input
-            placeholder="Select date of birth"
-            type="date"
+            key={watch('patientDetails.dob') === t('forms.patient.common.unknown') ? 'untouchable' : 'selectable'}
+            placeholder={t('forms.patient.personalDetails.dobPlaceholder')}
+            type={watch('patientDetails.dob') === t('forms.patient.common.unknown') ? 'text' : 'date'}
             mt={3}
             {...inputStyles}
             {...register('patientDetails.dob')}
@@ -76,29 +79,30 @@ export function PatientDetails({
         {ageType === 'age' && (
           <Flex gap={3} mt={3} align="center">
             <Input
+              key={watch('patientDetails.ageValue') === t('forms.patient.common.unknown') ? 'untouchable' : 'selectable'}
               placeholder="32"
-              type="number"
+              type={watch('patientDetails.ageValue') === t('forms.patient.common.unknown') ? 'text' : 'number'}
               flex="1"
               maxW="120px"
               {...inputStyles}
               {...register('patientDetails.ageValue')}
             />
-            <Text color="gray.600">Years</Text>
+            <Text color="gray.600">{t('forms.patient.personalDetails.years')}</Text>
           </Flex>
         )}
       </FormControl>
 
       <FormControl mb={8}>
         <FormLabel fontWeight="500" color="gray.700">
-          Sex assigned at birth
+          {t('forms.patient.personalDetails.sexLabel')}
         </FormLabel>
         <RadioGroup value={watch('patientDetails.gender')} onChange={(val) => setValue('patientDetails.gender', val)}>
           <Stack direction="row" spacing={6}>
             <Radio value="male" colorScheme="red">
-              Male
+              {t('forms.patient.personalDetails.sexOptions.male')}
             </Radio>
             <Radio value="female" colorScheme="red">
-              Female
+              {t('forms.patient.personalDetails.sexOptions.female')}
             </Radio>
           </Stack>
         </RadioGroup>

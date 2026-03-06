@@ -44,6 +44,39 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
+  overflow-x: hidden;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Allow stepper labels to wrap and prevent cutting */
+.sui-form-stepper__title,
+.sui-form-stepper__label,
+.chakra-step__title,
+.chakra-step__description,
+[class*="stepper__title"],
+[class*="stepper__label"] {
+  white-space: normal !important;
+  text-align: center !important;
+  overflow-wrap: break-word !important;
+  max-width: 130px;
+  line-height: 1.2 !important;
+  margin-top: 4px !important;
+  font-size: 0.85rem !important;
+}
+
+.sui-form-stepper__item,
+.chakra-step {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.sui-form-stepper {
+  width: 100%;
+  overflow-x: clip; /* Prevent accidental horizontal scroll while allowing some bleed if needed */
 }
 
 /* Base interactive elements */

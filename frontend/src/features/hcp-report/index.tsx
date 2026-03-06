@@ -10,13 +10,12 @@ import {
   Button,
   useToast,
 } from '@chakra-ui/react';
+import { useTranslation } from 'react-i18next';
 import {
   FormLayout,
-  PrevButton,
-  NextButton,
   FormStepper,
   StepsCompleted,
-
+  useStepperContext,
 } from '@saas-ui/react';
 import { StepForm } from '@saas-ui/forms';
 
@@ -129,7 +128,43 @@ function EventStep({
   );
 }
 
+function PrevButtonTranslatedHcp() {
+  const { t } = useTranslation();
+  const { prevStep, isFirstStep } = useStepperContext();
+  if (isFirstStep) return null;
+  return (
+    <Button variant="outline" size="lg" borderRadius="lg" onClick={prevStep}>
+      {t('common.back', 'Back')}
+    </Button>
+  );
+}
+
+function NextButtonTranslatedHcp(props: any) {
+  const { t } = useTranslation();
+  const { nextStep } = useStepperContext();
+  return (
+    <Button size="lg" borderRadius="lg" onClick={nextStep} {...props}>
+      {t('common.continue', 'Next')}
+    </Button>
+  );
+}
+
+function FormNavigationHcp({ primaryButtonStyles }: { primaryButtonStyles: any }) {
+  const { isCompleted } = useStepperContext();
+
+  if (isCompleted) return null;
+
+  return (
+    <ButtonGroup w="full" mt={8}>
+      <PrevButtonTranslatedHcp />
+      <Spacer />
+      <NextButtonTranslatedHcp {...primaryButtonStyles} />
+    </ButtonGroup>
+  );
+}
+
 function HcpForm({ onBack }: HcpFormProps) {
+  const { t } = useTranslation();
   const [additionalDetails, setAdditionalDetails] = useState('');
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [captchaChecked, setCaptchaChecked] = useState(!import.meta.env.VITE_RECAPTCHA_SITE_KEY);
@@ -247,13 +282,13 @@ function HcpForm({ onBack }: HcpFormProps) {
           </Link>
         )}
         <Heading as="h1" size="md" fontWeight="600" color="gray.800">
-          HCP Reporting Form
+          {t('forms.hcp.title')}
         </Heading>
         <Box w="32px" />
       </Flex>
 
-      <Flex flex="1" justify="center" px={4} py={8}>
-        <Box maxW="800px" w="full" bg="white" borderRadius="xl" boxShadow="md" p={10}>
+      <Flex flex="1" justify="center" px={{ base: 2, md: 4 }} py={{ base: 4, md: 8 }}>
+        <Box maxW="800px" w="full" bg="white" borderRadius="xl" boxShadow="md" p={{ base: 4, sm: 6, md: 10 }}>
           <StepForm
             onSubmit={onSubmit}
             onError={(err) => console.error('Form validation failed:', err)}
@@ -304,11 +339,11 @@ function HcpForm({ onBack }: HcpFormProps) {
             {({ FormStep }) => (
               <FormLayout spacing={8}>
                 <FormStepper colorScheme="red" mb={10}>
-                  <FormStep name="product" title="Product">
+                  <FormStep name="product" title={t('forms.hcp.steps.product')}>
                     <ProductStep inputStyles={inputStyles} />
                   </FormStep>
 
-                  <FormStep name="event" title="Event">
+                  <FormStep name="event" title={t('forms.hcp.steps.event')}>
                     <EventStep
                       inputStyles={inputStyles}
                       symptomTreated={symptomTreated}
@@ -316,7 +351,7 @@ function HcpForm({ onBack }: HcpFormProps) {
                     />
                   </FormStep>
 
-                  <FormStep name="patient" title="Patient">
+                  <FormStep name="patient" title={t('forms.hcp.steps.patient')}>
                     <Box mt={12}>
                       <HcpPatientDetails
                         inputStyles={inputStyles}
@@ -326,7 +361,7 @@ function HcpForm({ onBack }: HcpFormProps) {
                     </Box>
                   </FormStep>
 
-                  <FormStep name="you" title="You">
+                  <FormStep name="you" title={t('forms.hcp.steps.you')}>
                     <Box mt={12}>
                       <HcpReporterDetails
                         inputStyles={inputStyles}
@@ -336,7 +371,7 @@ function HcpForm({ onBack }: HcpFormProps) {
                     </Box>
                   </FormStep>
 
-                  <FormStep name="additional" title="Additional">
+                  <FormStep name="additional" title={t('forms.hcp.steps.additional')}>
                     <Box mt={12}>
                       <HcpAdditionalDetails
                         inputStyles={inputStyles}
@@ -352,7 +387,7 @@ function HcpForm({ onBack }: HcpFormProps) {
                     </Box>
                   </FormStep>
 
-                  <FormStep name="confirm" title="Confirm">
+                  <FormStep name="confirm" title={t('forms.hcp.steps.confirm')}>
                     <Box mt={12}>
                       <HcpReviewConfirm
                         accordionIndex={accordionIndex}
@@ -375,11 +410,7 @@ function HcpForm({ onBack }: HcpFormProps) {
                   </StepsCompleted>
                 </FormStepper>
 
-                <ButtonGroup w="full" mt={8}>
-                  <PrevButton variant="outline" size="lg" />
-                  <Spacer />
-                  <NextButton size="lg" {...primaryButtonStyles} />
-                </ButtonGroup>
+                <FormNavigationHcp primaryButtonStyles={primaryButtonStyles} />
               </FormLayout>
             )}
           </StepForm>
@@ -399,8 +430,7 @@ function HcpForm({ onBack }: HcpFormProps) {
         borderColor="gray.200"
       >
         <Text>
-          Thank you for helping us make our products safer and more effective for everyone,
-          everywhere.
+          {t('welcome.footer')}
         </Text>
         <Text mt={1} fontSize="xs">
           Copyright © 2026 Clin Solutions L.L.C.

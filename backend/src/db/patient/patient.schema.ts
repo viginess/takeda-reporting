@@ -13,19 +13,19 @@ export const patientReports = pgTable("patient_reports", {
   id: uuid("id").defaultRandom().primaryKey(),
   referenceId: text("reference_id"), // Custom human-readable ID e.g., REP-123456
 
-  // ── Step 1: Product ─────────────────────────────────────
+  // Step 1: Product
   products: jsonb("products"),
 
-  // ── Step 2: Event (symptoms) ─────────────────────────────
+  // Step 2: Event (symptoms)
   symptoms: jsonb("symptoms"),
 
-  // ── Step 3: Personal & HCP (stored as JSONB objects) ────
+  // Step 3: Personal & HCP (stored as JSONB objects)
   // patientDetails: { name, gender, initials, dob, ageValue, contactPermission, email }
   patientDetails: jsonb("patient_details"),
   // hcpDetails: { contactPermission, firstName, lastName, email, phone, institution, address, city, state, zipCode, country }
   hcpDetails: jsonb("hcp_details"),
 
-  // ── Step 4: Additional Details ───────────────────────────
+  // Step 4: Additional Details
   takingOtherMeds: text("taking_other_meds"),
   otherMedications: jsonb("other_medications"),
 
@@ -38,7 +38,7 @@ export const patientReports = pgTable("patient_reports", {
   additionalDetails: text("additional_details"),
   attachments: jsonb("attachments"),               // base64 image arrays from Additional step
 
-  // ── Step 5: Confirm ──────────────────────────────────────
+  // Step 5: Confirm
   agreedToTerms: boolean("agreed_to_terms").notNull(),
   reporterType: text("reporter_type"),
   status: statusEnum("status").default("new"),

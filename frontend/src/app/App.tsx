@@ -51,7 +51,7 @@ const getGuestId = () => {
 const trpcClient = trpc.createClient({
   links: [
     httpBatchLink({
-      url: import.meta.env.VITE_API_URL || 'http://localhost:3000',
+      url: import.meta.env.VITE_API_URL || 'http://localhost:3000/trpc',
       headers: async () => {
         const { data: { session } } = await supabase.auth.getSession();
         return {
@@ -82,7 +82,26 @@ const RecoveryRedirector = () => {
   return null;
 };
 
+import { isRTL } from '../utils/languages';
+import { useTranslation } from 'react-i18next';
+
 function App() {
+  const { i18n } = useTranslation();
+
+  useEffect(() => {
+    const updateDirection = (lng: string) => {
+      document.documentElement.dir = isRTL(lng) ? 'rtl' : 'ltr';
+      document.documentElement.lang = lng;
+    };
+
+    updateDirection(i18n.language);
+    i18n.on('languageChanged', updateDirection);
+
+    return () => {
+      i18n.off('languageChanged', updateDirection);
+    };
+  }, [i18n]);
+
   return (
     <trpc.Provider client={trpcClient} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>

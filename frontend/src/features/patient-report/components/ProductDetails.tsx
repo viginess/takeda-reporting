@@ -26,6 +26,7 @@ import { ProductImageUpload } from '../../../shared/components/ProductImageUploa
 import { HiQuestionMarkCircle, HiPlus } from 'react-icons/hi2';
 import { useFormContext, useFieldArray } from 'react-hook-form';
 import batchImg from '../../../assets/batch.png';
+import { useTranslation } from 'react-i18next';
 
 interface ProductDetailsProps {
   inputStyles: any;
@@ -34,6 +35,7 @@ interface ProductDetailsProps {
 }
 
 export function ProductDetails({ inputStyles, index = 0, onAddProduct }: ProductDetailsProps) {
+  const { t } = useTranslation();
   const { setValue, register, control, watch } = useFormContext();
 
   const { fields: conditionFields, append: appendCondition, remove: removeCondition } = useFieldArray({
@@ -59,32 +61,32 @@ export function ProductDetails({ inputStyles, index = 0, onAddProduct }: Product
   return (
     <>
       <Heading as="h2" size="lg" mb={2} color="gray.800" fontWeight="600">
-        Let&apos;s get some product details
+        {t('forms.patient.productDetails.title')}
       </Heading>
       <Text fontSize="sm" color="gray.600" mb={6}>
-        For which product do you want to report a potential concern?
+        {t('forms.patient.productDetails.subtitle')}
       </Text>
 
       <FormControl mb={6} isRequired>
         <FormLabel fontWeight="500" color="gray.700">
-          Enter product name
+          {t('forms.patient.productDetails.productNameLabel')}
         </FormLabel>
         <Input
-          placeholder="Enter product name"
+          placeholder={t('forms.patient.productDetails.productNamePlaceholder')}
           {...inputStyles}
-          {...register(`${prefix}.productName`, { required: 'Product name is required' })}
+          {...register(`${prefix}.productName`, { required: t('forms.patient.productDetails.productNameRequired') })}
         />
       </FormControl>
 
       <FormControl mb={6}>
         <FormLabel fontWeight="500" color="gray.700">
-          What condition are you treating?
+          {t('forms.patient.productDetails.conditionLabel')}
         </FormLabel>
         <VStack align="stretch" spacing={3}>
           {conditionFields.map((field, cIdx) => (
             <Flex key={field.id} gap={3} flexWrap="wrap">
               <Input
-                placeholder="Enter condition name"
+                placeholder={t('forms.patient.productDetails.conditionPlaceholder')}
                 flex="1"
                 minW="200px"
                 {...inputStyles}
@@ -94,13 +96,13 @@ export function ProductDetails({ inputStyles, index = 0, onAddProduct }: Product
                 variant="outline"
                 size="lg"
                 borderColor="gray.300"
-                onClick={() => setValue(`${prefix}.conditions.${cIdx}.name`, 'Unknown')}
+                onClick={() => setValue(`${prefix}.conditions.${cIdx}.name`, t('forms.patient.common.unknown'))}
               >
-                Unknown
+                {t('forms.patient.common.unknown')}
               </Button>
               {cIdx > 0 && (
                 <Button variant="ghost" colorScheme="red" size="lg" onClick={() => removeCondition(cIdx)}>
-                  Remove
+                  {t('common.remove')}
                 </Button>
               )}
             </Flex>
@@ -114,12 +116,12 @@ export function ProductDetails({ inputStyles, index = 0, onAddProduct }: Product
           leftIcon={<HiPlus />}
           onClick={() => appendCondition({ name: '' })}
         >
-          Add condition
+          {t('forms.patient.productDetails.addCondition')}
         </Button>
       </FormControl>
 
       <Heading as="h3" size="md" mt={8} mb={4} color="gray.800" fontWeight="600">
-        Please enter the following product information
+        {t('forms.patient.productDetails.productInfoTitle')}
       </Heading>
 
       {batchFields.map((field, bIdx) => (
@@ -127,18 +129,18 @@ export function ProductDetails({ inputStyles, index = 0, onAddProduct }: Product
           {bIdx > 0 && (
             <Flex justify="flex-end" mb={2}>
               <Button size="xs" variant="ghost" colorScheme="red" onClick={() => removeBatch(bIdx)}>
-                Remove batch
+                {t('forms.patient.productDetails.removeBatch')}
               </Button>
             </Flex>
           )}
           <FormControl mb={6} isRequired>
             <FormLabel fontWeight="500" color="gray.700" mb={2}>
-              Batch / lot number
+              {t('forms.patient.productDetails.batchLabel')}
             </FormLabel>
             <Flex gap={3} flexWrap="wrap">
               <InputGroup flex="1" minW="200px">
                 <Input
-                  placeholder="Enter batch number"
+                  placeholder={t('forms.patient.productDetails.batchPlaceholder')}
                   {...inputStyles}
                   pr="40px"
                   {...register(`${prefix}.batches.${bIdx}.batchNumber`)}
@@ -161,7 +163,7 @@ export function ProductDetails({ inputStyles, index = 0, onAddProduct }: Product
                         <PopoverArrow />
                         <PopoverCloseButton />
                         <PopoverHeader fontWeight="600" fontSize="md" pb={3}>
-                          Where to find the batch number
+                          {t('forms.patient.productDetails.batchHelpTitle')}
                         </PopoverHeader>
                         <PopoverBody p={4}>
                           <Box
@@ -182,8 +184,7 @@ export function ProductDetails({ inputStyles, index = 0, onAddProduct }: Product
                             />
                           </Box>
                           <Text fontSize="sm" color="gray.600">
-                            Look for the batch/lot number on the packaging, typically found near the
-                            expiry date or barcode.
+                            {t('forms.patient.productDetails.batchHelpBody')}
                           </Text>
                         </PopoverBody>
                       </PopoverContent>
@@ -195,26 +196,25 @@ export function ProductDetails({ inputStyles, index = 0, onAddProduct }: Product
                 variant="outline"
                 size="lg"
                 borderColor="gray.300"
-                onClick={() => setValue(`${prefix}.batches.${bIdx}.batchNumber`, 'Unknown')}
+                onClick={() => setValue(`${prefix}.batches.${bIdx}.batchNumber`, t('forms.patient.common.unknown'))}
               >
-                Unknown
+                {t('forms.patient.common.unknown')}
               </Button>
             </Flex>
              <Text fontSize="xs" color="gray.500" mt={2}>
-          The batch or lot number and expiry date are usually printed on the outer carton or
-          container, often inside a black rectangle or near the barcode. On some packs,
-          they may appear as plain text or beside a QR code.
+          {t('forms.patient.productDetails.batchHelpFooter')}
         </Text>
           </FormControl>
 
           <FormControl mb={6}>
             <FormLabel fontWeight="500" color="gray.700">
-              Expiry date
+              {t('forms.patient.productDetails.expiryLabel')}
             </FormLabel>
             <Flex gap={3} flexWrap="wrap">
               <Input
-               type={watch(`${prefix}.batches.${bIdx}.expiryDate`) === 'Unknown' ? 'text' : 'date'}
-                placeholder="e.g. 24 February 2020"
+                key={watch(`${prefix}.batches.${bIdx}.expiryDate`) === t('forms.patient.common.unknown') ? 'untouchable' : 'selectable'}
+                type={watch(`${prefix}.batches.${bIdx}.expiryDate`) === t('forms.patient.common.unknown') ? 'text' : 'date'}
+                placeholder={t('forms.patient.productDetails.expiryPlaceholder')}
                 flex="1"
                 minW="200px"
                 {...inputStyles}
@@ -224,21 +224,22 @@ export function ProductDetails({ inputStyles, index = 0, onAddProduct }: Product
                 variant="outline"
                 size="lg"
                 borderColor="gray.300"
-                onClick={() => setValue(`${prefix}.batches.${bIdx}.expiryDate`, 'Unknown')}
+                onClick={() => setValue(`${prefix}.batches.${bIdx}.expiryDate`, t('forms.patient.common.unknown'))}
               >
-                Unknown
+                {t('forms.patient.common.unknown')}
               </Button>
             </Flex>
           </FormControl>
 
           <FormControl mb={6}>
             <FormLabel fontWeight="500" color="gray.700">
-              When did you start/stop using this batch?
+              {t('forms.patient.productDetails.dateRangeLabel')}
             </FormLabel>
             <Flex gap={3} flexWrap="wrap" align="center" mb={2}>
               <Input
-              type={watch(`${prefix}.batches.${bIdx}.startDate`) === 'Unknown' ? 'text' : 'date'}
-                placeholder="Select start date"
+                key={watch(`${prefix}.batches.${bIdx}.startDate`) === t('forms.patient.common.unknown') ? 'untouchable' : 'selectable'}
+                type={watch(`${prefix}.batches.${bIdx}.startDate`) === t('forms.patient.common.unknown') ? 'text' : 'date'}
+                placeholder={t('forms.patient.productDetails.startDatePlaceholder')}
                 flex="1"
                 minW="140px"
                 {...inputStyles}
@@ -248,15 +249,16 @@ export function ProductDetails({ inputStyles, index = 0, onAddProduct }: Product
                 variant="outline"
                 size="lg"
                 borderColor="gray.300"
-                onClick={() => setValue(`${prefix}.batches.${bIdx}.startDate`, 'Unknown')}
+                onClick={() => setValue(`${prefix}.batches.${bIdx}.startDate`, t('forms.patient.common.unknown'))}
               >
-                Unknown
+                {t('forms.patient.common.unknown')}
               </Button>
             </Flex>
             <Flex gap={3} flexWrap="wrap" align="center">
               <Input
-                type={['Unknown', 'Ongoing'].includes(watch(`${prefix}.batches.${bIdx}.endDate`)) ? 'text' : 'date'}
-                placeholder="Select end date"
+                key={[t('forms.patient.common.unknown'), t('forms.patient.common.ongoing')].includes(watch(`${prefix}.batches.${bIdx}.endDate`)) ? 'untouchable' : 'selectable'}
+                type={[t('forms.patient.common.unknown'), t('forms.patient.common.ongoing')].includes(watch(`${prefix}.batches.${bIdx}.endDate`)) ? 'text' : 'date'}
+                placeholder={t('forms.patient.productDetails.endDatePlaceholder')}
                 flex="1"
                 minW="140px"
                 {...inputStyles}
@@ -266,33 +268,34 @@ export function ProductDetails({ inputStyles, index = 0, onAddProduct }: Product
                 variant="outline"
                 size="lg"
                 borderColor="gray.300"
-                onClick={() => setValue(`${prefix}.batches.${bIdx}.endDate`, 'Unknown')}
+                onClick={() => setValue(`${prefix}.batches.${bIdx}.endDate`, t('forms.patient.common.unknown'))}
               >
-                Unknown
+                {t('forms.patient.common.unknown')}
               </Button>
               <Button
                 variant="outline"
                 size="lg"
                 borderColor="gray.300"
-                onClick={() => setValue(`${prefix}.batches.${bIdx}.endDate`, 'Ongoing')}
+                onClick={() => setValue(`${prefix}.batches.${bIdx}.endDate`, t('forms.patient.common.ongoing'))}
               >
-                Ongoing
+                {t('forms.patient.common.ongoing')}
               </Button>
             </Flex>
           </FormControl>
 
           <FormControl mb={6}>
         <FormLabel fontWeight="500" color="gray.700">
-          Dosage
+          {t('forms.patient.productDetails.dosageLabel')}
         </FormLabel>
         <Input
-          placeholder="Enter dose (e.g. 30mg per day)"
+          placeholder={t('forms.patient.productDetails.dosagePlaceholder')}
           {...inputStyles}
           {...register(`${prefix}.dosage`)}
         />
       </FormControl>
 
       <ProductImageUpload
+        label={t('forms.patient.additionalDetails.attachmentsLabel')}
         onChange={(base64Array) => setValue(`${prefix}.images`, base64Array)}
       />
         </Box>
@@ -306,20 +309,20 @@ export function ProductDetails({ inputStyles, index = 0, onAddProduct }: Product
         leftIcon={<HiPlus />}
         onClick={() => appendBatch({ batchNumber: '', expiryDate: '', startDate: '', endDate: '' })}
       >
-        Add product batch
+        {t('forms.patient.productDetails.addBatch')}
       </Button>
 
       
 
       <FormControl mb={6}>
         <FormLabel fontWeight="500" color="gray.700">
-          What was the action taken for the drug due to the event?
+          {t('forms.patient.productDetails.actionTakenLabel')}
         </FormLabel>
-        <Select placeholder="Select option" {...inputStyles} {...register(`${prefix}.actionTaken`)}>
-          <option value="continued">Continued</option>
-          <option value="stopped">Stopped</option>
-          <option value="dose-reduced">Dose reduced</option>
-          <option value="other">Other</option>
+        <Select placeholder={t('forms.patient.productDetails.actionTakenPlaceholder')} {...inputStyles} {...register(`${prefix}.actionTaken`)}>
+          <option value="continued">{t('forms.patient.productDetails.actions.continued')}</option>
+          <option value="stopped">{t('forms.patient.productDetails.actions.stopped')}</option>
+          <option value="dose-reduced">{t('forms.patient.productDetails.actions.doseReduced')}</option>
+          <option value="other">{t('forms.patient.productDetails.actions.other')}</option>
         </Select>
       </FormControl>
 
@@ -338,7 +341,7 @@ export function ProductDetails({ inputStyles, index = 0, onAddProduct }: Product
           leftIcon={<HiPlus />}
           onClick={onAddProduct}
         >
-          Add another product
+          {t('forms.patient.productDetails.addAnother')}
         </Button>
       )}
     </>

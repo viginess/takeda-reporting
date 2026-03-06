@@ -14,6 +14,7 @@ import {
 } from '@chakra-ui/react';
 import { useFormContext } from 'react-hook-form';
 import { HiPlus } from 'react-icons/hi2';
+import { useTranslation } from 'react-i18next';
 
 interface EventDetailsProps {
   inputStyles: any;
@@ -30,30 +31,31 @@ export function EventDetails({
   index = 0,
   onAddSymptom,
 }: EventDetailsProps) {
+  const { t } = useTranslation();
   const { setValue, register, watch } = useFormContext();
 
   const prefix = `symptoms.${index}`;
 
   const setUnknown = (fieldName: string) => {
-    setValue(`${prefix}.${fieldName}`, 'Unknown');
+    setValue(`${prefix}.${fieldName}`, t('forms.patient.common.unknown'));
   };
 
   const setOngoing = (fieldName: string) => {
-    setValue(`${prefix}.${fieldName}`, 'Ongoing');
+    setValue(`${prefix}.${fieldName}`, t('forms.patient.common.ongoing'));
   };
 
   return (
     <>
       <Heading as="h2" size="lg" mb={2} color="gray.800" fontWeight="600">
-        Okay, tell us more about the adverse event(s)
+        {t('forms.patient.eventDetails.title')}
       </Heading>
 
       <FormControl mb={6} isRequired>
         <FormLabel fontWeight="500" color="gray.700">
-          What is the symptom?
+          {t('forms.patient.eventDetails.symptomLabel')}
         </FormLabel>
         <Input
-          placeholder="Enter symptom (e.g. nausea)"
+          placeholder={t('forms.patient.eventDetails.symptomPlaceholder')}
           {...inputStyles}
           {...register(`${prefix}.name`)}
         />
@@ -61,12 +63,13 @@ export function EventDetails({
 
       <FormControl mb={6}>
         <FormLabel fontWeight="500" color="gray.700">
-          On which dates did you first/last experience the symptom?
+          {t('forms.patient.eventDetails.datesLabel')}
         </FormLabel>
         <Flex gap={3} flexWrap="wrap" align="center" mb={2}>
           <Input
-            type={watch(`${prefix}.eventStartDate`) === 'Unknown' ? 'text' : 'date'}
-            placeholder="Select start date"
+            key={watch(`${prefix}.eventStartDate`) === t('forms.patient.common.unknown') ? 'untouchable' : 'selectable'}
+            type={watch(`${prefix}.eventStartDate`) === t('forms.patient.common.unknown') ? 'text' : 'date'}
+            placeholder={t('forms.patient.productDetails.startDatePlaceholder')}
             flex="1"
             minW="140px"
             {...inputStyles}
@@ -78,13 +81,14 @@ export function EventDetails({
             borderColor="gray.300"
             onClick={() => setUnknown('eventStartDate')}
           >
-            Unknown
+            {t('forms.patient.common.unknown')}
           </Button>
         </Flex>
         <Flex gap={3} flexWrap="wrap" align="center">
           <Input
-            type={['Unknown', 'Ongoing'].includes(watch(`${prefix}.eventEndDate`)) ? 'text' : 'date'}
-            placeholder="Select end date"
+            key={[t('forms.patient.common.unknown'), t('forms.patient.common.ongoing')].includes(watch(`${prefix}.eventEndDate`)) ? 'untouchable' : 'selectable'}
+            type={[t('forms.patient.common.unknown'), t('forms.patient.common.ongoing')].includes(watch(`${prefix}.eventEndDate`)) ? 'text' : 'date'}
+            placeholder={t('forms.patient.productDetails.endDatePlaceholder')}
             flex="1"
             minW="140px"
             {...inputStyles}
@@ -96,7 +100,7 @@ export function EventDetails({
             borderColor="gray.300"
             onClick={() => setUnknown('eventEndDate')}
           >
-            Unknown
+            {t('forms.patient.common.unknown')}
           </Button>
           <Button
             variant="outline"
@@ -104,14 +108,14 @@ export function EventDetails({
             borderColor="gray.300"
             onClick={() => setOngoing('eventEndDate')}
           >
-            Ongoing
+            {t('forms.patient.common.ongoing')}
           </Button>
         </Flex>
       </FormControl>
 
       <FormControl mb={6}>
         <FormLabel fontWeight="500" color="gray.700">
-          Was the symptom treated?
+          {t('forms.patient.eventDetails.treatedLabel')}
         </FormLabel>
         <RadioGroup
           value={symptomTreated}
@@ -122,20 +126,20 @@ export function EventDetails({
         >
           <Stack direction="row" spacing={6}>
             <Radio value="yes" colorScheme="red">
-              Yes
+              {t('forms.patient.common.yes')}
             </Radio>
             <Radio value="no" colorScheme="red">
-              No
+              {t('forms.patient.common.no')}
             </Radio>
           </Stack>
         </RadioGroup>
         {symptomTreated === 'yes' && (
           <Box mt={4}>
             <FormLabel fontWeight="500" color="gray.700">
-              How was the symptom treated?
+              {t('forms.patient.eventDetails.treatmentLabel')}
             </FormLabel>
             <Textarea
-              placeholder="Enter treatment type"
+              placeholder={t('forms.patient.eventDetails.treatmentPlaceholder')}
               rows={4}
               maxLength={100}
               {...inputStyles}
@@ -150,28 +154,28 @@ export function EventDetails({
 
       <FormControl mb={6}>
         <FormLabel fontWeight="500" color="gray.700">
-          Was the symptom serious?
+          {t('forms.patient.eventDetails.seriousLabel')}
         </FormLabel>
         <RadioGroup 
           value={watch(`${prefix}.seriousness`)}
           onChange={(val) => setValue(`${prefix}.seriousness`, val)}
         >
           <Stack direction="row" spacing={6} flexWrap="wrap">
-            <Radio value="not-serious" colorScheme="red">The symptom was not serious</Radio>
-            <Radio value="medical-intervention" colorScheme="red">Medical intervention required</Radio>
-            <Radio value="hospitalization" colorScheme="red">Hospitalization required</Radio>
-            <Radio value="life-threatening" colorScheme="red">Life threatening</Radio>
-            <Radio value="disability" colorScheme="red">Persistent/Significant disability</Radio>
-            <Radio value="congenital" colorScheme="red">Congenital anomaly/birth defect</Radio>
-            <Radio value="medically-significant" colorScheme="red">Medically significant</Radio>
-            <Radio value="death" colorScheme="red">Death</Radio>
+            <Radio value="not-serious" colorScheme="red">{t('forms.patient.eventDetails.seriousness.notSerious')}</Radio>
+            <Radio value="medical-intervention" colorScheme="red">{t('forms.patient.eventDetails.seriousness.medicalIntervention')}</Radio>
+            <Radio value="hospitalization" colorScheme="red">{t('forms.patient.eventDetails.seriousness.hospitalization')}</Radio>
+            <Radio value="life-threatening" colorScheme="red">{t('forms.patient.eventDetails.seriousness.lifeThreatening')}</Radio>
+            <Radio value="disability" colorScheme="red">{t('forms.patient.eventDetails.seriousness.disability')}</Radio>
+            <Radio value="congenital" colorScheme="red">{t('forms.patient.eventDetails.seriousness.congenital')}</Radio>
+            <Radio value="medically-significant" colorScheme="red">{t('forms.patient.eventDetails.seriousness.medicallySignificant')}</Radio>
+            <Radio value="death" colorScheme="red">{t('forms.patient.eventDetails.seriousness.death')}</Radio>
           </Stack>
         </RadioGroup>
       </FormControl>
 
       <FormControl mb={8}>
         <FormLabel fontWeight="500" color="gray.700">
-          What was the outcome of the symptom?
+          {t('forms.patient.eventDetails.outcomeLabel')}
         </FormLabel>
         <RadioGroup 
           value={watch(`${prefix}.outcome`)}
@@ -179,16 +183,16 @@ export function EventDetails({
         >
           <Stack direction="row" spacing={6} flexWrap="wrap">
             <Radio value="recovered" colorScheme="red">
-              Recovered completely
+              {t('forms.patient.eventDetails.outcomes.recovered')}
             </Radio>
             <Radio value="recovered-lasting" colorScheme="red">
-              Recovered with lasting effects
+              {t('forms.patient.eventDetails.outcomes.recoveredLasting')}
             </Radio>
             <Radio value="improved" colorScheme="red">
-              Improved
+              {t('forms.patient.eventDetails.outcomes.improved')}
             </Radio>
             <Radio value="ongoing" colorScheme="red">
-              Ongoing
+              {t('forms.patient.eventDetails.outcomes.ongoing')}
             </Radio>
           </Stack>
         </RadioGroup>
@@ -207,7 +211,7 @@ export function EventDetails({
           leftIcon={<HiPlus />}
           onClick={onAddSymptom}
         >
-          Add another symptom
+          {t('forms.patient.eventDetails.addAnother')}
         </Button>
       )}
     </>
