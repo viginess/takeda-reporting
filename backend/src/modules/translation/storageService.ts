@@ -16,6 +16,12 @@ export const storageService = {
 
     if (error) {
       if (error.message.includes("Object not found")) return null;
+      console.error(`[StorageService] Error downloading ${languageCode}.json:`, {
+        message: error.message,
+        name: error.name,
+        status: (error as any).status,
+        statusCode: (error as any).statusCode
+      });
       return null;
     }
 
