@@ -15,12 +15,21 @@ export const storageService = {
       .download(`${languageCode}.json`);
 
     if (error) {
-      if (error.message.includes("Object not found")) return null;
+      // Handle "Not Found" gracefully - this is expected if it's a new translation
+      const isNotFound = 
+        error.message?.includes("Object not found") || 
+        (error as any).status === 404 || 
+        (error as any).statusCode === "404" ||
+        (error as any).name === "StorageApiError" && (error as any).status === 400; // Some versions return 400 for missing objects in certain configs
+
+      if (isNotFound) return null;
+
       console.error(`[StorageService] Error downloading ${languageCode}.json:`, {
         message: error.message,
         name: error.name,
         status: (error as any).status,
-        statusCode: (error as any).statusCode
+        statusCode: (error as any).statusCode,
+        errorRaw: error
       });
       return null;
     }
