@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { eq, sql } from "drizzle-orm";
-import { createClient } from "@supabase/supabase-js";
+import { getSupabaseAdmin } from "../../utils/supabase.js";
 import {
   protectedProcedure,
   viewerProcedure,
@@ -157,24 +157,8 @@ export const inviteAdmin = superAdminProcedure
     }),
   )
   .mutation(async ({ input }) => {
-    const supabaseUrl = process.env.VITE_SUPABASE_URL;
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
-
-    if (!supabaseUrl || !serviceRoleKey) {
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message:
-          "Supabase Service Role Key is not configured. Cannot invite users.",
-      });
-    }
-
-    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
-    });
+    const supabaseAdmin = getSupabaseAdmin();
 
     let authDataFinal;
 
