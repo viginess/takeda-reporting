@@ -47,7 +47,7 @@ export const translationRouter = router({
                 hasMissing = true;
               } else {
                 const subTarget: any = {};
-                const subHasMissing = findMissing(en[key], cache[key], subTarget);
+                findMissing(en[key], cache[key], subTarget);
                 if (Object.keys(subTarget).length > 0) {
                   target[key] = subTarget;
                 }
