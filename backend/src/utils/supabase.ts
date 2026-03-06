@@ -3,63 +3,38 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const supabaseUrl = (process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL)?.trim();
-const serviceRoleKey = (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_SERVICE_ROLE_KEY)?.trim();
+const url = (process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL)?.trim();
+const key = (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_SERVICE_ROLE_KEY)?.trim();
 
-if (!supabaseUrl || !serviceRoleKey) {
-  console.error(
-    "CRITICAL: Supabase configuration missing in environment.",
-    {
-      VITE_SUPABASE_URL: !!process.env.VITE_SUPABASE_URL,
-      SUPABASE_URL: !!process.env.SUPABASE_URL,
-      SUPABASE_SERVICE_ROLE_KEY: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
-      VITE_SUPABASE_SERVICE_ROLE_KEY: !!process.env.VITE_SUPABASE_SERVICE_ROLE_KEY,
-    }
-  );
+console.log("-----------------------------------------");
+console.log("DEBUG: Supabase Client Initializing...");
+console.log("URL Source:", process.env.SUPABASE_URL ? "SUPABASE_URL" : "VITE_SUPABASE_URL");
+console.log("Key Source:", process.env.SUPABASE_SERVICE_ROLE_KEY ? "SUPABASE_SERVICE_ROLE_KEY" : "VITE_SUPABASE_SERVICE_ROLE_KEY");
+
+if (!url || !key) {
+  console.error("❌ ERROR: Supabase Credentials Missing!");
 } else {
-  // Check if the URL project ref matches the key's project ref (if possible)
-  // Keys are JWTs, their payload contains the "ref"
   try {
-    const payloadBase64 = serviceRoleKey.split('.')[1];
-    if (payloadBase64) {
-      const payload = JSON.parse(Buffer.from(payloadBase64, 'base64').toString());
-      const keyRef = payload.ref;
-      const keyRole = payload.role;
-      const urlRef = supabaseUrl.split('//')[1]?.split('.')[0];
-      
-      console.log("Supabase JWT Diagnostics:", {
-        roleInKey: keyRole,
-        projectRefFromKey: keyRef,
-        projectRefFromUrl: urlRef,
-        isRoleCorrect: keyRole === 'service_role'
-      });
-      
-      if (keyRef && urlRef && keyRef !== urlRef) {
-        console.error("🚨 PROJECT MISMATCH DETECTED: The service role key belongs to project '" + keyRef + "' but the URL is for project '" + urlRef + "'. Signature verification will FAIL!");
-      }
-
-      if (keyRole !== 'service_role') {
-        console.error("🚨 WRONG KEY ROLE: You are using an '" + keyRole + "' key, but the backend requires a 'service_role' key for Storage access.");
-      }
+    const parts = key.split('.');
+    console.log("JWT Structure:", parts.length, "parts (expect 3)");
+    const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString());
+    const keyRef = payload.ref;
+    const urlRef = url.split('//')[1]?.split('.')[0];
+    
+    console.log("🔍 PROJECT REF CHECK:");
+    console.log("   - URL Ref:", urlRef);
+    console.log("   - Key Ref:", keyRef);
+    console.log("   - Role:", payload.role);
+    
+    if (keyRef !== urlRef) {
+      console.error("🚨 CRITICAL: PROJECT MISMATCH! Key and URL are from different projects.");
     }
   } catch (e) {
-    console.warn("Could not verify key/URL details:", e);
+    console.log("Could not parse JWT payload for debug logs.");
   }
-
-  console.log("Supabase Admin initialized.", {
-    url: supabaseUrl,
-    keyPrefix: serviceRoleKey.substring(0, 10) + "...",
-    keyLength: serviceRoleKey.length,
-  });
 }
+console.log("-----------------------------------------");
 
-export const supabaseAdmin = createClient(
-  supabaseUrl || "",
-  serviceRoleKey || "",
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-  },
-);
+export const supabaseAdmin = createClient(url || "", key || "", {
+  auth: { autoRefreshToken: false, persistSession: false },
+});
