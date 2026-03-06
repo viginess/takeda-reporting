@@ -20,7 +20,8 @@ export const storageService = {
         error.message?.includes("Object not found") || 
         (error as any).status === 404 || 
         (error as any).statusCode === "404" ||
-        (error as any).name === "StorageApiError" && (error as any).status === 400; // Some versions return 400 for missing objects in certain configs
+        (error as any).name === "StorageApiError" && (error as any).status === 400 || // Some versions return 400 for missing objects in certain configs
+        ((error as any).name === "StorageUnknownError" && (error as any).originalError?.status === 400); 
 
       if (isNotFound) return null;
 
