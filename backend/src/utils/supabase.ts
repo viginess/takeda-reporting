@@ -24,19 +24,28 @@ if (!supabaseUrl || !serviceRoleKey) {
     if (payloadBase64) {
       const payload = JSON.parse(Buffer.from(payloadBase64, 'base64').toString());
       const keyRef = payload.ref;
+      const keyRole = payload.role;
       const urlRef = supabaseUrl.split('//')[1]?.split('.')[0];
       
+      console.log("Supabase JWT Diagnostics:", {
+        roleInKey: keyRole,
+        projectRefFromKey: keyRef,
+        projectRefFromUrl: urlRef,
+        isRoleCorrect: keyRole === 'service_role'
+      });
+      
       if (keyRef && urlRef && keyRef !== urlRef) {
-        console.error("🚨 PROJECT MISMATCH DETECTED: The service role key belongs to project '" + keyRef + "' but the URL is for project '" + urlRef + "'. Signature verification will fail!");
-      } else {
-        console.log("Supabase Project Check: Found matching refs (" + keyRef + ")");
+        console.error("🚨 PROJECT MISMATCH DETECTED: The service role key belongs to project '" + keyRef + "' but the URL is for project '" + urlRef + "'. Signature verification will FAIL!");
+      }
+
+      if (keyRole !== 'service_role') {
+        console.error("🚨 WRONG KEY ROLE: You are using an '" + keyRole + "' key, but the backend requires a 'service_role' key for Storage access.");
       }
     }
   } catch (e) {
-    console.warn("Could not verify key/URL project match.");
+    console.warn("Could not verify key/URL details:", e);
   }
 
-  // Debug log to verify key format (without leaking the secret)
   console.log("Supabase Admin initialized.", {
     url: supabaseUrl,
     keyPrefix: serviceRoleKey.substring(0, 10) + "...",
