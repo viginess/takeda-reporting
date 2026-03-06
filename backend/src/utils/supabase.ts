@@ -3,18 +3,39 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const supabaseUrl = process.env.VITE_SUPABASE_URL?.trim();
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
+const supabaseUrl = (process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL)?.trim();
+const serviceRoleKey = (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_SERVICE_ROLE_KEY)?.trim();
 
 if (!supabaseUrl || !serviceRoleKey) {
   console.error(
     "CRITICAL: Supabase configuration missing in environment.",
     {
-      urlPresent: !!supabaseUrl,
-      serviceRoleKeyPresent: !!serviceRoleKey,
+      VITE_SUPABASE_URL: !!process.env.VITE_SUPABASE_URL,
+      SUPABASE_URL: !!process.env.SUPABASE_URL,
+      SUPABASE_SERVICE_ROLE_KEY: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+      VITE_SUPABASE_SERVICE_ROLE_KEY: !!process.env.VITE_SUPABASE_SERVICE_ROLE_KEY,
     }
   );
 } else {
+  // Check if the URL project ref matches the key's project ref (if possible)
+  // Keys are JWTs, their payload contains the "ref"
+  try {
+    const payloadBase64 = serviceRoleKey.split('.')[1];
+    if (payloadBase64) {
+      const payload = JSON.parse(Buffer.from(payloadBase64, 'base64').toString());
+      const keyRef = payload.ref;
+      const urlRef = supabaseUrl.split('//')[1]?.split('.')[0];
+      
+      if (keyRef && urlRef && keyRef !== urlRef) {
+        console.error("🚨 PROJECT MISMATCH DETECTED: The service role key belongs to project '" + keyRef + "' but the URL is for project '" + urlRef + "'. Signature verification will fail!");
+      } else {
+        console.log("Supabase Project Check: Found matching refs (" + keyRef + ")");
+      }
+    }
+  } catch (e) {
+    console.warn("Could not verify key/URL project match.");
+  }
+
   // Debug log to verify key format (without leaking the secret)
   console.log("Supabase Admin initialized.", {
     url: supabaseUrl,
