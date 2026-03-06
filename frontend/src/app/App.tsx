@@ -48,10 +48,18 @@ const getGuestId = () => {
   return id;
 };
 
+const getTrpcUrl = () => {
+  const envUrl = import.meta.env.VITE_API_URL;
+  if (!envUrl) return 'http://localhost:3000/trpc';
+  
+  // Ensure it ends with /trpc
+  return envUrl.endsWith('/trpc') ? envUrl : `${envUrl.replace(/\/$/, '')}/trpc`;
+};
+
 const trpcClient = trpc.createClient({
   links: [
     httpBatchLink({
-      url: import.meta.env.VITE_API_URL || 'http://localhost:3000/trpc',
+      url: getTrpcUrl(),
       headers: async () => {
         const { data: { session } } = await supabase.auth.getSession();
         return {
