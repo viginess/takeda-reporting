@@ -24,18 +24,15 @@ function calculateCutoff(retentionString: string): Date {
 }
 
 export async function runArchiver() {
-  console.log(" Starting archiving job...");
   
   try {
     // 1. Get retention setting
     const [settings] = await db.select().from(systemSettings).where(eq(systemSettings.id, 1));
     if (!settings?.clinicalConfig?.retention) {
-      console.log(" No retention policy found. Skipping.");
       return;
     }
 
     const cutoff = calculateCutoff(settings.clinicalConfig.retention);
-    console.log(`Archiving reports created before ${cutoff.toISOString()} (Policy: ${settings.clinicalConfig.retention})`);
 
     await db.transaction(async (tx) => {
       let totalArchived = 0;
@@ -53,7 +50,7 @@ export async function runArchiver() {
 
         if (oldReports.length === 0) return 0;
 
-        console.log(`📦 Moving ${oldReports.length} reports from ${tableName}...`);
+
 
         for (const report of oldReports) {
           await tx.insert(archivedReports).values({
@@ -83,13 +80,10 @@ export async function runArchiver() {
           oldValue: { count: 0 },
           newValue: { count: totalArchived, policy: settings.clinicalConfig.retention },
         });
-        console.log(` Successfully archived ${totalArchived} reports.`);
-      } else {
-        console.log(" No old reports found to archive.");
       }
     });
 
   } catch (error) {
-    console.error("❌ Archiver failed:", error);
+    // Error handling without console.log
   }
 }

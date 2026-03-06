@@ -99,7 +99,7 @@ export function HcpProductDetails({ inputStyles, index = 0, onAddProduct }: HcpP
                 variant="outline"
                 size="lg"
                 borderColor="gray.300"
-                onClick={() => setValue(`${prefix}.conditions.${cIdx}.name`, 'Unknown')}
+                onClick={() => setValue(`${prefix}.conditions.${cIdx}.name`, t('forms.patient.common.unknown'))}
               >
                 {t('forms.patient.common.unknown')}
               </Button>
@@ -201,7 +201,7 @@ export function HcpProductDetails({ inputStyles, index = 0, onAddProduct }: HcpP
                 variant="outline"
                 size="lg"
                 borderColor="gray.300"
-                onClick={() => setValue(`${prefix}.batches.${bIdx}.batchNumber`, 'Unknown')}
+                onClick={() => setValue(`${prefix}.batches.${bIdx}.batchNumber`, t('forms.patient.common.unknown'))}
               >
                 {t('forms.patient.common.unknown')}
               </Button>
@@ -217,7 +217,8 @@ export function HcpProductDetails({ inputStyles, index = 0, onAddProduct }: HcpP
             </FormLabel>
             <Flex gap={3} flexWrap="wrap">
               <Input
-                type={watch(`${prefix}.batches.${bIdx}.expiryDate`) === 'Unknown' ? 'text' : 'date'}
+                key={watch(`${prefix}.batches.${bIdx}.expiryDate`) === t('forms.patient.common.unknown') ? 'untouchable' : 'selectable'}
+                type={watch(`${prefix}.batches.${bIdx}.expiryDate`) === t('forms.patient.common.unknown') ? 'text' : 'date'}
                 placeholder={t('forms.patient.productDetails.expiryDatePlaceholder')}
                 flex="1"
                 minW="200px"
@@ -228,7 +229,7 @@ export function HcpProductDetails({ inputStyles, index = 0, onAddProduct }: HcpP
                 variant="outline"
                 size="lg"
                 borderColor="gray.300"
-                onClick={() => setValue(`${prefix}.batches.${bIdx}.expiryDate`, 'Unknown')}
+                onClick={() => setValue(`${prefix}.batches.${bIdx}.expiryDate`, t('forms.patient.common.unknown'))}
               >
                 {t('forms.patient.common.unknown')}
               </Button>
@@ -241,7 +242,8 @@ export function HcpProductDetails({ inputStyles, index = 0, onAddProduct }: HcpP
             </FormLabel>
             <Flex gap={3} flexWrap="wrap" align="center" mb={2}>
               <Input
-                type={watch(`${prefix}.batches.${bIdx}.startDate`) === 'Unknown' ? 'text' : 'date'}
+                key={watch(`${prefix}.batches.${bIdx}.startDate`) === t('forms.patient.common.unknown') ? 'untouchable' : 'selectable'}
+                type={watch(`${prefix}.batches.${bIdx}.startDate`) === t('forms.patient.common.unknown') ? 'text' : 'date'}
                 placeholder={t('forms.patient.productDetails.startDatePlaceholder')}
                 flex="1"
                 minW="140px"
@@ -252,14 +254,15 @@ export function HcpProductDetails({ inputStyles, index = 0, onAddProduct }: HcpP
                 variant="outline"
                 size="lg"
                 borderColor="gray.300"
-                onClick={() => setValue(`${prefix}.batches.${bIdx}.startDate`, 'Unknown')}
+                onClick={() => setValue(`${prefix}.batches.${bIdx}.startDate`, t('forms.patient.common.unknown'))}
               >
                 {t('forms.patient.common.unknown')}
               </Button>
             </Flex>
             <Flex gap={3} flexWrap="wrap" align="center">
               <Input
-                type={['Unknown', 'Ongoing'].includes(watch(`${prefix}.batches.${bIdx}.endDate`)) ? 'text' : 'date'}
+                key={[t('forms.patient.common.unknown'), t('forms.patient.common.ongoing')].includes(watch(`${prefix}.batches.${bIdx}.endDate`)) ? 'untouchable' : 'selectable'}
+                type={[t('forms.patient.common.unknown'), t('forms.patient.common.ongoing')].includes(watch(`${prefix}.batches.${bIdx}.endDate`)) ? 'text' : 'date'}
                 placeholder={t('forms.patient.productDetails.endDatePlaceholder')}
                 flex="1"
                 minW="140px"
@@ -270,7 +273,7 @@ export function HcpProductDetails({ inputStyles, index = 0, onAddProduct }: HcpP
                 variant="outline"
                 size="lg"
                 borderColor="gray.300"
-                onClick={() => setValue(`${prefix}.batches.${bIdx}.endDate`, 'Unknown')}
+                onClick={() => setValue(`${prefix}.batches.${bIdx}.endDate`, t('forms.patient.common.unknown'))}
               >
                 {t('forms.patient.common.unknown')}
               </Button>
@@ -278,7 +281,7 @@ export function HcpProductDetails({ inputStyles, index = 0, onAddProduct }: HcpP
                 variant="outline"
                 size="lg"
                 borderColor="gray.300"
-                onClick={() => setValue(`${prefix}.batches.${bIdx}.endDate`, 'Ongoing')}
+                onClick={() => setValue(`${prefix}.batches.${bIdx}.endDate`, t('forms.patient.common.ongoing'))}
               >
                 {t('forms.patient.common.ongoing')}
               </Button>
@@ -337,7 +340,10 @@ export function HcpProductDetails({ inputStyles, index = 0, onAddProduct }: HcpP
         />
       </FormControl>
 
-      <ProductImageUpload />
+      <ProductImageUpload
+        label={t('forms.patient.additionalDetails.attachmentsLabel')}
+        onChange={(base64Array) => setValue(`${prefix}.images`, base64Array)}
+      />
         </Box>
       ))}
 

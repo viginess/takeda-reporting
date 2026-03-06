@@ -7,7 +7,13 @@
     "add": "Add",
     "loading": "Loading...",
     "error": "An error occurred",
-    "success": "Success"
+    "success": "Success",
+    "edit": "Edit"
+  },
+  "upload": {
+    "dragDrop": "Drag & drop or click to select",
+    "chooseImages": "Choose images",
+    "maxInfo": "Max {{maxFiles}} files \u00b7 Max {{maxFileSizeMB}}MB each \u00b7 Images only"
   },
   "welcome": {
     "title": "Welcome to Takeda Reporting",
@@ -28,6 +34,35 @@
     "footer": "Thank you for helping us make our products safer and more effective for everyone, everywhere."
   },
   "forms": {
+    "shared": {
+      "reviewConfirm": {
+        "whoAreYouTitle": "Please select who you are",
+        "iAmLabel": "I am...",
+        "otherInfoTitle": "Other information",
+        "additionalDetailsLabel": "Additional details"
+      },
+      "common": {
+        "ongoing": "Ongoing",
+        "edit": "Edit",
+        "to": " to "
+      },
+      "patientDetails": {
+        "title": "Enter patient information",
+        "subtitle": "Patient details (complete at least one of the fields)",
+        "nameInitialsLabel": "Name or initials",
+        "nameInitialsPlaceholder": "Enter name or initials"
+      },
+      "reporterDetails": {
+        "title": "Enter your information",
+        "subtitle": "Please enter your details",
+        "firstNameLabel": "First name",
+        "firstNamePlaceholder": "Enter first name",
+        "lastNameLabel": "Last name",
+        "lastNamePlaceholder": "Enter last name",
+        "relationshipLabel": "Relationship to patient",
+        "relationshipPlaceholder": "Enter relationship to patient"
+      }
+    },
     "patient": {
       "title": "Patient Reporting Form",
       "subtitle": "Thank you for helping us make our products safer and more effective for everyone, everywhere.",
@@ -52,10 +87,13 @@
       },
       "productDetails": {
         "title": "Let's get some product details",
+        "subtitle": "Please enter the details of the product you are reporting.",
         "productNameLabel": "Please tell us which product",
         "productNamePlaceholder": "Enter product name",
         "productNameRequired": "Product name is required",
         "conditionLabel": "What condition are you treating?",
+        "conditionsLabel": "Condition(s)",
+        "batchNum": "Batch {{num}}",
         "conditionPlaceholder": "Enter condition name",
         "unknown": "Unknown",
         "addCondition": "Add condition",
@@ -69,6 +107,8 @@
         "expiryLabel": "Expiry date",
         "expiryPlaceholder": "e.g. 24 February 2020",
         "dateRangeLabel": "When did you start/stop using this batch?",
+        "startDateLabel": "Start date",
+        "endDateLabel": "End date",
         "startDatePlaceholder": "Select start date",
         "endDatePlaceholder": "Select end date",
         "ongoing": "Ongoing",
@@ -122,12 +162,16 @@
         },
         "symptomQuestion": "What is the symptom?",
         "dateQuestion": "On which dates did you first/last experience the symptom?",
+        "startDateLabel": "Start date",
+        "endDateLabel": "End date",
         "treatedQuestion": "Was the symptom treated?",
         "addAnother": "Add another symptom",
-        "anotherSymptom": "Add another symptom"
+        "anotherSymptom": "Add another symptom",
+        "symptomIndex": "Symptom {{num}}"
       },
       "personalDetails": {
         "title": "Now, a little about you.",
+        "reporterTitle": "Reporter information",
         "subtitle": "Your details (complete at least one of the fields)",
         "initialsLabel": "Initials",
         "initialsPlaceholder": "Enter your initials",
@@ -180,6 +224,7 @@
         "countryPlaceholder": "Enter country"
       },
       "additionalDetails": {
+        "title": "Just a few more details (Optional)",
         "attachmentsLabel": "Is there any additional documentation or evidence you would like to attach?",
         "otherMedsLabel": "Are you taking any other medication?",
         "medicationIndex": "Medication {{index}}",
@@ -218,9 +263,13 @@
       },
       "reviewConfirm": {
         "title": "Review and confirm your report",
+        "edit": "Edit",
         "hideAll": "Hide all",
         "noProducts": "No products added.",
         "noSymptoms": "No symptoms added.",
+        "productNum": "Product {{num}}",
+        "to": " to ",
+        "ongoing": "Ongoing",
         "patientReviewTitle": "Patient",
         "fullName": "Full name",
         "ageDob": "Age / Date of birth",
@@ -235,7 +284,12 @@
         "consentText": "I agree to the processing of my information as described in the Privacy Notice and Terms and Conditions. I consent to Clin Solutions L.L.C. sharing this report with regulatory authorities and other parties as required by law.",
         "captchaRobot": "Please confirm you are not a robot.",
         "termsAgreement": "Please agree to the terms to submit.",
-        "bothRequired": "Please confirm you are not a robot and agree to the terms to submit."
+        "bothRequired": "Please confirm you are not a robot and agree to the terms to submit.",
+        "terms": {
+          "agreeLabel": "I agree to the processing of my information as described in the <privacy>{{privacy}}</privacy> and <terms>{{terms}}</terms>. I consent to Clin Solutions L.L.C. sharing this report with regulatory authorities and other parties as required by law.",
+          "privacy": "Privacy Notice",
+          "terms": "Terms and Conditions"
+        }
       }
     },
     "family": {
@@ -374,8 +428,8 @@
       },
       "reviewConfirm": {
         "title": "Review and confirm all sections of the report",
-        "hideAll": "Hide all",
         "edit": "Edit",
+        "hideAll": "Hide all",
         "noProducts": "No products added.",
         "noSymptoms": "No symptoms added.",
         "productNum": "Product {{num}}",
@@ -443,35 +497,14 @@
         }
       }
     },
-    "shared": {
-      "reviewConfirm": {
-        "whoAreYouTitle": "Please select who you are.",
-        "iAmLabel": "I am...",
-        "otherInfoTitle": "Other information",
-        "additionalDetailsLabel": "Additional details"
-      },
-      "patientDetails": {
-        "title": "Enter patient information",
-        "subtitle": "Patient details (complete at least one of the fields)",
-        "nameInitialsLabel": "Name or initials",
-        "nameInitialsPlaceholder": "Enter name or initials"
-      },
-      "reporterDetails": {
-        "title": "Enter your information",
-        "subtitle": "Please enter your details",
-        "firstNameLabel": "First name",
-        "firstNamePlaceholder": "Enter first name",
-        "lastNameLabel": "Last name",
-        "lastNamePlaceholder": "Enter last name",
-        "relationshipLabel": "Relationship to patient",
-        "relationshipPlaceholder": "Enter relationship to patient"
-      }
-    },
     "success": {
-      "title": "Submission Successful",
+      "title": "Report Submitted Successfully",
+      "description": "Thank you for helping us make our products safer and more effective for everyone. Your report has been successfully received and will be reviewed by our team.",
       "message": "Your report has been submitted successfully.",
       "referenceId": "Reference ID",
-      "submitAnother": "Submit another report"
+      "submitAnother": "Submit Another Report",
+      "backToHome": "Back to Home",
+      "copied": "Report ID copied!"
     }
   }
 }

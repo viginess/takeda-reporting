@@ -23,12 +23,14 @@ import HcpForm from './features/hcp-report';
 import { countries } from './utils/countries';
 import { languages } from './utils/languages';
 import { useTranslation } from 'react-i18next';
-import { LanguageSelector } from './components/LanguageSelector';
+import { useLanguageLoader } from './i18n/loader';
+import { ChevronLeft } from 'lucide-react';
 
 type Step = 'select' | 'audience' | 'patient' | 'family' | 'hcp';
 
 function WelcomePage() {
   const { t } = useTranslation();
+  const { loadLanguage, isLoading } = useLanguageLoader();
   const [step, setStep] = useState<Step>('select');
   const [country, setCountry] = useState('');
   const [language, setLanguage] = useState('');
@@ -75,7 +77,6 @@ function WelcomePage() {
     <Image src={logo} alt="Clin Solutions L.L.C." h="48px" cursor="pointer" filter="drop-shadow(0 2px 4px rgba(0,0,0,0.1))" />
   </Link>
         <HStack spacing={4}>
-          <LanguageSelector />
           <Heading
             as="h1"
             size="md"
@@ -207,7 +208,13 @@ function WelcomePage() {
                         placeholder="Select language"
                         size="lg"
                         value={language}
-                        onChange={(e) => setLanguage(e.target.value)}
+                        onChange={(e) => {
+                          const newLang = e.target.value;
+                          setLanguage(newLang);
+                          if (newLang) {
+                            loadLanguage(newLang);
+                          }
+                        }}
                         focusBorderColor="red.500"
                         borderColor="gray.300"
                         borderRadius="lg"
@@ -233,6 +240,7 @@ function WelcomePage() {
                       color="white"
                       onClick={handleContinue}
                       isDisabled={!country || !language}
+                      isLoading={isLoading}
                       borderRadius="lg"
                       fontWeight="600"
                       _hover={{
@@ -255,16 +263,16 @@ function WelcomePage() {
                       }}
                       transition="all 0.2s"
                     >
-                      Continue
+                      {t('common.continue', 'Continue')}
                     </Button>
                   </>
                 ) : step === 'audience' ? (
                   <>
                     <Heading as="h2" size="lg" mb={2} color="gray.800" fontWeight="600">
-                      Who are you?
+                      {t('welcome.whoAreYou')}
                     </Heading>
                     <Text fontSize="sm" color="gray.600" mb={8}>
-                      Your role helps us provide the most relevant and compliant experience.
+                      {t('welcome.roleDescription')}
                     </Text>
                     <SimpleGrid columns={{ base: 1, md: 3 }} spacing={4}>
                       <Button
@@ -288,7 +296,7 @@ function WelcomePage() {
                         whiteSpace="normal"
                         textAlign="center"
                       >
-                        A Patient or Consumer
+                        {t('welcome.roles.patient')}
                       </Button>
                       <Button
                         variant="outline"
@@ -311,7 +319,7 @@ function WelcomePage() {
                         whiteSpace="normal"
                         textAlign="center"
                       >
-                        A Friend, Caregiver or Family
+                        {t('welcome.roles.family')}
                       </Button>
                       <Button
                         variant="outline"
@@ -334,7 +342,7 @@ function WelcomePage() {
                         whiteSpace="normal"
                         textAlign="center"
                       >
-                        A Healthcare Professional
+                        {t('welcome.roles.hcp')}
                       </Button>
                     </SimpleGrid>
                   </>
@@ -346,8 +354,9 @@ function WelcomePage() {
                       mb={4}
                       onClick={() => setStep('audience')}
                       fontSize="sm"
+                      leftIcon={<ChevronLeft size={16} />}
                     >
-                      ← Back
+                      {t('common.back', 'Back')}
                     </Button>
                     {/* Redundant check removed as hcp is handled top-level */}
                   </>
@@ -372,8 +381,7 @@ function WelcomePage() {
         borderColor="gray.200"
       >
         <Text lineHeight="tall">
-          Thank you for helping us make our products safer and more effective for everyone,
-          everywhere.
+          {t('welcome.footer')}
         </Text>
       </Box>
     </Flex>

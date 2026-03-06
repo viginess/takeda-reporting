@@ -163,7 +163,7 @@ export function HcpAdditionalDetails({
                   size="sm"
                   mt={2}
                   borderColor="gray.300"
-                  onClick={() => setValue(`otherMedications.${index}.condition`, 'Unknown')}
+                  onClick={() => setValue(`otherMedications.${index}.condition`, t('forms.patient.common.unknown'))}
                 >
                   {t('forms.patient.common.unknown')}
                 </Button>
@@ -174,7 +174,8 @@ export function HcpAdditionalDetails({
                 </FormLabel>
                 <Flex gap={3} flexWrap="wrap" align="center" mb={2}>
                   <Input
-                    type={watch(`otherMedications.${index}.startDate`) === 'Unknown' ? 'text' : 'date'}
+                    key={watch(`otherMedications.${index}.startDate`) === t('forms.patient.common.unknown') ? 'untouchable' : 'selectable'}
+                    type={watch(`otherMedications.${index}.startDate`) === t('forms.patient.common.unknown') ? 'text' : 'date'}
                     placeholder={t('forms.patient.productDetails.startDatePlaceholder')}
                     flex="1"
                     minW="140px"
@@ -185,14 +186,15 @@ export function HcpAdditionalDetails({
                     variant="outline"
                     size="lg"
                     borderColor="gray.300"
-                    onClick={() => setValue(`otherMedications.${index}.startDate`, 'Unknown')}
+                    onClick={() => setValue(`otherMedications.${index}.startDate`, t('forms.patient.common.unknown'))}
                   >
                     {t('forms.patient.common.unknown')}
                   </Button>
                 </Flex>
                 <Flex gap={3} flexWrap="wrap" align="center">
                   <Input
-                    type={['Unknown', 'Ongoing'].includes(watch(`otherMedications.${index}.endDate`)) ? 'text' : 'date'}
+                    key={[t('forms.patient.common.unknown'), t('forms.patient.common.ongoing')].includes(watch(`otherMedications.${index}.endDate`)) ? 'untouchable' : 'selectable'}
+                    type={[t('forms.patient.common.unknown'), t('forms.patient.common.ongoing')].includes(watch(`otherMedications.${index}.endDate`)) ? 'text' : 'date'}
                     placeholder={t('forms.patient.productDetails.endDatePlaceholder')}
                     flex="1"
                     minW="140px"
@@ -203,7 +205,7 @@ export function HcpAdditionalDetails({
                     variant="outline"
                     size="lg"
                     borderColor="gray.300"
-                    onClick={() => setValue(`otherMedications.${index}.endDate`, 'Unknown')}
+                    onClick={() => setValue(`otherMedications.${index}.endDate`, t('forms.patient.common.unknown'))}
                   >
                     {t('forms.patient.common.unknown')}
                   </Button>
@@ -211,7 +213,7 @@ export function HcpAdditionalDetails({
                     variant="outline"
                     size="lg"
                     borderColor="gray.300"
-                    onClick={() => setValue(`otherMedications.${index}.endDate`, 'Ongoing')}
+                    onClick={() => setValue(`otherMedications.${index}.endDate`, t('forms.patient.common.ongoing'))}
                   >
                     {t('forms.patient.common.ongoing')}
                   </Button>
@@ -291,7 +293,7 @@ export function HcpAdditionalDetails({
                 </FormLabel>
                 <Flex gap={3} flexWrap="wrap" align="center" mb={2}>
                   <Input
-                    type={watch(`medicalHistory.${index}.startDate`) === 'Unknown' ? 'text' : 'date'}
+                    type={watch(`medicalHistory.${index}.startDate`) === t('forms.patient.common.unknown') ? 'text' : 'date'}
                     placeholder={t('forms.patient.productDetails.startDatePlaceholder')}
                     flex="1"
                     minW="140px"
@@ -302,14 +304,14 @@ export function HcpAdditionalDetails({
                     variant="outline"
                     size="lg"
                     borderColor="gray.300"
-                    onClick={() => setValue(`medicalHistory.${index}.startDate`, 'Unknown')}
+                    onClick={() => setValue(`medicalHistory.${index}.startDate`, t('forms.patient.common.unknown'))}
                   >
                     {t('forms.patient.common.unknown')}
                   </Button>
                 </Flex>
                 <Flex gap={3} flexWrap="wrap" align="center">
                   <Input
-                    type={['Unknown', 'Ongoing'].includes(watch(`medicalHistory.${index}.endDate`)) ? 'text' : 'date'}
+                    type={[t('forms.patient.common.unknown'), t('forms.patient.common.ongoing')].includes(watch(`medicalHistory.${index}.endDate`)) ? 'text' : 'date'}
                     placeholder={t('forms.patient.productDetails.endDatePlaceholder')}
                     flex="1"
                     minW="140px"
@@ -320,7 +322,7 @@ export function HcpAdditionalDetails({
                     variant="outline"
                     size="lg"
                     borderColor="gray.300"
-                    onClick={() => setValue(`medicalHistory.${index}.endDate`, 'Unknown')}
+                    onClick={() => setValue(`medicalHistory.${index}.endDate`, t('forms.patient.common.unknown'))}
                   >
                     {t('forms.patient.common.unknown')}
                   </Button>
@@ -328,7 +330,7 @@ export function HcpAdditionalDetails({
                     variant="outline"
                     size="lg"
                     borderColor="gray.300"
-                    onClick={() => setValue(`medicalHistory.${index}.endDate`, 'Ongoing')}
+                    onClick={() => setValue(`medicalHistory.${index}.endDate`, t('forms.patient.common.ongoing'))}
                   >
                     {t('forms.patient.common.ongoing')}
                   </Button>
@@ -339,7 +341,7 @@ export function HcpAdditionalDetails({
                   {t('forms.patient.additionalDetails.historyInfoLabel')}
                 </FormLabel>
                 <Textarea
-                  placeholder="Enter additional information here"
+                  placeholder={t('forms.hcp.additionalDetails.anythingElsePlaceholder')}
                   rows={4}
                   maxLength={500}
                   {...inputStyles}
@@ -464,7 +466,7 @@ export function HcpAdditionalDetails({
                   {t('forms.patient.additionalDetails.testCommentsLabel')}
                 </FormLabel>
                 <Textarea
-                  placeholder="Enter additional information here"
+                  placeholder={t('forms.hcp.additionalDetails.anythingElsePlaceholder')}
                   rows={4}
                   {...inputStyles}
                   {...register(`labTests.${index}.testComments`)}

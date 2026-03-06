@@ -181,7 +181,7 @@ export const countries = [
   { code: 'TO', name: 'Tonga' },
   { code: 'TT', name: 'Trinidad and Tobago' },
   { code: 'TN', name: 'Tunisia' },
-  { code: 'TR', name: 'Türkiye' },
+  { code: 'TR', name: 'Turkey' },
   { code: 'TM', name: 'Turkmenistan' },
   { code: 'TV', name: 'Tuvalu' },
   { code: 'UG', name: 'Uganda' },

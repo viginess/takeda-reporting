@@ -37,11 +37,11 @@ export function HcpEventDetails({
   const firstProductName = watch('products.0.productName');
 
   const setUnknown = (fieldName: string) => {
-    setValue(`${prefix}.${fieldName}`, 'Unknown');
+    setValue(`${prefix}.${fieldName}`, t('forms.patient.common.unknown'));
   };
 
   const setOngoing = (fieldName: string) => {
-    setValue(`${prefix}.${fieldName}`, 'Ongoing');
+    setValue(`${prefix}.${fieldName}`, t('forms.patient.common.ongoing'));
   };
 
   return (
@@ -67,7 +67,8 @@ export function HcpEventDetails({
         </FormLabel>
         <Flex gap={3} flexWrap="wrap" align="center" mb={2}>
           <Input
-            type={watch(`${prefix}.eventStartDate`) === 'Unknown' ? 'text' : 'date'}
+            key={watch(`${prefix}.eventStartDate`) === t('forms.patient.common.unknown') ? 'untouchable' : 'selectable'}
+            type={watch(`${prefix}.eventStartDate`) === t('forms.patient.common.unknown') ? 'text' : 'date'}
             placeholder={t('forms.patient.eventDetails.startDatePlaceholder')}
             flex="1"
             minW="140px"
@@ -85,7 +86,8 @@ export function HcpEventDetails({
         </Flex>
         <Flex gap={3} flexWrap="wrap" align="center">
           <Input
-            type={['Unknown', 'Ongoing'].includes(watch(`${prefix}.eventEndDate`)) ? 'text' : 'date'}
+            key={[t('forms.patient.common.unknown'), t('forms.patient.common.ongoing')].includes(watch(`${prefix}.eventEndDate`)) ? 'untouchable' : 'selectable'}
+            type={[t('forms.patient.common.unknown'), t('forms.patient.common.ongoing')].includes(watch(`${prefix}.eventEndDate`)) ? 'text' : 'date'}
             placeholder={t('forms.patient.eventDetails.endDatePlaceholder')}
             flex="1"
             minW="140px"

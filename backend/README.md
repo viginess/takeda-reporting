@@ -7,6 +7,8 @@ Backend service for Clin Solutions L.L.C. project.js server powered by tRPC and 
 - **tRPC API**: Type-safe communication with the frontend.
 - **Drizzle ORM**: Type-safe database operations.
 - **SQL Database**: PostgreSQL (Supabase).
+- **Translation Services**: Integrated Azure Translator API supporting 137+ languages.
+- **Translation Caching**: Intelligent Supabase-backed caching to minimize API usage and improve latency.
 - **Validation**: Strict input validation with Zod.
 
 ## Getting Started
@@ -49,4 +51,6 @@ Backend service for Clin Solutions L.L.C. project.js server powered by tRPC and 
 - **Input Validation**: Strictly enforced via Zod schemas.
 - **CORS**: Configured to restrict access to authorized frontend origins.
 - **Robust Rate Limiting**: Multi-layer fingerprinting (IP + UA + Guest ID).
+- **reCAPTCHA**: Support for verifying bot prevention tokens.
+- **Translation Audit**: Centralized management of localization strings via Supabase.
 - **Testing**: Use `npx tsx test-rate-limit.ts` to verify the rate limiting blocks after 50 attempts.

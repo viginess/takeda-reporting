@@ -16,7 +16,6 @@ export const storageService = {
 
     if (error) {
       if (error.message.includes("Object not found")) return null;
-      console.error(`Error downloading translation (${languageCode}):`, error);
       return null;
     }
 
@@ -36,7 +35,6 @@ export const storageService = {
       });
 
     if (error) {
-      console.error(`Error uploading translation (${languageCode}):`, error);
       throw error;
     }
   },

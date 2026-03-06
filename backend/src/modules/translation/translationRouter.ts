@@ -21,24 +21,86 @@ export const translationRouter = router({
     .mutation(async ({ input }) => {
       const { languageCode } = input;
 
+      const enContent = await fs.readFile(EN_JSON_PATH, "utf-8");
+      const enJson = JSON.parse(enContent);
+
       if (languageCode === "en") {
-        const enContent = await fs.readFile(EN_JSON_PATH, "utf-8");
-        return JSON.parse(enContent);
+        return enJson;
       }
 
       // 1. Check cache (Supabase Storage)
       const cached = await storageService.getTranslation(languageCode);
-      if (cached) return cached;
+      
+      if (cached) {
+        // Deep compare and find missing keys
+        const missingKeys: Record<string, any> = {};
+        let hasMissing = false;
 
-      // 2. If missing, translate from English base
-      const enContent = await fs.readFile(EN_JSON_PATH, "utf-8");
-      const enJson = JSON.parse(enContent);
+        const findMissing = (en: any, cache: any, target: any) => {
+          for (const key in en) {
+            if (cache[key] === undefined) {
+              target[key] = en[key];
+              hasMissing = true;
+            } else if (typeof en[key] === "object" && en[key] !== null) {
+              if (typeof cache[key] !== "object") {
+                target[key] = en[key];
+                hasMissing = true;
+              } else {
+                const subTarget: any = {};
+                const subHasMissing = findMissing(en[key], cache[key], subTarget);
+                if (Object.keys(subTarget).length > 0) {
+                  target[key] = subTarget;
+                }
+              }
+            }
+          }
+        };
 
-      const translated = await translateLocale(enJson, languageCode);
+        findMissing(enJson, cached, missingKeys);
 
-      // 3. Save to cache
-      await storageService.uploadTranslation(languageCode, translated);
+        if (!hasMissing) {
+          return cached;
+        }
 
-      return translated;
+        // Translate only the missing keys
+        try {
+          const translatedMissing = await translateLocale(missingKeys, languageCode);
+
+          // Deep merge
+          const merge = (target: any, source: any) => {
+            for (const key in source) {
+              if (typeof source[key] === "object" && source[key] !== null) {
+                if (!target[key]) target[key] = {};
+                merge(target[key], source[key]);
+              } else {
+                target[key] = source[key];
+              }
+            }
+            return target;
+          };
+
+          const updated = merge(JSON.parse(JSON.stringify(cached)), translatedMissing);
+          
+          // 3. Update cache
+          await storageService.uploadTranslation(languageCode, updated);
+          return updated;
+        } catch (error) {
+          console.error(`Partial translation failed for ${languageCode}, returning stale cache:`, error);
+          return cached;
+        }
+      }
+
+      // 2. If completely missing, translate everything
+      try {
+        const translated = await translateLocale(enJson, languageCode);
+
+        // 3. Save to cache
+        await storageService.uploadTranslation(languageCode, translated);
+
+        return translated;
+      } catch (error) {
+        console.error(`Translation failed for ${languageCode}, falling back to English:`, error);
+        return enJson;
+      }
     }),
 });

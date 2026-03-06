@@ -37,7 +37,7 @@ export function PersonalDetails({
   const { setValue, register, watch } = useFormContext();
 
   const setUnknown = (fieldName: string) => {
-    setValue(fieldName, 'Unknown');
+    setValue(fieldName, t('forms.patient.common.unknown'));
   };
 
   return (
@@ -87,7 +87,8 @@ export function PersonalDetails({
         </RadioGroup>
         {ageType === 'dob' && (
           <Input
-            type={watch('patientDetails.dob') === 'Unknown' ? 'text' : 'date'}
+            key={watch('patientDetails.dob') === t('forms.patient.common.unknown') ? 'untouchable' : 'selectable'}
+            type={watch('patientDetails.dob') === t('forms.patient.common.unknown') ? 'text' : 'date'}
             placeholder={t('forms.patient.personalDetails.dobPlaceholder')}
             mt={3}
             {...inputStyles}
@@ -97,8 +98,9 @@ export function PersonalDetails({
         {ageType === 'age' && (
           <Flex gap={3} mt={3} align="center">
             <Input
+              key={watch('patientDetails.ageValue') === t('forms.patient.common.unknown') ? 'untouchable' : 'selectable'}
               placeholder="32"
-              type={watch('patientDetails.ageValue') === 'Unknown' ? 'text' : 'number'}
+              type={watch('patientDetails.ageValue') === t('forms.patient.common.unknown') ? 'text' : 'number'}
               flex="1"
               maxW="120px"
               {...inputStyles}
@@ -140,10 +142,10 @@ export function PersonalDetails({
         >
           <Stack direction="row" spacing={6}>
             <Radio value="yes" colorScheme="red">
-              Yes
+              {t('forms.patient.common.yes')}
             </Radio>
             <Radio value="no" colorScheme="red">
-              No
+              {t('forms.patient.common.no')}
             </Radio>
           </Stack>
         </RadioGroup>
@@ -192,10 +194,10 @@ export function PersonalDetails({
         >
           <Stack direction="row" spacing={6}>
             <Radio value="yes" colorScheme="red">
-              Yes
+              {t('forms.patient.common.yes')}
             </Radio>
             <Radio value="no" colorScheme="red">
-              No
+              {t('forms.patient.common.no')}
             </Radio>
           </Stack>
         </RadioGroup>

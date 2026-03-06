@@ -5,6 +5,7 @@ import { runArchiver } from "./jobs/archiver.js";
 
 const server = createHTTPServer({
   router: appRouter,
+  basePath: '/trpc/',
   createContext({ req }) {
     return {
       ip: req.socket.remoteAddress ?? "unknown",
@@ -56,13 +57,14 @@ const server = createHTTPServer({
         return;
       }
 
-      console.log("cron: Received archive trigger");
-      runArchiver().catch(console.error);
+      runArchiver().catch(() => {});
       
       res.writeHead(200, { "Content-Type": "application/json" });
       res.end(JSON.stringify({ success: true, message: "Archiving job triggered" }));
       return;
     }
+
+    // Request passes to TRPC Router
 
     next();
   },
@@ -71,7 +73,7 @@ const server = createHTTPServer({
 // Handle port conflicts gracefully instead of crashing
 server.on("error", (err: NodeJS.ErrnoException) => {
   if (err.code === "EADDRINUSE") {
-    console.error(`❌ Port ${port} is already in use. Kill the existing process and try again.`);
+    console.error(`Port ${port} is already in use. Kill the existing process and try again.`);
     console.error(`   Run: Get-NetTCPConnection -LocalPort ${port} -State Listen | ForEach-Object { taskkill /PID $_.OwningProcess /F }`);
     process.exit(1);
   } else {
@@ -87,12 +89,9 @@ export default server;
 // Only listen when running directly (local development)
 if (process.env.NODE_ENV !== "production" || !process.env.VERCEL) {
   server.listen(port, () => {
-    console.log(`🚀 tRPC server ready on port ${port}`);
-    
     // Schedule archiving job: Every Sunday at midnight
     cron.schedule("0 0 * * 0", async () => {
       await runArchiver();
     });
-    console.log("⏰ Report archiving cron job scheduled (Every Sunday at 00:00)");
   });
 }

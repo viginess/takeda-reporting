@@ -82,10 +82,10 @@ export function ReporterDetails({
         >
           <Stack direction="row" spacing={6}>
             <Radio value="yes" colorScheme="red">
-              Yes
+              {t('forms.patient.common.yes')}
             </Radio>
             <Radio value="no" colorScheme="red">
-              No
+              {t('forms.patient.common.no')}
             </Radio>
           </Stack>
         </RadioGroup>
@@ -145,10 +145,10 @@ export function ReporterDetails({
         >
           <Stack direction="row" spacing={6}>
             <Radio value="yes" colorScheme="red">
-              Yes
+              {t('forms.patient.common.yes')}
             </Radio>
             <Radio value="no" colorScheme="red">
-              No
+              {t('forms.patient.common.no')}
             </Radio>
           </Stack>
         </RadioGroup>

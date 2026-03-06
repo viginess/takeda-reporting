@@ -15,6 +15,7 @@ import { useStepperContext } from '@saas-ui/react';
 import { useFormContext } from 'react-hook-form';
 import ReCAPTCHA from 'react-google-recaptcha';
 import { useTranslation, Trans } from 'react-i18next';
+import { AlertTriangle, Pencil } from 'lucide-react';
 
 interface ReviewRowProps {
   label: string;
@@ -28,20 +29,21 @@ function ReviewRow({ label, value }: ReviewRowProps) {
       py={2}
       borderBottom="1px solid"
       borderColor="gray.100"
-      align="center"
+      align="flex-start"
+      gap={4}
     >
-      <Text color="gray.600" fontSize="sm">
+      <Text color="gray.600" fontSize="sm" flex="1" textAlign="start">
         {label}
       </Text>
-      <Text fontWeight="500" fontSize="sm">
-        {value}
+      <Text fontWeight="500" fontSize="sm" textAlign="end">
+        {value || '-'}
       </Text>
     </Flex>
   );
 }
 
-const v = (value: string | undefined | null) => value || '—';
-const arr = (value: string[] | undefined | null) => (value?.length ? value.join(', ') : '—');
+const v = (value: string | undefined | null) => value || '-';
+const arr = (value: string[] | undefined | null) => (value?.length ? value.join(', ') : '-');
 
 const SectionTitle = ({ children }: { children: React.ReactNode }) => (
   <Text fontWeight="600" mt={4} mb={2} color="gray.700" fontSize="md" borderBottom="1px solid" borderColor="gray.100" pb={1}>
@@ -116,7 +118,7 @@ export function FamilyReviewConfirm({
             <Button
               size="sm"
               variant="ghost"
-              leftIcon={<span>✎</span>}
+              leftIcon={<Pencil size={14} />}
               onClick={(e) => {
                 e.stopPropagation();
                 onBack?.();
@@ -144,7 +146,7 @@ export function FamilyReviewConfirm({
             <Button
               size="sm"
               variant="ghost"
-              leftIcon={<span>✎</span>}
+              leftIcon={<Pencil size={14} />}
               onClick={(e) => {
                 e.stopPropagation();
                 setStep('product');
@@ -179,7 +181,7 @@ export function FamilyReviewConfirm({
             <Button
               size="sm"
               variant="ghost"
-              leftIcon={<span>✎</span>}
+              leftIcon={<Pencil size={14} />}
               onClick={(e) => {
                 e.stopPropagation();
                 setStep('event');
@@ -212,7 +214,7 @@ export function FamilyReviewConfirm({
             <Button
               size="sm"
               variant="ghost"
-              leftIcon={<span>✎</span>}
+              leftIcon={<Pencil size={14} />}
               onClick={(e) => {
                 e.stopPropagation();
                 setStep('patient');
@@ -239,7 +241,7 @@ export function FamilyReviewConfirm({
             <Button
               size="sm"
               variant="ghost"
-              leftIcon={<span>✎</span>}
+              leftIcon={<Pencil size={14} />}
               onClick={(e) => {
                 e.stopPropagation();
                 setStep('you');
@@ -253,7 +255,7 @@ export function FamilyReviewConfirm({
             <Text fontWeight="600" mt={3} mb={2} color="gray.700">
               {t('forms.patient.personalDetails.contactInfoTitle')}
             </Text>
-            <ReviewRow label={t('forms.patient.personalDetails.nameLabel')} value={[v(you.firstName), v(you.lastName)].filter(x => x !== '—').join(' ') || '—'} />
+            <ReviewRow label={t('forms.patient.personalDetails.nameLabel')} value={[v(you.firstName), v(you.lastName)].filter(x => x !== '-').join(' ') || '-'} />
             <ReviewRow label={t('forms.patient.personalDetails.emailLabel')} value={v(you.email)} />
             <ReviewRow label={t('forms.patient.personalDetails.phoneLabel')} value={v(you.phone)} />
           </AccordionPanel>
@@ -262,7 +264,7 @@ export function FamilyReviewConfirm({
         <AccordionItem>
           <AccordionButton fontWeight="600" color="gray.800" _expanded={{ bg: 'gray.50' }} justifyContent="space-between">
             <Text>{t('forms.patient.additionalDetails.title')}</Text>
-            <Button size="sm" variant="ghost" leftIcon={<span>✎</span>} onClick={(e) => { e.stopPropagation(); setStep('additional'); }}>{t('forms.patient.common.edit')}</Button>
+            <Button size="sm" variant="ghost" leftIcon={<Pencil size={14} />} onClick={(e) => { e.stopPropagation(); setStep('additional'); }}>{t('forms.patient.common.edit')}</Button>
           </AccordionButton>
           <AccordionPanel pb={4} bg="white">
             {/* Other medications */}
@@ -302,7 +304,7 @@ export function FamilyReviewConfirm({
                 {formData.labTests.map((t: any, i: number) => (
                   <Box key={i} mb={2}>
                     <ReviewRow label={t('forms.patient.additionalDetails.testIndex', { index: i + 1 })} value={v(t?.testName)} />
-                    <ReviewRow label={t('forms.patient.additionalDetails.testResultLabel')} value={[v(t?.testQualifier), v(t?.testValue)].filter(x => x !== '—').join(' ') || '—'} />
+                    <ReviewRow label={t('forms.patient.additionalDetails.testResultLabel')} value={[v(t?.testQualifier), v(t?.testValue)].filter(x => x !== '-').join(' ') || '-'} />
                     {t?.outcome?.length > 0 && <ReviewRow label={t('forms.patient.additionalDetails.testOutcomeLabel')} value={arr(t?.outcome)} />}
                     {t?.testComments && <ReviewRow label={t('forms.patient.additionalDetails.testCommentsLabel')} value={v(t?.testComments)} />}
                   </Box>
@@ -338,9 +340,12 @@ export function FamilyReviewConfirm({
         </Box>
       ) : (
         <Box p={3} mb={6} borderRadius="md" bg="yellow.50" borderWidth="1px" borderColor="yellow.300">
-          <Text fontSize="xs" color="yellow.700">
-            ⚠️ reCAPTCHA site key missing. Add <strong>VITE_RECAPTCHA_SITE_KEY</strong> to <code>frontend/.env</code>
-          </Text>
+          <Flex align="center" gap={2}>
+            <AlertTriangle size={14} color="orange.600" />
+            <Text fontSize="xs" color="yellow.700">
+              reCAPTCHA site key missing. Add <strong>VITE_RECAPTCHA_SITE_KEY</strong> to <code>frontend/.env</code>
+            </Text>
+          </Flex>
         </Box>
       )}
 
