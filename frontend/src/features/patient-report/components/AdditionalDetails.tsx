@@ -109,10 +109,10 @@ export function AdditionalDetails({
         >
           <Stack direction="row" spacing={6}>
             <Radio value="yes" colorScheme="red">
-              Yes
+              {t('forms.patient.common.yes')}
             </Radio>
             <Radio value="no" colorScheme="red">
-              No
+              {t('forms.patient.common.no')}
             </Radio>
           </Stack>
         </RadioGroup>
@@ -163,7 +163,7 @@ export function AdditionalDetails({
                     size="sm"
                     mt={2}
                     borderColor="gray.300"
-                    onClick={() => setValue(`otherMedications.${index}.condition`, 'Unknown')}
+                    onClick={() => setValue(`otherMedications.${index}.condition`, t('forms.patient.common.unknown'))}
                   >
                     {t('forms.patient.common.unknown')}
                   </Button>
@@ -174,7 +174,8 @@ export function AdditionalDetails({
                 </FormLabel>
                 <Flex gap={3} flexWrap="wrap" align="center" mb={2}>
                   <Input
-                    type={watch(`otherMedications.${index}.startDate`) === 'Unknown' ? 'text' : 'date'}
+                    key={watch(`otherMedications.${index}.startDate`) === t('forms.patient.common.unknown') ? 'untouchable' : 'selectable'}
+                    type={watch(`otherMedications.${index}.startDate`) === t('forms.patient.common.unknown') ? 'text' : 'date'}
                     placeholder={t('forms.patient.productDetails.startDatePlaceholder')}
                     flex="1"
                     minW="140px"
@@ -185,14 +186,15 @@ export function AdditionalDetails({
                     variant="outline"
                     size="lg"
                     borderColor="gray.300"
-                    onClick={() => setValue(`otherMedications.${index}.startDate`, 'Unknown')}
+                    onClick={() => setValue(`otherMedications.${index}.startDate`, t('forms.patient.common.unknown'))}
                   >
                     {t('forms.patient.common.unknown')}
                   </Button>
                 </Flex>
                 <Flex gap={3} flexWrap="wrap" align="center">
                   <Input
-                    type={['Unknown', 'Ongoing'].includes(watch(`otherMedications.${index}.endDate`)) ? 'text' : 'date'}
+                    key={[t('forms.patient.common.unknown'), t('forms.patient.common.ongoing')].includes(watch(`otherMedications.${index}.endDate`)) ? 'untouchable' : 'selectable'}
+                    type={[t('forms.patient.common.unknown'), t('forms.patient.common.ongoing')].includes(watch(`otherMedications.${index}.endDate`)) ? 'text' : 'date'}
                     placeholder={t('forms.patient.productDetails.endDatePlaceholder')}
                     flex="1"
                     minW="140px"
@@ -203,7 +205,7 @@ export function AdditionalDetails({
                     variant="outline"
                     size="lg"
                     borderColor="gray.300"
-                    onClick={() => setValue(`otherMedications.${index}.endDate`, 'Unknown')}
+                    onClick={() => setValue(`otherMedications.${index}.endDate`, t('forms.patient.common.unknown'))}
                   >
                     {t('forms.patient.common.unknown')}
                   </Button>
@@ -211,7 +213,7 @@ export function AdditionalDetails({
                     variant="outline"
                     size="lg"
                     borderColor="gray.300"
-                    onClick={() => setValue(`otherMedications.${index}.endDate`, 'Ongoing')}
+                    onClick={() => setValue(`otherMedications.${index}.endDate`, t('forms.patient.common.ongoing'))}
                   >
                     {t('forms.patient.common.ongoing')}
                   </Button>
@@ -245,10 +247,10 @@ export function AdditionalDetails({
         >
           <Stack direction="row" spacing={6}>
             <Radio value="yes" colorScheme="red">
-              Yes
+              {t('forms.patient.common.yes')}
             </Radio>
             <Radio value="no" colorScheme="red">
-              No
+              {t('forms.patient.common.no')}
             </Radio>
           </Stack>
         </RadioGroup>
@@ -271,7 +273,7 @@ export function AdditionalDetails({
                 </Text>
                 {index > 0 && (
                   <Button size="xs" variant="ghost" colorScheme="red" onClick={() => removeHistory(index)}>
-                    Remove
+                    {t('forms.patient.common.remove')}
                   </Button>
                 )}
               </Flex>
@@ -291,8 +293,8 @@ export function AdditionalDetails({
                 </FormLabel>
                 <Flex gap={3} flexWrap="wrap" align="center" mb={2}>
                   <Input
-                    type={watch(`medicalHistory.${index}.startDate`) === 'Unknown' ? 'text' : 'date'}
-                    placeholder="Select start date"
+                    type={watch(`medicalHistory.${index}.startDate`) === t('forms.patient.common.unknown') ? 'text' : 'date'}
+                    placeholder={t('forms.patient.productDetails.startDatePlaceholder')}
                     flex="1"
                     minW="140px"
                     {...inputStyles}
@@ -302,15 +304,15 @@ export function AdditionalDetails({
                     variant="outline"
                     size="lg"
                     borderColor="gray.300"
-                    onClick={() => setValue(`medicalHistory.${index}.startDate`, 'Unknown')}
+                    onClick={() => setValue(`medicalHistory.${index}.startDate`, t('forms.patient.common.unknown'))}
                   >
                     {t('forms.patient.common.unknown')}
                   </Button>
                 </Flex>
                 <Flex gap={3} flexWrap="wrap" align="center">
                   <Input
-                    type={['Unknown', 'Ongoing'].includes(watch(`medicalHistory.${index}.endDate`)) ? 'text' : 'date'}
-                    placeholder="Select end date"
+                    type={[t('forms.patient.common.unknown'), t('forms.patient.common.ongoing')].includes(watch(`medicalHistory.${index}.endDate`)) ? 'text' : 'date'}
+                    placeholder={t('forms.patient.productDetails.endDatePlaceholder')}
                     flex="1"
                     minW="140px"
                     {...inputStyles}
@@ -320,7 +322,7 @@ export function AdditionalDetails({
                     variant="outline"
                     size="lg"
                     borderColor="gray.300"
-                    onClick={() => setValue(`medicalHistory.${index}.endDate`, 'Unknown')}
+                    onClick={() => setValue(`medicalHistory.${index}.endDate`, t('forms.patient.common.unknown'))}
                   >
                     {t('forms.patient.common.unknown')}
                   </Button>
@@ -328,7 +330,7 @@ export function AdditionalDetails({
                     variant="outline"
                     size="lg"
                     borderColor="gray.300"
-                    onClick={() => setValue(`medicalHistory.${index}.endDate`, 'Ongoing')}
+                    onClick={() => setValue(`medicalHistory.${index}.endDate`, t('forms.patient.common.ongoing'))}
                   >
                     {t('forms.patient.common.ongoing')}
                   </Button>
@@ -374,10 +376,10 @@ export function AdditionalDetails({
         >
           <Stack direction="row" spacing={6}>
             <Radio value="yes" colorScheme="red">
-              Yes
+              {t('forms.patient.common.yes')}
             </Radio>
             <Radio value="no" colorScheme="red">
-              No
+              {t('forms.patient.common.no')}
             </Radio>
           </Stack>
         </RadioGroup>
@@ -452,10 +454,10 @@ export function AdditionalDetails({
                   onChange={(val) => setValue(`labTests.${index}.outcome`, val)}
                 >
                   <Stack direction="row" spacing={6} flexWrap="wrap">
-                    <Checkbox value="positive">Positive</Checkbox>
-                    <Checkbox value="negative">Negative</Checkbox>
-                    <Checkbox value="borderline">Borderline</Checkbox>
-                    <Checkbox value="inconclusive">Inconclusive</Checkbox>
+                    <Checkbox value="positive">{t('forms.patient.additionalDetails.testOutcomes.positive')}</Checkbox>
+                    <Checkbox value="negative">{t('forms.patient.additionalDetails.testOutcomes.negative')}</Checkbox>
+                    <Checkbox value="borderline">{t('forms.patient.additionalDetails.testOutcomes.borderline')}</Checkbox>
+                    <Checkbox value="inconclusive">{t('forms.patient.additionalDetails.testOutcomes.inconclusive')}</Checkbox>
                   </Stack>
                 </CheckboxGroup>
               </FormControl>

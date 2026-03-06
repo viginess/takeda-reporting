@@ -37,11 +37,11 @@ export function EventDetails({
   const prefix = `symptoms.${index}`;
 
   const setUnknown = (fieldName: string) => {
-    setValue(`${prefix}.${fieldName}`, 'Unknown');
+    setValue(`${prefix}.${fieldName}`, t('forms.patient.common.unknown'));
   };
 
   const setOngoing = (fieldName: string) => {
-    setValue(`${prefix}.${fieldName}`, 'Ongoing');
+    setValue(`${prefix}.${fieldName}`, t('forms.patient.common.ongoing'));
   };
 
   return (
@@ -67,7 +67,8 @@ export function EventDetails({
         </FormLabel>
         <Flex gap={3} flexWrap="wrap" align="center" mb={2}>
           <Input
-            type={watch(`${prefix}.eventStartDate`) === 'Unknown' ? 'text' : 'date'}
+            key={watch(`${prefix}.eventStartDate`) === t('forms.patient.common.unknown') ? 'untouchable' : 'selectable'}
+            type={watch(`${prefix}.eventStartDate`) === t('forms.patient.common.unknown') ? 'text' : 'date'}
             placeholder={t('forms.patient.productDetails.startDatePlaceholder')}
             flex="1"
             minW="140px"
@@ -80,12 +81,13 @@ export function EventDetails({
             borderColor="gray.300"
             onClick={() => setUnknown('eventStartDate')}
           >
-            {t('forms.patient.productDetails.unknown')}
+            {t('forms.patient.common.unknown')}
           </Button>
         </Flex>
         <Flex gap={3} flexWrap="wrap" align="center">
           <Input
-            type={['Unknown', 'Ongoing'].includes(watch(`${prefix}.eventEndDate`)) ? 'text' : 'date'}
+            key={[t('forms.patient.common.unknown'), t('forms.patient.common.ongoing')].includes(watch(`${prefix}.eventEndDate`)) ? 'untouchable' : 'selectable'}
+            type={[t('forms.patient.common.unknown'), t('forms.patient.common.ongoing')].includes(watch(`${prefix}.eventEndDate`)) ? 'text' : 'date'}
             placeholder={t('forms.patient.productDetails.endDatePlaceholder')}
             flex="1"
             minW="140px"
@@ -98,7 +100,7 @@ export function EventDetails({
             borderColor="gray.300"
             onClick={() => setUnknown('eventEndDate')}
           >
-            {t('forms.patient.productDetails.unknown')}
+            {t('forms.patient.common.unknown')}
           </Button>
           <Button
             variant="outline"
@@ -106,7 +108,7 @@ export function EventDetails({
             borderColor="gray.300"
             onClick={() => setOngoing('eventEndDate')}
           >
-            {t('forms.patient.productDetails.ongoing')}
+            {t('forms.patient.common.ongoing')}
           </Button>
         </Flex>
       </FormControl>
@@ -124,10 +126,10 @@ export function EventDetails({
         >
           <Stack direction="row" spacing={6}>
             <Radio value="yes" colorScheme="red">
-              {t('forms.patient.eventDetails.yes')}
+              {t('forms.patient.common.yes')}
             </Radio>
             <Radio value="no" colorScheme="red">
-              {t('forms.patient.eventDetails.no')}
+              {t('forms.patient.common.no')}
             </Radio>
           </Stack>
         </RadioGroup>

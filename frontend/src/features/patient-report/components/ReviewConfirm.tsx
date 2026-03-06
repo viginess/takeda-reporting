@@ -17,29 +17,15 @@ import { useStepperContext } from '@saas-ui/react';
 import { useFormContext, useWatch } from 'react-hook-form';
 import ReCAPTCHA from 'react-google-recaptcha';
 import { useTranslation, Trans } from 'react-i18next';
+import { AlertTriangle, Pencil } from 'lucide-react';
 
-function EditLink({ onClick }: { onClick: () => void }) {
-  const { t } = useTranslation();
-  return (
-    <Box
-      as="span"
-      ml={2} px={2} py={1}
-      fontSize="xs" fontWeight="500" color="gray.500"
-      cursor="pointer" borderRadius="md"
-      _hover={{ color: '#CE0037', bg: 'red.50' }}
-      onClick={(e: React.MouseEvent) => { e.stopPropagation(); onClick(); }}
-    >
-      ✎ {t('forms.patient.reviewConfirm.edit')}
-    </Box>
-  );
-}
 
 function ReviewRow({ label, value }: { label: string; value: string }) {
-  const empty = !value || value === '—';
+  const empty = !value || value === '-';
   return (
     <Flex justify="space-between" py={2} borderBottom="1px solid" borderColor="gray.100" align="flex-start" gap={4}>
-      <Text color="gray.600" fontSize="sm" flex="1">{label}</Text>
-      <Text fontWeight="500" fontSize="sm" textAlign="right" color={empty ? 'gray.400' : 'gray.800'}>{value}</Text>
+      <Text color="gray.600" fontSize="sm" flex="1" textAlign="start">{label}</Text>
+      <Text fontWeight="500" fontSize="sm" textAlign="end" color={empty ? 'gray.400' : 'gray.800'}>{value}</Text>
     </Flex>
   );
 }
@@ -78,7 +64,7 @@ export function ReviewConfirm({
   const labTests = useWatch({ control, name: 'labTests' }) ?? [];
   const attachments = useWatch({ control, name: 'attachments' }) ?? [];
 
-  // Step 3 — nested objects
+  // Step 3 - nested objects
   const patientDetails = useWatch({ control, name: 'patientDetails' }) ?? {};
   const hcpDetails = useWatch({ control, name: 'hcpDetails' }) ?? {};
 
@@ -107,14 +93,14 @@ export function ReviewConfirm({
         onChange={(exp) => setAccordionIndex(Array.isArray(exp) ? exp : [exp])}
         borderWidth="1px" borderColor="gray.200" borderRadius="lg" overflow="hidden" mb={6}
       >
-        {/* ── PRODUCTS ── */}
+        {/* PRODUCTS */}
         <AccordionItem>
           <AccordionButton fontWeight="600" color="gray.800" _expanded={{ bg: 'gray.50' }} justifyContent="space-between">
             <Flex align="center" gap={2}>
               <Text>{t('forms.patient.productDetails.title')}</Text>
               {products.length > 0 && <Badge colorScheme="red" fontSize="xs">{products.length}</Badge>}
             </Flex>
-            <EditLink onClick={() => setStep('product')} />
+            <Button size="sm" variant="ghost" leftIcon={<Pencil size={14} />} onClick={(e) => { e.stopPropagation(); setStep('product'); }}>{t('forms.patient.common.edit')}</Button>
           </AccordionButton>
           <AccordionPanel pb={4} bg="white">
             {products.length === 0 && <Text fontSize="sm" color="gray.400">{t('forms.patient.reviewConfirm.noProducts')}</Text>}
@@ -147,14 +133,14 @@ export function ReviewConfirm({
           </AccordionPanel>
         </AccordionItem>
 
-        {/* ── SYMPTOMS / EVENTS ── */}
+        {/* SYMPTOMS / EVENTS */}
         <AccordionItem>
           <AccordionButton fontWeight="600" color="gray.800" _expanded={{ bg: 'gray.50' }} justifyContent="space-between">
             <Flex align="center" gap={2}>
               <Text>{t('forms.patient.eventDetails.title')}</Text>
               {symptoms.length > 0 && <Badge colorScheme="orange" fontSize="xs">{symptoms.length}</Badge>}
             </Flex>
-            <EditLink onClick={() => setStep('event')} />
+            <Button size="sm" variant="ghost" leftIcon={<Pencil size={14} />} onClick={(e) => { e.stopPropagation(); setStep('event'); }}>{t('forms.patient.common.edit')}</Button>
           </AccordionButton>
           <AccordionPanel pb={4} bg="white">
             {symptoms.length === 0 && <Text fontSize="sm" color="gray.400">{t('forms.patient.reviewConfirm.noSymptoms')}</Text>}
@@ -174,11 +160,11 @@ export function ReviewConfirm({
           </AccordionPanel>
         </AccordionItem>
 
-        {/* ── PERSONAL ── */}
+        {/* PERSONAL */}
         <AccordionItem>
           <AccordionButton fontWeight="600" color="gray.800" _expanded={{ bg: 'gray.50' }} justifyContent="space-between">
             <Text>{t('forms.patient.personalDetails.title')}</Text>
-            <EditLink onClick={() => setStep('personal')} />
+            <Button size="sm" variant="ghost" leftIcon={<Pencil size={14} />} onClick={(e) => { e.stopPropagation(); setStep('patient'); }}>{t('forms.patient.common.edit')}</Button>
           </AccordionButton>
           <AccordionPanel pb={4} bg="white">
             <SectionTitle>{t('forms.patient.reviewConfirm.patientReviewTitle')}</SectionTitle>
@@ -192,21 +178,21 @@ export function ReviewConfirm({
             {(hcpDetails.firstName || hcpDetails.lastName || hcpDetails.email || hcpDetails.phone) && (
               <>
                 <SectionTitle>{t('forms.patient.reviewConfirm.hcpReviewTitle')}</SectionTitle>
-                <ReviewRow label={t('forms.patient.personalDetails.nameLabel')} value={[v(hcpDetails.firstName), v(hcpDetails.lastName)].filter(x => x !== '—').join(' ') || '—'} />
+                <ReviewRow label={t('forms.patient.personalDetails.nameLabel')} value={[v(hcpDetails.firstName), v(hcpDetails.lastName)].filter(x => x !== '-').join(' ') || '-'} />
                 <ReviewRow label={t('forms.patient.personalDetails.emailLabel')} value={v(hcpDetails.email)} />
                 <ReviewRow label={t('forms.patient.personalDetails.phoneLabel')} value={v(hcpDetails.phone)} />
                 <ReviewRow label={t('forms.patient.personalDetails.institutionLabel')} value={v(hcpDetails.institution)} />
-                <ReviewRow label={t('forms.patient.personalDetails.addressLabel')} value={[v(hcpDetails.address), v(hcpDetails.city), v(hcpDetails.state), v(hcpDetails.country)].filter(x => x !== '—').join(', ') || '—'} />
+                <ReviewRow label={t('forms.patient.personalDetails.addressLabel')} value={[v(hcpDetails.address), v(hcpDetails.city), v(hcpDetails.state), v(hcpDetails.country)].filter(x => x !== '-').join(', ') || '-'} />
               </>
             )}
           </AccordionPanel>
         </AccordionItem>
 
-        {/* ── ADDITIONAL ── */}
+        {/* ADDITIONAL */}
         <AccordionItem>
           <AccordionButton fontWeight="600" color="gray.800" _expanded={{ bg: 'gray.50' }} justifyContent="space-between">
             <Text>{t('forms.patient.additionalDetails.title')}</Text>
-            <EditLink onClick={() => setStep('additional')} />
+            <Button size="sm" variant="ghost" leftIcon={<Pencil size={14} />} onClick={(e) => { e.stopPropagation(); setStep('additional'); }}>{t('forms.patient.common.edit')}</Button>
           </AccordionButton>
           <AccordionPanel pb={4} bg="white">
             {/* Other medications */}
@@ -285,9 +271,12 @@ export function ReviewConfirm({
         </Box>
       ) : (
         <Box p={3} mb={6} borderRadius="md" bg="yellow.50" borderWidth="1px" borderColor="yellow.300">
-          <Text fontSize="xs" color="yellow.700">
-            ⚠️ reCAPTCHA site key missing. Add <strong>VITE_RECAPTCHA_SITE_KEY</strong> to <code>frontend/.env</code>
-          </Text>
+          <Flex align="center" gap={2}>
+            <AlertTriangle size={14} color="orange.600" />
+            <Text fontSize="xs" color="yellow.700">
+              reCAPTCHA site key missing. Add <strong>VITE_RECAPTCHA_SITE_KEY</strong> to <code>frontend/.env</code>
+            </Text>
+          </Flex>
         </Box>
       )}
 

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Bell, FileText, CheckCircle, Clock, AlertTriangle,
-  X, ChevronRight, TrendingUp, MoreHorizontal
+  X, ChevronRight, TrendingUp, MoreHorizontal, AlertCircle, User
 } from "lucide-react";
 import {
   PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
@@ -28,10 +28,10 @@ const STATS_CONFIG   = {
 
 
 const notifStyle = {
-  urgent:  { border: "#a1002b", bg: "red.50", icon: "🔴" },
-  info:    { border: "#CE0037", bg: "red.50", icon: "📄" },
-  account: { border: "#E31C5F", bg: "purple.50", icon: "👤" },
-  warning: { border: "#f59e0b", bg: "yellow.50", icon: "⚠️" },
+  urgent:  { border: "#a1002b", bg: "red.50", icon: AlertTriangle, color: "#ef4444" },
+  info:    { border: "#CE0037", bg: "red.50", icon: Bell, color: "#CE0037" },
+  account: { border: "#E31C5F", bg: "purple.50", icon: User, color: "#E31C5F" },
+  warning: { border: "#f59e0b", bg: "yellow.50", icon: AlertCircle, color: "#f59e0b" },
 };
 
 // ── Custom Tooltip ─────────────────────────────────────────────────────────────
@@ -182,7 +182,9 @@ export default function AdminDashboard() {
                           align="flex-start"
                           gap={3}
                         >
-                          <Text fontSize="lg" mt={1}>{s.icon}</Text>
+                          <Box mt={1}>
+                            <s.icon size={16} color={s.color} />
+                          </Box>
                           <Box flex={1}>
                             <Text fontWeight="semibold" fontSize="xs" color="#0f172a" m={0}>{n.title}</Text>
                             <Text fontSize="xs" color="#64748b" mt={1} mb={1}>{n.desc}</Text>

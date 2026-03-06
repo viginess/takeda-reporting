@@ -29,7 +29,7 @@ export function HcpPatientDetails({
   const { setValue, register, watch } = useFormContext();
 
   const setUnknown = (fieldName: string) => {
-    setValue(fieldName, 'Unknown');
+    setValue(fieldName, t('forms.patient.common.unknown'));
   };
 
   return (
@@ -78,7 +78,8 @@ export function HcpPatientDetails({
         </RadioGroup>
         {ageType === 'dob' && (
           <Input
-            type={watch('patientDob') === 'Unknown' ? 'text' : 'date'}
+            key={watch('patientDob') === t('forms.patient.common.unknown') ? 'untouchable' : 'selectable'}
+            type={watch('patientDob') === t('forms.patient.common.unknown') ? 'text' : 'date'}
             placeholder={t('forms.patient.personalDetails.dobPlaceholder')}
             mt={3}
             {...inputStyles}
@@ -88,8 +89,9 @@ export function HcpPatientDetails({
         {ageType === 'age' && (
           <Flex gap={3} mt={3} align="center">
             <Input
+              key={watch('patientAge') === t('forms.patient.common.unknown') ? 'untouchable' : 'selectable'}
               placeholder="32"
-              type={watch('patientAge') === 'Unknown' ? 'text' : 'number'}
+              type={watch('patientAge') === t('forms.patient.common.unknown') ? 'text' : 'number'}
               flex="1"
               maxW="120px"
               {...inputStyles}

@@ -29,7 +29,7 @@ export function PatientDetails({
   const { register, setValue, watch } = useFormContext();
 
   const setUnknown = (fieldName: string) => {
-    setValue(fieldName, 'Unknown');
+    setValue(fieldName, t('forms.patient.common.unknown'));
   };
 
   return (
@@ -68,8 +68,9 @@ export function PatientDetails({
         </RadioGroup>
         {ageType === 'dob' && (
           <Input
+            key={watch('patientDetails.dob') === t('forms.patient.common.unknown') ? 'untouchable' : 'selectable'}
             placeholder={t('forms.patient.personalDetails.dobPlaceholder')}
-            type="date"
+            type={watch('patientDetails.dob') === t('forms.patient.common.unknown') ? 'text' : 'date'}
             mt={3}
             {...inputStyles}
             {...register('patientDetails.dob')}
@@ -78,8 +79,9 @@ export function PatientDetails({
         {ageType === 'age' && (
           <Flex gap={3} mt={3} align="center">
             <Input
+              key={watch('patientDetails.ageValue') === t('forms.patient.common.unknown') ? 'untouchable' : 'selectable'}
               placeholder="32"
-              type="number"
+              type={watch('patientDetails.ageValue') === t('forms.patient.common.unknown') ? 'text' : 'number'}
               flex="1"
               maxW="120px"
               {...inputStyles}

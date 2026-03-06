@@ -15,6 +15,7 @@ import { useStepperContext } from '@saas-ui/react';
 import { useFormContext } from 'react-hook-form';
 import ReCAPTCHA from 'react-google-recaptcha';
 import { useTranslation, Trans } from 'react-i18next';
+import { AlertTriangle, Pencil } from 'lucide-react';
 
 interface ReviewRowProps {
   label: string;
@@ -28,20 +29,21 @@ function ReviewRow({ label, value }: ReviewRowProps) {
       py={2}
       borderBottom="1px solid"
       borderColor="gray.100"
-      align="center"
+      align="flex-start"
+      gap={4}
     >
-      <Text color="gray.600" fontSize="sm">
+      <Text color="gray.600" fontSize="sm" flex="1" textAlign="start">
         {label}
       </Text>
-      <Text fontWeight="500" fontSize="sm">
-        {value || '—'}
+      <Text fontWeight="500" fontSize="sm" textAlign="end">
+        {value || '-'}
       </Text>
     </Flex>
   );
 }
 
-const v = (value: string | undefined | null) => value || '—';
-const arr = (value: string[] | undefined | null) => (value?.length ? value.join(', ') : '—');
+const v = (value: string | undefined | null) => value || '-';
+const arr = (value: string[] | undefined | null) => (value?.length ? value.join(', ') : '-');
 
 const SectionTitle = ({ children }: { children: React.ReactNode }) => (
   <Text fontWeight="600" mt={4} mb={2} color="gray.700" fontSize="md" borderBottom="1px solid" borderColor="gray.100" pb={1}>
@@ -113,13 +115,13 @@ export function HcpReviewConfirm({
             <Button
               size="sm"
               variant="ghost"
-              leftIcon={<span>✎</span>}
+              leftIcon={<Pencil size={14} />}
               onClick={(e) => {
                 e.stopPropagation();
                 onBack?.();
               }}
             >
-              {t('forms.hcp.reviewConfirm.edit')}
+              {t('forms.patient.common.edit')}
             </Button>
           </AccordionButton>
           <AccordionPanel pb={4} bg="white">
@@ -144,13 +146,13 @@ export function HcpReviewConfirm({
             <Button
               size="sm"
               variant="ghost"
-              leftIcon={<span>✎</span>}
+              leftIcon={<Pencil size={14} />}
               onClick={(e) => {
                 e.stopPropagation();
                 setStep('product');
               }}
             >
-              {t('forms.hcp.reviewConfirm.edit')}
+              {t('forms.patient.common.edit')}
             </Button>
           </AccordionButton>
           <AccordionPanel pb={4} bg="white">
@@ -181,13 +183,13 @@ export function HcpReviewConfirm({
             <Button
               size="sm"
               variant="ghost"
-              leftIcon={<span>✎</span>}
+              leftIcon={<Pencil size={14} />}
               onClick={(e) => {
                 e.stopPropagation();
                 setStep('event');
               }}
             >
-              {t('forms.hcp.reviewConfirm.edit')}
+              {t('forms.patient.common.edit')}
             </Button>
           </AccordionButton>
           <AccordionPanel pb={4} bg="white">
@@ -197,7 +199,7 @@ export function HcpReviewConfirm({
                 <ReviewRow label={t('forms.hcp.reviewConfirm.labels.symptom')} value={v(s.name)} />
                 <ReviewRow 
                   label={t('forms.hcp.reviewConfirm.labels.dates')} 
-                  value={(s.eventStartDate || s.eventEndDate) ? `${s.eventStartDate || '?'} to ${s.eventEndDate || t('forms.patient.common.ongoing')}` : '—'} 
+                  value={(s.eventStartDate || s.eventEndDate) ? `${s.eventStartDate || '?'} ${t('forms.patient.reviewConfirm.to', ' to ')} ${s.eventEndDate || t('forms.patient.common.ongoing')}` : '—'} 
                 />
                 <ReviewRow label={t('forms.hcp.reviewConfirm.labels.relationship')} value={v(s.relationship)} />
               </Box>
@@ -216,13 +218,13 @@ export function HcpReviewConfirm({
             <Button
               size="sm"
               variant="ghost"
-              leftIcon={<span>✎</span>}
+              leftIcon={<Pencil size={14} />}
               onClick={(e) => {
                 e.stopPropagation();
                 setStep('patient');
               }}
             >
-              {t('forms.hcp.reviewConfirm.edit')}
+              {t('forms.patient.common.edit')}
             </Button>
           </AccordionButton>
           <AccordionPanel pb={4} bg="white">
@@ -245,13 +247,13 @@ export function HcpReviewConfirm({
             <Button
               size="sm"
               variant="ghost"
-              leftIcon={<span>✎</span>}
+              leftIcon={<Pencil size={14} />}
               onClick={(e) => {
                 e.stopPropagation();
                 setStep('you');
               }}
             >
-              {t('forms.hcp.reviewConfirm.edit')}
+              {t('forms.patient.common.edit')}
             </Button>
           </AccordionButton>
           <AccordionPanel pb={4} bg="white">
@@ -259,7 +261,7 @@ export function HcpReviewConfirm({
             <ReviewRow label={t('forms.hcp.reviewConfirm.labels.institution')} value={v(formData.institution)} />
             <ReviewRow label={t('forms.hcp.reviewConfirm.labels.email')} value={v(formData.email)} />
             <ReviewRow label={t('forms.hcp.reviewConfirm.labels.phone')} value={v(formData.phone)} />
-            <ReviewRow label={t('forms.hcp.reviewConfirm.labels.address')} value={[v(formData.address), v(formData.city), v(formData.state), v(formData.country)].filter(x => x !== '—').join(', ') || '—'} />
+            <ReviewRow label={t('forms.hcp.reviewConfirm.labels.address')} value={[v(formData.address), v(formData.city), v(formData.state), v(formData.country)].filter(x => x !== '-').join(', ') || '-'} />
             <ReviewRow label={t('forms.hcp.reviewConfirm.labels.contactPermission')} value={v(formData.contactPermission)} />
           </AccordionPanel>
         </AccordionItem>
@@ -267,7 +269,7 @@ export function HcpReviewConfirm({
         <AccordionItem>
           <AccordionButton fontWeight="600" color="gray.800" _expanded={{ bg: 'gray.50' }} justifyContent="space-between">
             <Text>{t('forms.hcp.reviewConfirm.sections.additionalDetails')}</Text>
-            <Button size="sm" variant="ghost" leftIcon={<span>✎</span>} onClick={(e) => { e.stopPropagation(); setStep('additional'); }}>{t('forms.hcp.reviewConfirm.edit')}</Button>
+            <Button size="sm" variant="ghost" leftIcon={<Pencil size={14} />} onClick={(e) => { e.stopPropagation(); setStep('additional'); }}>{t('forms.patient.common.edit')}</Button>
           </AccordionButton>
           <AccordionPanel pb={4} bg="white">
             {/* Other medications */}
@@ -343,9 +345,12 @@ export function HcpReviewConfirm({
         </Box>
       ) : (
         <Box p={3} mb={6} borderRadius="md" bg="yellow.50" borderWidth="1px" borderColor="yellow.300">
-          <Text fontSize="xs" color="yellow.700">
-            reCAPTCHA site key missing. Add <strong>VITE_RECAPTCHA_SITE_KEY</strong> to <code>frontend/.env</code>
-          </Text>
+          <Flex align="center" gap={2}>
+            <AlertTriangle size={14} color="orange.600" />
+            <Text fontSize="xs" color="yellow.700">
+              reCAPTCHA site key missing. Add <strong>VITE_RECAPTCHA_SITE_KEY</strong> to <code>frontend/.env</code>
+            </Text>
+          </Flex>
         </Box>
       )}
 

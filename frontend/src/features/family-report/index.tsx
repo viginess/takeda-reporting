@@ -13,11 +13,9 @@ import {
 import { useTranslation } from 'react-i18next';
 import {
   FormLayout,
-  PrevButton,
-  NextButton,
   FormStepper,
   StepsCompleted,
-
+  useStepperContext,
 } from '@saas-ui/react';
 import { StepForm } from '@saas-ui/forms';
 
@@ -129,6 +127,41 @@ function EventStep({
         </Box>
       ))}
     </Box>
+  );
+}
+
+function PrevButtonTranslatedFamily() {
+  const { t } = useTranslation();
+  const { prevStep, isFirstStep } = useStepperContext();
+  if (isFirstStep) return null;
+  return (
+    <Button variant="outline" size="lg" borderRadius="lg" onClick={prevStep}>
+      {t('common.back', 'Back')}
+    </Button>
+  );
+}
+
+function NextButtonTranslatedFamily(props: any) {
+  const { t } = useTranslation();
+  const { nextStep } = useStepperContext();
+  return (
+    <Button size="lg" borderRadius="lg" onClick={nextStep} {...props}>
+      {t('common.continue', 'Next')}
+    </Button>
+  );
+}
+
+function FormNavigationFamily({ primaryButtonStyles }: { primaryButtonStyles: any }) {
+  const { isCompleted } = useStepperContext();
+
+  if (isCompleted) return null;
+
+  return (
+    <ButtonGroup w="full" mt={8}>
+      <PrevButtonTranslatedFamily />
+      <Spacer />
+      <NextButtonTranslatedFamily {...primaryButtonStyles} />
+    </ButtonGroup>
   );
 }
 
@@ -245,8 +278,8 @@ function FamilyForm({ onBack }: FamilyFormProps) {
         <Box w="32px" />
       </Flex>
 
-      <Flex flex="1" justify="center" px={4} py={8}>
-        <Box maxW="800px" w="full" bg="white" borderRadius="xl" boxShadow="md" p={10}>
+      <Flex flex="1" justify="center" px={{ base: 2, md: 4 }} py={{ base: 4, md: 8 }}>
+        <Box maxW="800px" w="full" bg="white" borderRadius="xl" boxShadow="md" p={{ base: 4, sm: 6, md: 10 }}>
           <StepForm
             onSubmit={onSubmit}
             onError={(err) => console.error('Form validation failed:', err)}
@@ -351,11 +384,7 @@ function FamilyForm({ onBack }: FamilyFormProps) {
                   </StepsCompleted>
                 </FormStepper>
 
-                <ButtonGroup w="full" mt={8}>
-                  <PrevButton variant="outline" size="lg" />
-                  <Spacer />
-                  <NextButton size="lg" {...primaryButtonStyles} />
-                </ButtonGroup>
+                <FormNavigationFamily primaryButtonStyles={primaryButtonStyles} />
               </FormLayout>
             )}
           </StepForm>

@@ -13,13 +13,13 @@ export const familyReports = pgTable("family_reports", {
   id: uuid("id").defaultRandom().primaryKey(),
   referenceId: text("reference_id"), // Custom human-readable ID e.g., REP-123456
 
-  // ── Step 1: Product ─────────────────────────────────────
+  // Step 1: Product
   products: jsonb("products"),
 
-  // ── Step 2: Event (symptoms) ─────────────────────────────
+  // Step 2: Event (symptoms)
   symptoms: jsonb("symptoms"),
 
-  // ── Step 3: Personal & HCP (same as patient form) ────────
+  // Step 3: Personal & HCP (same as patient form)
   // patientDetails: { name, gender, initials, dob, ageValue, contactPermission, email }
   patientDetails: jsonb("patient_details"),
   // hcpDetails: { contactPermission, firstName, lastName, email, phone, ... }

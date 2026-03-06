@@ -18,10 +18,11 @@ export const useLanguageLoader = () => {
 
       try {
         const bundle = await mutation.mutateAsync({ languageCode });
+        
         i18n.addResourceBundle(languageCode, "translation", bundle, true, true);
         await i18n.changeLanguage(languageCode);
       } catch (error) {
-        console.error("Failed to load translation:", error);
+        console.error(`[i18n] Failed to load translation for ${languageCode}:`, error);
       }
     },
     [i18n, mutation],

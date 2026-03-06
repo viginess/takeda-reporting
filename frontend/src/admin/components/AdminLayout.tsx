@@ -29,7 +29,6 @@ export default function AdminLayout() {
         const resetTimer = () => {
           if (timeoutId) clearTimeout(timeoutId);
           timeoutId = setTimeout(async () => {
-            console.log("Inactivity timeout reached. Signing out...");
             await supabase.auth.signOut();
             navigate('/admin/login');
           }, minutes * 60 * 1000);

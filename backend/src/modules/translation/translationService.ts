@@ -1,35 +1,55 @@
-import { TranslationServiceClient } from "@google-cloud/translate";
+import axios from "axios";
+import dotenv from "dotenv";
 
-// This service handles interaction with the Google Cloud Translation API.
-// It assumes that GOOGLE_APPLICATION_CREDENTIALS or other authentication methods are configured.
+dotenv.config();
 
-const projectId = process.env.GOOGLE_PROJECT_ID;
-const location = "global";
-
-const translationClient = new TranslationServiceClient();
+// This service handles interaction with the Microsoft Azure Translator API.
+const apiKey = process.env.AZURE_TRANSLATOR_KEY;
+const region = process.env.AZURE_TRANSLATOR_REGION;
+const endpoint = process.env.AZURE_TRANSLATOR_ENDPOINT || "https://api.cognitive.microsofttranslator.com";
 
 export const translateText = async (
   text: string[],
   targetLanguage: string,
 ): Promise<string[]> => {
-  if (!projectId) {
-    console.error("GOOGLE_PROJECT_ID is not configured.");
-    throw new Error("Translation service configuration missing.");
+  if (!apiKey || !region) {
+    throw new Error("AZURE_TRANSLATOR_KEY or AZURE_TRANSLATOR_REGION is not configured.");
   }
 
-  const request = {
-    parent: `projects/${projectId}/locations/${location}`,
-    contents: text,
-    mimeType: "text/plain",
-    sourceLanguageCode: "en",
-    targetLanguageCode: targetLanguage,
-  };
+  // Azure handles arrays differently; we pass an array of objects
+  const body = text.map((t) => ({ text: t }));
 
   try {
-    const [response] = await translationClient.translateText(request);
-    return response.translations?.map((t) => t.translatedText ?? "") ?? [];
+    const response = await axios({
+      baseURL: endpoint,
+      url: "/translate",
+      method: "post",
+      headers: {
+        "Ocp-Apim-Subscription-Key": apiKey,
+        "Ocp-Apim-Subscription-Region": region,
+        "Content-type": "application/json",
+      },
+      params: {
+        "api-version": "3.0",
+        from: "en",
+        to: targetLanguage,
+      },
+      data: body,
+      responseType: "json",
+    });
+
+    if (response.status !== 200) {
+      throw new Error(`Azure translation error: ${response.data}`);
+    }
+
+    // Azure returns an array mapping exactly to our input array
+    const translatedResults = response.data.map((item: any) => {
+      // It returns an array of translations per input string, we only asked for 1
+      return item.translations[0].text;
+    });
+
+    return translatedResults;
   } catch (error) {
-    console.error("Error during translation:", error);
     throw error;
   }
 };
