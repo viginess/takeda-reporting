@@ -4,14 +4,17 @@ A comprehensive clinical reporting system for Clin Solutions L.L.C. Pharmaceutic
 
 ## Project Structure
 
-- **`frontend/`**: React + Vite + TypeScript frontend.
-  - UI Library: [Saas UI](https://saas-ui.dev/) (built on Chakra UI).
-  - State Management: React Query.
-  - API Client: tRPC.
 - **`backend/`**: Node.js + tRPC backend.
   - ORM: [Drizzle ORM](https://orm.drizzle.team/).
   - Database: PostgreSQL (Supabase).
+  - Translation: Azure Translator API + Supabase Caching.
   - Validation: Zod.
+- **`frontend/`**: React + Vite + TypeScript frontend.
+  - UI Library: [Saas UI](https://saas-ui.dev/) (built on Chakra UI).
+  - Internationalization: [react-i18next](https://react.i18next.com/) supporting 137+ languages.
+  - RTL Support: Dynamic Right-to-Left layout for languages like Arabic and Tamil.
+  - State Management: React Query.
+  - API Client: tRPC.
 
 ## Quick Start
 
@@ -82,11 +85,42 @@ npm run db:migrate   # Apply migrations to the database
 npx drizzle-kit push:pg
 ```
 
-## Security Implementation
+## Security & Globalization
+
+### Security Implementation
 
 - **Input Validation**: Strict Zod schemas ensure no invalid data enters the database.
 - **CORS**: Restricted origins in production; permissive in development.
-- **Robust Rate Limiting**:
-  - Uses **Multi-layer Fingerprinting** (IP + User-Agent + Persistent Guest ID).
-  - Prevents "Shared IP" collisions on hospital networks.
-  - Generous limits (50/hr) to balance security and usability.
+- **Robust Rate Limiting**: Multi-layer fingerprinting (IP + User-Agent + Persistent Guest ID) to prevent collisions on shared hospital networks.
+- **reCAPTCHA**: Integrated bot protection on final report submission steps.
+
+### Globalization & UX
+
+- **137 Languages**: Full synchronization with Azure Translator for enterprise-grade clinical reporting.
+- **RTL Support**: Dynamic directionality (`dir="rtl"`) for scripts like Arabic, Hebrew, and Persian.
+- **Responsive Forms**: Optimized stepper and container layouts that handle long-text expansion (e.g., Tamil) and varied screen sizes.
+- **Smart Translation Cache**: Backend-side caching of translations in Supabase to minimize Azure API calls.
+
+#### Translation Flow
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant UI as Frontend (i18next)
+    participant API as Backend (tRPC)
+    participant DB as Supabase (Cache)
+    participant Azure as Azure Translator
+
+    UI->>API: Request Translation (Text + Target Lang)
+    API->>DB: Query existing translation
+
+    alt Cache Hit
+        DB-->>API: Return Cached String
+    else Cache Miss
+        API->>Azure: Request Translation
+        Azure-->>API: Return Translated String
+        API->>DB: Store New Translation
+    end
+
+    API-->>UI: Return Result
+```

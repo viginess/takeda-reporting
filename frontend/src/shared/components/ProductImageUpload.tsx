@@ -12,6 +12,7 @@ import {
 } from '@chakra-ui/react';
 import { HiOutlineTrash, HiOutlinePhoto } from 'react-icons/hi2';
 import { LiaCloudUploadAltSolid } from 'react-icons/lia';
+import { useTranslation } from 'react-i18next';
 
 interface UploadedImage {
   name: string;
@@ -35,6 +36,7 @@ export const ProductImageUpload: React.FC<ProductImageUploadProps> = ({
   const [images, setImages] = useState<UploadedImage[]>([]);
   const [error, setError] = useState<string>('');
   const inputRef = React.useRef<HTMLInputElement>(null);
+  const { t } = useTranslation();
 
   const toBase64 = (file: File): Promise<string> =>
     new Promise((resolve, reject) => {
@@ -108,7 +110,7 @@ export const ProductImageUpload: React.FC<ProductImageUploadProps> = ({
         <VStack spacing={2}>
           <Box as={LiaCloudUploadAltSolid} fontSize="2xl" color="gray.400" />
           <Text fontSize="sm" color="gray.500">
-            Drag & drop or click to select
+            {t('upload.dragDrop', 'Drag & drop or click to select')}
           </Text>
           <Button
             variant="outline"
@@ -120,10 +122,10 @@ export const ProductImageUpload: React.FC<ProductImageUploadProps> = ({
               inputRef.current?.click();
             }}
           >
-            Choose images
+            {t('upload.chooseImages', 'Choose images')}
           </Button>
           <Text fontSize="xs" color="gray.400">
-            Max {maxFiles} files · Max {maxFileSizeMB}MB each · Images only
+            {t('upload.maxInfo', 'Max {{maxFiles}} files . Max {{maxFileSizeMB}}MB each . Images only', { maxFiles, maxFileSizeMB })}
           </Text>
         </VStack>
 

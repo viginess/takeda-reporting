@@ -54,14 +54,14 @@ export function determineNotificationData(
 
   const productDisplay = productsStr || "Unknown Product";
 
-  const title = `${titlePrefix} ${reporter} Report — ${productDisplay}`;
+  const title = `${titlePrefix} ${reporter} Report - ${productDisplay}`;
 
   const patientName =
     data?.patientDetails?.name ||
     data?.patientDetails?.initials ||
     "A patient";
 
-  let desc = `Report ${reportId} — ${patientName} `;
+  let desc = `Report ${reportId} - ${patientName} `;
 
   if (highestSeverity !== "info") {
     desc += `reported a ${reason} event.`;
@@ -77,7 +77,7 @@ export function determineNotificationData(
     type: highestSeverity,
     title,
     desc,
-    classificationReason: reason, // ⭐ important for audit
+    classificationReason: reason, // important for audit
     time: "Just now",
     date: "Today",
     reportId,
@@ -96,7 +96,7 @@ export function determineUpdateNotification(
   if (updates.status === "approved" && oldRecord.status !== "approved") {
     return {
       type: "approved",
-      title: `${reporter} Report Approved — ${reportId}`,
+      title: `${reporter} Report Approved - ${reportId}`,
       desc: `The ${reporterType} report for ${reportId} was approved by \${adminId}.`,
       classificationReason: "Report approved by admin",
       time: "Just now",
@@ -109,7 +109,7 @@ export function determineUpdateNotification(
   if (updates.severity === "urgent" && oldRecord.severity !== "urgent") {
     return {
       type: "urgent",
-      title: `Critical Severity Escalation — ${reportId}`,
+      title: `Critical Severity Escalation - ${reportId}`,
       desc: `The ${reporterType} report ${reportId} was escalated to Critical severity by \${adminId}.`,
       classificationReason: "Severity escalated to urgent",
       time: "Just now",
@@ -122,7 +122,7 @@ export function determineUpdateNotification(
   if (updates.status === "closed" && oldRecord.status !== "closed") {
     return {
       type: "system",
-      title: `${reporter} Report Closed — ${reportId}`,
+      title: `${reporter} Report Closed - ${reportId}`,
       desc: `The ${reporterType} report ${reportId} was marked as closed by \${adminId}.`,
       classificationReason: "Report closed",
       time: "Just now",

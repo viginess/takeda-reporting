@@ -12,6 +12,7 @@ import {
   Flex,
 } from '@chakra-ui/react';
 import { useFormContext } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 
 interface HcpReporterDetailsProps {
   inputStyles: any;
@@ -24,25 +25,26 @@ export function HcpReporterDetails({
   contactPermission,
   setContactPermission,
 }: HcpReporterDetailsProps) {
+  const { t } = useTranslation();
   const { register, setValue, watch } = useFormContext();
 
   return (
     <>
       <Heading as="h2" size="lg" mb={2} color="gray.800" fontWeight="600">
-        Enter your information
+        {t('forms.hcp.reporterDetails.title')}
       </Heading>
       <Text fontSize="sm" color="gray.600" mb={4}>
-        Please enter your details
+        {t('forms.hcp.reporterDetails.subtitle')}
       </Text>
       <Box borderBottom="2px solid" borderColor="#CE0037" mb={6} w="full" maxW="200px" />
 
       <Flex gap={4} mb={4} direction={{ base: 'column', md: 'row' }}>
         <FormControl>
           <FormLabel fontWeight="500" color="gray.700">
-            First name
+            {t('forms.shared.reporterDetails.firstNameLabel')}
           </FormLabel>
           <Input 
-            placeholder="Enter first name" 
+            placeholder={t('forms.shared.reporterDetails.firstNamePlaceholder')} 
             {...inputStyles} 
             {...register('firstName')} 
           />
@@ -50,10 +52,10 @@ export function HcpReporterDetails({
 
         <FormControl>
           <FormLabel fontWeight="500" color="gray.700">
-            Last name
+            {t('forms.shared.reporterDetails.lastNameLabel')}
           </FormLabel>
           <Input 
-            placeholder="Enter last name" 
+            placeholder={t('forms.shared.reporterDetails.lastNamePlaceholder')} 
             {...inputStyles} 
             {...register('lastName')} 
           />
@@ -62,7 +64,7 @@ export function HcpReporterDetails({
 
       <FormControl mb={6} isRequired>
         <FormLabel fontWeight="500" color="gray.700">
-          Do we have permission to contact you for further information?
+          {t('forms.patient.personalDetails.contactPermissionLabel')}
         </FormLabel>
         <RadioGroup
           value={watch('reporterDetails.contactPermission') || watch('contactPermission') || contactPermission}
@@ -73,10 +75,10 @@ export function HcpReporterDetails({
         >
           <Stack direction="row" spacing={6}>
             <Radio value="yes" colorScheme="red">
-              Yes
+              {t('forms.patient.common.yes')}
             </Radio>
             <Radio value="no" colorScheme="red">
-              No
+              {t('forms.patient.common.no')}
             </Radio>
           </Stack>
         </RadioGroup>
@@ -86,24 +88,24 @@ export function HcpReporterDetails({
         <>
           <Box mt={8} mb={4}>
             <Text fontWeight="600" color="gray.700">
-              How should we contact you?
+              {t('forms.patient.personalDetails.contactPreferenceLabel')}
             </Text>
             <Box borderBottom="2px solid" borderColor="#CE0037" mt={2} mb={6} w="full" maxW="200px" />
           </Box>
 
           <FormControl mb={4} isRequired>
             <FormLabel fontWeight="500" color="gray.700">
-              Email
+              {t('forms.patient.personalDetails.emailLabel')}
             </FormLabel>
             <Input 
-              placeholder="Enter email address" 
+              placeholder={t('forms.patient.personalDetails.emailPlaceholder')} 
               type="email" 
               {...inputStyles} 
               {...register('email', { 
-                required: 'Email is required',
+                required: t('forms.patient.personalDetails.emailRequired'),
                 pattern: {
                   value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                  message: 'Invalid email address'
+                  message: t('forms.patient.personalDetails.invalidEmail')
                 }
               })} 
             />
@@ -111,17 +113,17 @@ export function HcpReporterDetails({
 
           <FormControl mb={6} isRequired>
             <FormLabel fontWeight="500" color="gray.700">
-              Phone number
+              {t('forms.patient.personalDetails.phoneLabel')}
             </FormLabel>
             <Input 
-              placeholder="Enter number (inc area code)" 
+              placeholder={t('forms.patient.personalDetails.phonePlaceholder')} 
               type="tel" 
               {...inputStyles} 
               {...register('phone', { 
-                required: 'Phone number is required',
+                required: t('forms.patient.personalDetails.phoneRequired'),
                 pattern: {
                   value: /^\d{10}$/,
-                  message: 'Phone number must be exactly 10 digits'
+                  message: t('forms.patient.personalDetails.phoneDigits')
                 }
               })} 
             />
@@ -129,54 +131,54 @@ export function HcpReporterDetails({
 
           <Box mt={10} mb={4}>
             <Text fontWeight="600" color="gray.700">
-              Additional contact details
+              {t('forms.patient.personalDetails.contactInfoTitle')}
             </Text>
             <Box borderBottom="2px solid" borderColor="#CE0037" mt={2} mb={6} w="full" maxW="200px" />
           </Box>
 
           <FormControl mb={4}>
             <FormLabel fontWeight="500" color="gray.700">
-              Hospital/Institution
+              {t('forms.hcp.reporterDetails.institutionLabel')}
             </FormLabel>
-            <Input placeholder="Enter hospital/institution" {...inputStyles} {...register('institution')} />
+            <Input placeholder={t('forms.hcp.reporterDetails.institutionPlaceholder')} {...inputStyles} {...register('institution')} />
           </FormControl>
 
           <FormControl mb={4}>
             <FormLabel fontWeight="500" color="gray.700">
-              Address
+              {t('forms.hcp.reporterDetails.addressLabel')}
             </FormLabel>
-            <Input placeholder="Enter address" {...inputStyles} {...register('address')} />
+            <Input placeholder={t('forms.hcp.reporterDetails.addressPlaceholder')} {...inputStyles} {...register('address')} />
           </FormControl>
 
           <FormControl mb={4}>
             <FormLabel fontWeight="500" color="gray.700">
-              City/Town
+              {t('forms.hcp.reporterDetails.cityLabel')}
             </FormLabel>
-            <Input placeholder="Enter city/town" {...inputStyles} {...register('city')} />
+            <Input placeholder={t('forms.hcp.reporterDetails.cityLabel')} {...inputStyles} {...register('city')} />
           </FormControl>
 
           <FormControl mb={4}>
             <FormLabel fontWeight="500" color="gray.700">
-              State/County/Province
+              {t('forms.hcp.reporterDetails.stateLabel')}
             </FormLabel>
-            <Input placeholder="Enter state/county/province" {...inputStyles} {...register('state')} />
+            <Input placeholder={t('forms.hcp.reporterDetails.stateLabel')} {...inputStyles} {...register('state')} />
           </FormControl>
 
           <FormControl mb={4}>
             <FormLabel fontWeight="500" color="gray.700">
-              ZIP/Postal code
+              {t('forms.hcp.reporterDetails.zipLabel')}
             </FormLabel>
-            <Input placeholder="Enter ZIP/Postal code" {...inputStyles} {...register('zipCode')} />
+            <Input placeholder={t('forms.hcp.reporterDetails.zipLabel')} {...inputStyles} {...register('zipCode')} />
           </FormControl>
 
           <FormControl mb={8}>
             <FormLabel fontWeight="500" color="gray.700">
-              Country
+              {t('forms.hcp.reporterDetails.countryLabel')}
             </FormLabel>
-            <Select placeholder="Enter country" {...inputStyles} {...register('country')}>
-              <option value="us">United States</option>
-              <option value="uk">United Kingdom</option>
-              <option value="ca">Canada</option>
+            <Select placeholder={t('forms.hcp.reporterDetails.countryLabel')} {...inputStyles} {...register('country')}>
+              <option value="us">{t('forms.hcp.reporterDetails.countries.us')}</option>
+              <option value="uk">{t('forms.hcp.reporterDetails.countries.uk')}</option>
+              <option value="ca">{t('forms.hcp.reporterDetails.countries.ca')}</option>
             </Select>
           </FormControl>
         </>

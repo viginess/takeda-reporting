@@ -6,6 +6,7 @@ This React application provides the user interface for Clin Solutions L.L.C.'s c
 
 - **Framework**: React + Vite + TypeScript.
 - **UI Library**: [Saas UI](https://saas-ui.dev/) / Chakra UI.
+- **Internationalization**: [react-i18next](https://react.i18next.com/) with support for 137+ languages.
 - **Data Fetching**: [TanStack Query](https://tanstack.com/query) (React Query).
 - **API Client**: [@trpc/react-query](https://trpc.io/).
 
@@ -32,7 +33,9 @@ This React application provides the user interface for Clin Solutions L.L.C.'s c
 ## Development Features
 
 - **Standardized Forms**: Components for Patient, HCP, and Family reports.
-- **Multi-step Progress**: Step-by-step reporting flow.
+- **Globalization**: Automated translation of 137 languages via centralized i18n architecture.
+- **Dynamic RTL Layout**: Automatic directionality switching and text expansion handling (e.g., Arabic, Tamil).
+- **Multi-step Progress**: Saas UI StepForm for a professional, multi-step reporting flow.
 - **Type Safety**: Automatic type sharing with the backend via tRPC.
 
 ## Commands

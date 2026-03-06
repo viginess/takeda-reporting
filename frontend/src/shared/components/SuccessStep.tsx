@@ -11,6 +11,7 @@ import {
 import { useMemo } from 'react';
 import { LuBadgeCheck } from "react-icons/lu";
 import { FaRegCopy } from "react-icons/fa6";
+import { useTranslation } from 'react-i18next';
 
 interface SuccessStepProps {
   onBackToHome?: () => void;
@@ -20,13 +21,14 @@ interface SuccessStepProps {
 
 export function SuccessStep({ onBackToHome, onSubmitAnother, reportId }: SuccessStepProps) {
   const toast = useToast();
+  const { t } = useTranslation();
   const displayId = useMemo(() => reportId ?? `REP-${String(Date.now()).slice(-8)}`, [reportId]);
 
 
   const handleCopy = () => {
     navigator.clipboard.writeText(displayId);
     toast({
-      title: "Report ID copied!",
+      title: t('forms.success.copied', 'Report ID copied!'),
       status: "success",
       duration: 2000,
     });
@@ -88,7 +90,7 @@ export function SuccessStep({ onBackToHome, onSubmitAnother, reportId }: Success
           color="green.900"
           fontWeight="600"
         >
-          Report Submitted Successfully
+          {t('forms.success.title', 'Report Submitted Successfully')}
         </Heading>
 
         {/* Description */}
@@ -100,8 +102,7 @@ export function SuccessStep({ onBackToHome, onSubmitAnother, reportId }: Success
           maxW="500px"
           mx="auto"
         >
-          Thank you for helping us make our products safer and more effective for everyone.
-          Your report has been successfully received and will be reviewed by our team.
+          {t('forms.success.description', 'Thank you for helping us make our products safer and more effective for everyone. Your report has been successfully received and will be reviewed by our team.')}
         </Text>
 
         {/* Report Number with Copy Icon */}
@@ -153,7 +154,7 @@ export function SuccessStep({ onBackToHome, onSubmitAnother, reportId }: Success
           _hover={{ bg: '#B8002F' }}
           onClick={onSubmitAnother}
         >
-          Submit Another Report
+          {t('forms.success.submitAnother', 'Submit Another Report')}
         </Button>
 
         <Button
@@ -175,7 +176,7 @@ export function SuccessStep({ onBackToHome, onSubmitAnother, reportId }: Success
           }}
           onClick={onBackToHome}
         >
-          Back to Home
+          {t('forms.success.backToHome', 'Back to Home')}
         </Button>
       </HStack>
 

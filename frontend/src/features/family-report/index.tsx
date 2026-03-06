@@ -10,13 +10,12 @@ import {
   Button,
   useToast,
 } from '@chakra-ui/react';
+import { useTranslation } from 'react-i18next';
 import {
   FormLayout,
-  PrevButton,
-  NextButton,
   FormStepper,
   StepsCompleted,
-
+  useStepperContext,
 } from '@saas-ui/react';
 import { StepForm } from '@saas-ui/forms';
 
@@ -59,6 +58,7 @@ type FamilyFormProps = {
 
 // Wrapper component to provide field array functionality for products
 function ProductStep({ inputStyles }: { inputStyles: any }) {
+  const { t } = useTranslation();
   const { control } = useFormContext();
   const { fields, append, remove } = useFieldArray({
     control,
@@ -72,7 +72,7 @@ function ProductStep({ inputStyles }: { inputStyles: any }) {
           {index > 0 && (
             <Flex justify="flex-end" mb={2}>
               <Button size="sm" variant="ghost" colorScheme="red" onClick={() => remove(index)}>
-                Remove product
+                {t('forms.patient.common.removeProduct')}
               </Button>
             </Flex>
           )}
@@ -98,6 +98,7 @@ function EventStep({
   symptomTreated: string;
   setSymptomTreated: (val: string) => void;
 }) {
+  const { t } = useTranslation();
   const { control } = useFormContext();
   const { fields, append, remove } = useFieldArray({
     control,
@@ -111,7 +112,7 @@ function EventStep({
           {index > 0 && (
             <Flex justify="flex-end" mb={2}>
               <Button size="sm" variant="ghost" colorScheme="red" onClick={() => remove(index)}>
-                Remove symptom
+                {t('forms.patient.common.removeSymptom')}
               </Button>
             </Flex>
           )}
@@ -129,7 +130,43 @@ function EventStep({
   );
 }
 
+function PrevButtonTranslatedFamily() {
+  const { t } = useTranslation();
+  const { prevStep, isFirstStep } = useStepperContext();
+  if (isFirstStep) return null;
+  return (
+    <Button variant="outline" size="lg" borderRadius="lg" onClick={prevStep}>
+      {t('common.back', 'Back')}
+    </Button>
+  );
+}
+
+function NextButtonTranslatedFamily(props: any) {
+  const { t } = useTranslation();
+  const { nextStep } = useStepperContext();
+  return (
+    <Button size="lg" borderRadius="lg" onClick={nextStep} {...props}>
+      {t('common.continue', 'Next')}
+    </Button>
+  );
+}
+
+function FormNavigationFamily({ primaryButtonStyles }: { primaryButtonStyles: any }) {
+  const { isCompleted } = useStepperContext();
+
+  if (isCompleted) return null;
+
+  return (
+    <ButtonGroup w="full" mt={8}>
+      <PrevButtonTranslatedFamily />
+      <Spacer />
+      <NextButtonTranslatedFamily {...primaryButtonStyles} />
+    </ButtonGroup>
+  );
+}
+
 function FamilyForm({ onBack }: FamilyFormProps) {
+  const { t } = useTranslation();
   const [additionalDetails, setAdditionalDetails] = useState('');
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [captchaChecked, setCaptchaChecked] = useState(!import.meta.env.VITE_RECAPTCHA_SITE_KEY);
@@ -236,13 +273,13 @@ function FamilyForm({ onBack }: FamilyFormProps) {
           </Link>
         )}
         <Heading as="h1" size="md" fontWeight="600" color="gray.800">
-          Family Reporting Form
+          {t('forms.family.title')}
         </Heading>
         <Box w="32px" />
       </Flex>
 
-      <Flex flex="1" justify="center" px={4} py={8}>
-        <Box maxW="800px" w="full" bg="white" borderRadius="xl" boxShadow="md" p={10}>
+      <Flex flex="1" justify="center" px={{ base: 2, md: 4 }} py={{ base: 4, md: 8 }}>
+        <Box maxW="800px" w="full" bg="white" borderRadius="xl" boxShadow="md" p={{ base: 4, sm: 6, md: 10 }}>
           <StepForm
             onSubmit={onSubmit}
             onError={(err) => console.error('Form validation failed:', err)}
@@ -274,11 +311,11 @@ function FamilyForm({ onBack }: FamilyFormProps) {
             {({ FormStep }) => (
               <FormLayout spacing={8}>
                 <FormStepper colorScheme="red" mb={10}>
-                  <FormStep name="product" title="Product">
+                  <FormStep name="product" title={t('forms.family.steps.product')}>
                     <ProductStep inputStyles={inputStyles} />
                   </FormStep>
 
-                  <FormStep name="event" title="Event">
+                  <FormStep name="event" title={t('forms.family.steps.event')}>
                     <EventStep
                       inputStyles={inputStyles}
                       symptomTreated={symptomTreated}
@@ -286,7 +323,7 @@ function FamilyForm({ onBack }: FamilyFormProps) {
                     />
                   </FormStep>
 
-                  <FormStep name="patient" title="Patient">
+                  <FormStep name="patient" title={t('forms.family.steps.patient')}>
                     <Box mt={12}>
                       <PatientDetails
                         inputStyles={inputStyles}
@@ -296,7 +333,7 @@ function FamilyForm({ onBack }: FamilyFormProps) {
                     </Box>
                   </FormStep>
 
-                  <FormStep name="you" title="You">
+                  <FormStep name="you" title={t('forms.family.steps.you')}>
                     <Box mt={12}>
                       <ReporterDetails
                         inputStyles={inputStyles}
@@ -308,7 +345,7 @@ function FamilyForm({ onBack }: FamilyFormProps) {
                     </Box>
                   </FormStep>
 
-                  <FormStep name="additional" title="Additional">
+                  <FormStep name="additional" title={t('forms.family.steps.additional')}>
                     <Box mt={12}>
                       <AdditionalDetails
                         inputStyles={inputStyles}
@@ -324,7 +361,7 @@ function FamilyForm({ onBack }: FamilyFormProps) {
                     </Box>
                   </FormStep>
 
-                  <FormStep name="confirm" title="Confirm">
+                  <FormStep name="confirm" title={t('forms.family.steps.confirm')}>
                     <Box mt={12}>
                       <FamilyReviewConfirm
                         accordionIndex={accordionIndex}
@@ -347,11 +384,7 @@ function FamilyForm({ onBack }: FamilyFormProps) {
                   </StepsCompleted>
                 </FormStepper>
 
-                <ButtonGroup w="full" mt={8}>
-                  <PrevButton variant="outline" size="lg" />
-                  <Spacer />
-                  <NextButton size="lg" {...primaryButtonStyles} />
-                </ButtonGroup>
+                <FormNavigationFamily primaryButtonStyles={primaryButtonStyles} />
               </FormLayout>
             )}
           </StepForm>
@@ -371,8 +404,7 @@ function FamilyForm({ onBack }: FamilyFormProps) {
         borderColor="gray.200"
       >
         <Text>
-          Thank you for helping us make our products safer and more effective for everyone,
-          everywhere.
+          {t('welcome.footer')}
         </Text>
         <Text mt={1} fontSize="xs">
           Copyright © 2026 Clin Solutions L.L.C.

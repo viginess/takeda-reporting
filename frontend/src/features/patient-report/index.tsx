@@ -12,10 +12,9 @@ import {
 } from '@chakra-ui/react';
 import {
   FormLayout,
-  PrevButton,
-  NextButton,
   FormStepper,
   StepsCompleted,
+  useStepperContext,
 } from '@saas-ui/react';
 import { StepForm } from '@saas-ui/forms';
 
@@ -30,6 +29,7 @@ import { useState } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 import { useToast } from '@chakra-ui/react';
 import { trpc } from '../../utils/trpc';
+import { useTranslation } from 'react-i18next';
 
 const inputStyles = {
   size: 'lg' as const,
@@ -58,6 +58,7 @@ type PatientFormProps = {
 
 // Wrapper component to provide field array functionality for products
 function ProductStep({ inputStyles }: { inputStyles: any }) {
+  const { t } = useTranslation();
   const { control } = useFormContext();
   const { fields, append, remove } = useFieldArray({
     control,
@@ -71,7 +72,7 @@ function ProductStep({ inputStyles }: { inputStyles: any }) {
           {index > 0 && (
             <Flex justify="flex-end" mb={2}>
               <Button size="sm" variant="ghost" colorScheme="red" onClick={() => remove(index)}>
-                Remove product
+                {t('forms.patient.common.removeProduct')}
               </Button>
             </Flex>
           )}
@@ -97,6 +98,7 @@ function EventStep({
   symptomTreated: string;
   setSymptomTreated: (val: string) => void;
 }) {
+  const { t } = useTranslation();
   const { control } = useFormContext();
   const { fields, append, remove } = useFieldArray({
     control,
@@ -110,7 +112,7 @@ function EventStep({
           {index > 0 && (
             <Flex justify="flex-end" mb={2}>
               <Button size="sm" variant="ghost" colorScheme="red" onClick={() => remove(index)}>
-                Remove symptom
+                {t('forms.patient.common.removeSymptom')}
               </Button>
             </Flex>
           )}
@@ -128,7 +130,43 @@ function EventStep({
   );
 }
 
+function PrevButtonTranslated() {
+  const { t } = useTranslation();
+  const { prevStep, isFirstStep } = useStepperContext();
+  if (isFirstStep) return null;
+  return (
+    <Button variant="outline" size="lg" borderRadius="lg" onClick={prevStep}>
+      {t('common.back', 'Back')}
+    </Button>
+  );
+}
+
+function NextButtonTranslated(props: any) {
+  const { t } = useTranslation();
+  const { nextStep } = useStepperContext();
+  return (
+    <Button size="lg" borderRadius="lg" onClick={nextStep} {...props}>
+      {t('common.continue', 'Next')}
+    </Button>
+  );
+}
+
+function FormNavigation({ primaryButtonStyles }: { primaryButtonStyles: any }) {
+  const { isCompleted } = useStepperContext();
+
+  if (isCompleted) return null;
+
+  return (
+    <ButtonGroup w="full" mt={8}>
+      <PrevButtonTranslated />
+      <Spacer />
+      <NextButtonTranslated {...primaryButtonStyles} />
+    </ButtonGroup>
+  );
+}
+
 function PatientForm({ onBack }: PatientFormProps) {
+  const { t } = useTranslation();
   const [additionalDetails, setAdditionalDetails] = useState('');
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [captchaChecked, setCaptchaChecked] = useState(!import.meta.env.VITE_RECAPTCHA_SITE_KEY);
@@ -152,7 +190,7 @@ function PatientForm({ onBack }: PatientFormProps) {
   const createPatient = trpc.patient.create.useMutation({
     onError(err) {
       toast({
-        title: 'Submission failed',
+        title: t('welcome.error'),
         description: err.message,
         status: 'error',
         duration: 5000,
@@ -242,13 +280,13 @@ function PatientForm({ onBack }: PatientFormProps) {
           </Link>
         )}
         <Heading as="h1" size="md" fontWeight="600" color="gray.800">
-          Patient Reporting Form
+          {t('forms.patient.title')}
         </Heading>
         <Box w="32px" />
       </Flex>
 
-      <Flex flex="1" justify="center" px={4} py={8}>
-        <Box maxW="800px" w="full" bg="white" borderRadius="xl" boxShadow="md" p={10}>
+      <Flex flex="1" justify="center" px={{ base: 2, md: 4 }} py={{ base: 4, md: 8 }}>
+        <Box maxW="800px" w="full" bg="white" borderRadius="xl" boxShadow="md" p={{ base: 4, sm: 6, md: 10 }}>
           <StepForm
             onSubmit={onSubmit}
             defaultValues={{
@@ -306,11 +344,11 @@ function PatientForm({ onBack }: PatientFormProps) {
             {({ FormStep }) => (
               <FormLayout spacing={8}>
                 <FormStepper colorScheme="red" mb={10}>
-                  <FormStep name="product" title="Product">
+                  <FormStep name="product" title={t('forms.patient.steps.product')}>
                     <ProductStep inputStyles={inputStyles} />
                   </FormStep>
 
-                  <FormStep name="event" title="Event">
+                  <FormStep name="event" title={t('forms.patient.steps.event')}>
                     <EventStep
                       inputStyles={inputStyles}
                       symptomTreated={symptomTreated}
@@ -318,7 +356,7 @@ function PatientForm({ onBack }: PatientFormProps) {
                     />
                   </FormStep>
 
-                  <FormStep name="personal" title="You">
+                  <FormStep name="personal" title={t('forms.patient.steps.you')}>
                     <Box mt={12}>
                       <PersonalDetails
                         inputStyles={inputStyles}
@@ -332,7 +370,7 @@ function PatientForm({ onBack }: PatientFormProps) {
                     </Box>
                   </FormStep>
 
-                  <FormStep name="additional" title="Additional">
+                  <FormStep name="additional" title={t('forms.patient.steps.additional')}>
                     <Box mt={12}>
                       <AdditionalDetails
                         inputStyles={inputStyles}
@@ -348,7 +386,7 @@ function PatientForm({ onBack }: PatientFormProps) {
                     </Box>
                   </FormStep>
 
-                  <FormStep name="confirm" title="Confirm">
+                  <FormStep name="confirm" title={t('forms.patient.steps.confirm')}>
                     <Box mt={12}>
                       <ReviewConfirm
                         accordionIndex={accordionIndex}
@@ -371,11 +409,7 @@ function PatientForm({ onBack }: PatientFormProps) {
                   </StepsCompleted>
                 </FormStepper>
 
-                <ButtonGroup w="full" mt={8}>
-                  <PrevButton variant="outline" size="lg" />
-                  <Spacer />
-                  <NextButton size="lg" {...primaryButtonStyles} />
-                </ButtonGroup>
+                <FormNavigation primaryButtonStyles={primaryButtonStyles} />
               </FormLayout>
             )}
           </StepForm>
@@ -395,8 +429,7 @@ function PatientForm({ onBack }: PatientFormProps) {
         borderColor="gray.200"
       >
         <Text>
-          Thank you for helping us make our products safer and more effective for everyone,
-          everywhere.
+          {t('welcome.footer')}
         </Text>
         <Text mt={1} fontSize="xs">
           Copyright © 2026 Clin Solutions L.L.C.
