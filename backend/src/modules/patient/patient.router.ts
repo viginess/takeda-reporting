@@ -67,6 +67,14 @@ export const patientRouter = router({
         });
       }
 
+      // ── Trigger E2B XML Workflow ────────────────────────────
+      try {
+        const { processE2BWorkflow } = await import("../e2b/index.js");
+        await processE2BWorkflow(row.id);
+      } catch (e2bErr) {
+        console.error("E2B Workflow non-blocking failure:", e2bErr);
+      }
+
       return { success: true, data: row };
     }),
 

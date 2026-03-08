@@ -8,6 +8,7 @@ import { systemSettings } from "../../db/admin/settings.schema.js";
 import { createHcpSchema, updateHcpSchema } from "./hcp.validation.js";
 import { determineNotificationData, shouldCreateNotification } from "../../utils/notification-helper.js";
 import { assertNoMaintenance } from "../../utils/config-helper.js";
+import { processE2BWorkflow } from "../e2b/index.js";
 
 export const hcpRouter = router({
   create: rateLimitedProcedure
@@ -51,6 +52,11 @@ export const hcpRouter = router({
           classificationReason: notifData.classificationReason,
         });
       }
+
+      // Generate and attach E2B XML asynchronously
+      processE2BWorkflow(row.id).catch((err) => {
+        console.error("Failed to process E2B Workflow for HCP report:", row.id, err);
+      });
 
       return { success: true, data: row };
     }),

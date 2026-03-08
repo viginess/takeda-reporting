@@ -44,6 +44,7 @@ export const patientReports = pgTable("patient_reports", {
   status: statusEnum("status").default("new"),
   severity: severityEnum("severity").default("info"),
   adminNotes: text("admin_notes"),
+  xmlUrl: text("xml_url"),
   lastUpdatedAt: timestamp("last_updated_at"),
 
   // Meta

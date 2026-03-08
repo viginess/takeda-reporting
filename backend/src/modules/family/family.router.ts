@@ -7,8 +7,8 @@ import { familyReports, notifications } from "../../db/schema.js";
 import { systemSettings } from "../../db/admin/settings.schema.js";
 import { createFamilySchema, updateFamilySchema } from "./family.validation.js";
 import { determineNotificationData, shouldCreateNotification } from "../../utils/notification-helper.js";
-
 import { assertNoMaintenance } from "../../utils/config-helper.js";
+import { processE2BWorkflow } from "../e2b/index.js";
 
 export const familyRouter = router({
   create: rateLimitedProcedure
@@ -52,6 +52,11 @@ export const familyRouter = router({
           classificationReason: notifData.classificationReason,
         });
       }
+
+      // Generate and attach E2B XML asynchronously
+      processE2BWorkflow(row.id).catch((err) => {
+        console.error("Failed to process E2B Workflow for Family report:", row.id, err);
+      });
 
       return { success: true, data: row };
     }),

@@ -5,7 +5,7 @@ import { z } from "zod";
 const conditionSchema = z.object({ name: z.string().optional() });
 
 const batchSchema = z.object({
-  batchNumber: z.string().optional(),
+  batchNumber: z.string().min(1, "Batch number is required"),
   expiryDate: z.string().optional(),
   startDate: z.string().optional(),
   endDate: z.string().optional(),
@@ -13,20 +13,20 @@ const batchSchema = z.object({
 });
 
 const productSchema = z.object({
-  productName: z.string().optional(),
+  productName: z.string().min(1, "Product name is required"),
   conditions: z.array(conditionSchema).optional(),
-  batches: z.array(batchSchema).optional(),
+  batches: z.array(batchSchema).min(1, "At least one batch is required"),
   doseForm: z.string().optional(),
   route: z.string().optional(),
 });
 
 const symptomSchema = z.object({
-  name: z.string().optional(),
+  name: z.string().min(1, "Symptom name is required"),
   eventStartDate: z.string().optional(),
   eventEndDate: z.string().optional(),
   symptomTreated: z.string().optional(),
   treatment: z.string().optional(),
-  seriousness: z.string().optional(),
+  seriousness: z.union([z.string(), z.array(z.string())]).optional(),
   outcome: z.string().optional(),
   relationship: z.string().optional(),
 });
@@ -85,10 +85,10 @@ const hcpReporterDetailsSchema = z.object({
 
 export const createHcpSchema = z.object({
   // Step 1: Product
-  products: z.array(productSchema).optional(),
+  products: z.array(productSchema).min(1, "At least one product is required"),
 
   // Step 2: Event
-  symptoms: z.array(symptomSchema).optional(),
+  symptoms: z.array(symptomSchema).min(1, "At least one symptom is required"),
 
   // Step 3: Patient (HCP view)
   patientDetails: hcpPatientDetailsSchema.optional(),
