@@ -460,7 +460,7 @@ export default function ReportManagementPage() {
         ) : isError ? (
           <Center w="100%" h="100%" flex={1}>
             <VStack gap={4}>
-              <AlertCircle size={40} color="#CE0037" />
+              <AlertCircle size={40} color="#1e293b" />
               <Text fontSize="lg" fontWeight="bold" color="gray.800">Failed to load reports</Text>
               <Text color="gray.500" fontSize="sm">Please try again later.</Text>
             </VStack>
