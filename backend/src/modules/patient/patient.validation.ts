@@ -9,7 +9,7 @@ const conditionSchema = z.object({
 });
 
 const batchSchema = z.object({
-  batchNumber: z.string().optional(),
+  batchNumber: z.string().min(1, "Batch number is required"),
   expiryDate: z.string().optional(),
   startDate: z.string().optional(),
   endDate: z.string().optional(),
@@ -17,10 +17,10 @@ const batchSchema = z.object({
 });
 
 const productSchema = z.object({
-  productName: z.string().optional(),
+  productName: z.string().min(1, "Product name is required"),
   conditions: z.array(conditionSchema).optional(),
   condition: z.string().optional(),
-  batches: z.array(batchSchema).optional(),
+  batches: z.array(batchSchema).min(1, "At least one batch is required"),
   dosage: z.string().optional(),
   actionTaken: z.string().optional(),
   images: z.array(z.string()).optional(),           
@@ -31,12 +31,12 @@ const productSchema = z.object({
 // ─────────────────────────────────────────────────────────────
 
 const symptomSchema = z.object({
-  name: z.string().optional(),
+  name: z.string().min(1, "Symptom name is required"),
   eventStartDate: z.string().optional(),
   eventEndDate: z.string().optional(),
   symptomTreated: z.string().optional(),
   treatment: z.string().optional(),
-  seriousness: z.string().optional(),         
+  seriousness: z.union([z.string(), z.array(z.string())]).optional(),         
   outcome: z.string().optional(),
 });
 
@@ -107,10 +107,10 @@ const labTestSchema = z.object({
 export const createPatientSchema = z.object({
 
   // ── Step 1: Product ──────────────────────────────────────
-  products: z.array(productSchema).optional(),
+  products: z.array(productSchema).min(1, "At least one product is required"),
 
   // ── Step 2: Event (symptoms) ──────────────────────────────
-  symptoms: z.array(symptomSchema).optional(),
+  symptoms: z.array(symptomSchema).min(1, "At least one symptom is required"),
 
   // ── Step 3: Personal & HCP (nested objects) ───────────────
   patientDetails: patientDetailsSchema.optional(),

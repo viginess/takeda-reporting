@@ -46,7 +46,7 @@ export const hcpReports = pgTable("hcp_reports", {
   severity: severityEnum("severity").default("info"),
   adminNotes: text("admin_notes"),
   lastUpdatedAt: timestamp("last_updated_at"),
-
+  xmlUrl: text("xml_url"),
   // Meta
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

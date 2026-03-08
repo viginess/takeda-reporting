@@ -17,7 +17,9 @@ import {
   StepsCompleted,
   useStepperContext,
 } from '@saas-ui/react';
-import { StepForm } from '@saas-ui/forms';
+import { StepForm, SubmitButton } from '@saas-ui/forms';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { createFamilySchema } from '../../../../backend/src/modules/family/family.validation';
 
 import logo from '../../assets/logo.jpg';
 import { ProductDetails } from '../patient-report/components/ProductDetails';
@@ -152,7 +154,8 @@ function NextButtonTranslatedFamily(props: any) {
 }
 
 function FormNavigationFamily({ primaryButtonStyles }: { primaryButtonStyles: any }) {
-  const { isCompleted } = useStepperContext();
+  const { t } = useTranslation();
+  const { isCompleted, isLastStep } = useStepperContext();
 
   if (isCompleted) return null;
 
@@ -160,7 +163,13 @@ function FormNavigationFamily({ primaryButtonStyles }: { primaryButtonStyles: an
     <ButtonGroup w="full" mt={8}>
       <PrevButtonTranslatedFamily />
       <Spacer />
-      <NextButtonTranslatedFamily {...primaryButtonStyles} />
+      {isLastStep ? (
+        <SubmitButton {...primaryButtonStyles} size="lg" borderRadius="lg">
+          {t('forms.family.submit', 'Submit Report')}
+        </SubmitButton>
+      ) : (
+        <NextButtonTranslatedFamily {...primaryButtonStyles} />
+      )}
     </ButtonGroup>
   );
 }
@@ -281,6 +290,7 @@ function FamilyForm({ onBack }: FamilyFormProps) {
       <Flex flex="1" justify="center" px={{ base: 2, md: 4 }} py={{ base: 4, md: 8 }}>
         <Box maxW="800px" w="full" bg="white" borderRadius="xl" boxShadow="md" p={{ base: 4, sm: 6, md: 10 }}>
           <StepForm
+            resolver={zodResolver(createFamilySchema) as any}
             onSubmit={onSubmit}
             onError={(err) => console.error('Form validation failed:', err)}
             defaultValues={{

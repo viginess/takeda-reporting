@@ -16,7 +16,9 @@ import {
   StepsCompleted,
   useStepperContext,
 } from '@saas-ui/react';
-import { StepForm } from '@saas-ui/forms';
+import { StepForm, SubmitButton } from '@saas-ui/forms';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { createPatientSchema } from '../../../../backend/src/modules/patient/patient.validation';
 
 import logo from '../../assets/logo.jpg';
 import { ProductDetails } from './components/ProductDetails';
@@ -152,7 +154,8 @@ function NextButtonTranslated(props: any) {
 }
 
 function FormNavigation({ primaryButtonStyles }: { primaryButtonStyles: any }) {
-  const { isCompleted } = useStepperContext();
+  const { t } = useTranslation();
+  const { isCompleted, isLastStep } = useStepperContext();
 
   if (isCompleted) return null;
 
@@ -160,7 +163,13 @@ function FormNavigation({ primaryButtonStyles }: { primaryButtonStyles: any }) {
     <ButtonGroup w="full" mt={8}>
       <PrevButtonTranslated />
       <Spacer />
-      <NextButtonTranslated {...primaryButtonStyles} />
+      {isLastStep ? (
+        <SubmitButton {...primaryButtonStyles} size="lg" borderRadius="lg">
+          {t('forms.patient.submit', 'Submit Report')}
+        </SubmitButton>
+      ) : (
+        <NextButtonTranslated {...primaryButtonStyles} />
+      )}
     </ButtonGroup>
   );
 }
@@ -288,6 +297,7 @@ function PatientForm({ onBack }: PatientFormProps) {
       <Flex flex="1" justify="center" px={{ base: 2, md: 4 }} py={{ base: 4, md: 8 }}>
         <Box maxW="800px" w="full" bg="white" borderRadius="xl" boxShadow="md" p={{ base: 4, sm: 6, md: 10 }}>
           <StepForm
+            resolver={zodResolver(createPatientSchema) as any}
             onSubmit={onSubmit}
             defaultValues={{
               // Step 1

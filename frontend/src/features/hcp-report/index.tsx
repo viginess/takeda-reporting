@@ -17,7 +17,9 @@ import {
   StepsCompleted,
   useStepperContext,
 } from '@saas-ui/react';
-import { StepForm } from '@saas-ui/forms';
+import { StepForm, SubmitButton } from '@saas-ui/forms';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { createHcpSchema } from '../../../../backend/src/modules/hcp/hcp.validation';
 
 import logo from '../../assets/logo.jpg';
 import { HcpProductDetails } from './components/HcpProductDetails';
@@ -150,7 +152,8 @@ function NextButtonTranslatedHcp(props: any) {
 }
 
 function FormNavigationHcp({ primaryButtonStyles }: { primaryButtonStyles: any }) {
-  const { isCompleted } = useStepperContext();
+  const { t } = useTranslation();
+  const { isCompleted, isLastStep } = useStepperContext();
 
   if (isCompleted) return null;
 
@@ -158,7 +161,13 @@ function FormNavigationHcp({ primaryButtonStyles }: { primaryButtonStyles: any }
     <ButtonGroup w="full" mt={8}>
       <PrevButtonTranslatedHcp />
       <Spacer />
-      <NextButtonTranslatedHcp {...primaryButtonStyles} />
+      {isLastStep ? (
+        <SubmitButton {...primaryButtonStyles} size="lg" borderRadius="lg">
+          {t('forms.hcp.submit', 'Submit Report')}
+        </SubmitButton>
+      ) : (
+        <NextButtonTranslatedHcp {...primaryButtonStyles} />
+      )}
     </ButtonGroup>
   );
 }
@@ -290,6 +299,7 @@ function HcpForm({ onBack }: HcpFormProps) {
       <Flex flex="1" justify="center" px={{ base: 2, md: 4 }} py={{ base: 4, md: 8 }}>
         <Box maxW="800px" w="full" bg="white" borderRadius="xl" boxShadow="md" p={{ base: 4, sm: 6, md: 10 }}>
           <StepForm
+            resolver={zodResolver(createHcpSchema) as any}
             onSubmit={onSubmit}
             onError={(err) => console.error('Form validation failed:', err)}
             defaultValues={{
