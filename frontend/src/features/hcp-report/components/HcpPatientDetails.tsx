@@ -29,7 +29,7 @@ export function HcpPatientDetails({
   const { setValue, register, watch } = useFormContext();
 
   const setUnknown = (fieldName: string) => {
-    setValue(fieldName, t('forms.patient.common.unknown'));
+    setValue(fieldName, 'Unknown');
   };
 
   return (
@@ -78,8 +78,9 @@ export function HcpPatientDetails({
         </RadioGroup>
         {ageType === 'dob' && (
           <Input
-            key={watch('patientDob') === t('forms.patient.common.unknown') ? 'untouchable' : 'selectable'}
-            type={watch('patientDob') === t('forms.patient.common.unknown') ? 'text' : 'date'}
+            key={watch('patientDob') === 'Unknown' ? 'untouchable' : 'selectable'}
+            type={watch('patientDob') === 'Unknown' ? 'text' : 'date'}
+            value={watch('patientDob') === 'Unknown' ? t('forms.patient.common.unknown') : watch('patientDob')}
             placeholder={t('forms.patient.personalDetails.dobPlaceholder')}
             mt={3}
             {...inputStyles}
@@ -89,9 +90,10 @@ export function HcpPatientDetails({
         {ageType === 'age' && (
           <Flex gap={3} mt={3} align="center">
             <Input
-              key={watch('patientAge') === t('forms.patient.common.unknown') ? 'untouchable' : 'selectable'}
-              placeholder="32"
-              type={watch('patientAge') === t('forms.patient.common.unknown') ? 'text' : 'number'}
+              key={watch('patientAge') === 'Unknown' ? 'untouchable' : 'selectable'}
+              placeholder={t('forms.patient.personalDetails.ageValuePlaceholder', '32')}
+              type={watch('patientAge') === 'Unknown' ? 'text' : 'number'}
+              value={watch('patientAge') === 'Unknown' ? t('forms.patient.common.unknown') : watch('patientAge')}
               flex="1"
               maxW="120px"
               {...inputStyles}
@@ -116,6 +118,12 @@ export function HcpPatientDetails({
             </Radio>
             <Radio value="female" colorScheme="red">
               {t('forms.patient.personalDetails.female')}
+            </Radio>
+            <Radio value="other" colorScheme="red">
+              {t('forms.patient.personalDetails.sexOptions.other')}
+            </Radio>
+            <Radio value="unknown" colorScheme="red">
+              {t('forms.patient.personalDetails.sexOptions.unknown')}
             </Radio>
           </Stack>
         </RadioGroup>

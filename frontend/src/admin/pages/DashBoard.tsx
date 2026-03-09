@@ -56,7 +56,7 @@ export default function AdminDashboard() {
   const utils = trpc.useContext();
   
   // Real Data Queries
-  const { data: notifications = [] } = trpc.notifications.getAll.useQuery();
+  const { data: notifications = [] } = trpc.notifications.getAll.useQuery(undefined, { refetchInterval: 5000 });
   const { data: dashboardStats, isLoading: statsLoading } = trpc.admin.getDashboardStats.useQuery();
   const { data: urgentReports = [], isLoading: urgentLoading } = trpc.admin.getUrgentReports.useQuery();
   const { data: statusDistribution = [], isLoading: pieLoading } = trpc.admin.getStatusDistribution.useQuery();

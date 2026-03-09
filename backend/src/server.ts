@@ -25,7 +25,7 @@ const server = createHTTPServer({
     const isAllowedOrigin =
       allowedOrigins.includes(origin) ||
       (process.env.NODE_ENV !== "production") ||
-      (origin.endsWith(".vercel.app") && origin.includes("takeda-reporting-frontend"));
+      (origin.endsWith(".vercel.app") && origin.includes("clinsolution-reporting-frontend"));
 
     if (origin && isAllowedOrigin) {
       res.setHeader("Access-Control-Allow-Origin", origin);

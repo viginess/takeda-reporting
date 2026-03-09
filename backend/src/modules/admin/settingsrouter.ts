@@ -48,6 +48,8 @@ export const updateSystemSettings = superAdminProcedure
           sessionTimeout: z.string(),
           maxLoginAttempts: z.string(),
           passwordExpiry: z.string(),
+          senderId: z.string().optional(),
+          receiverId: z.string().optional(),
         })
         .optional(),
     }),
@@ -71,11 +73,20 @@ export const updateSystemSettings = superAdminProcedure
           .select()
           .from(systemSettings)
           .where(eq(systemSettings.id, 1));
+          
+        const updatePayload = {
+          ...input,
+          clinicalConfig: input.clinicalConfig ? {
+            ...input.clinicalConfig,
+            senderId: input.clinicalConfig.senderId || oldSettings.clinicalConfig.senderId,
+            receiverId: input.clinicalConfig.receiverId || oldSettings.clinicalConfig.receiverId,
+          } : undefined,
+        };
 
         const [newSettings] = await tx
           .update(systemSettings)
           .set({
-            ...input,
+            ...updatePayload,
             updatedAt: new Date(),
             updatedBy: adminId,
           })

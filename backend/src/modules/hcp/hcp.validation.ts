@@ -2,7 +2,10 @@ import { z } from "zod";
 
 // ─── Shared sub-schemas (same as patient) ────────────────────────────────────
 
-const conditionSchema = z.object({ name: z.string().optional() });
+const conditionSchema = z.object({ 
+  name: z.string().optional(),
+  meddraCode: z.string().optional(),
+});
 
 const batchSchema = z.object({
   batchNumber: z.string().min(1, "Batch number is required"),
@@ -22,6 +25,7 @@ const productSchema = z.object({
 
 const symptomSchema = z.object({
   name: z.string().min(1, "Symptom name is required"),
+  meddraCode: z.string().optional(),
   eventStartDate: z.string().optional(),
   eventEndDate: z.string().optional(),
   symptomTreated: z.string().optional(),

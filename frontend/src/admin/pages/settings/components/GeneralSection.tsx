@@ -17,6 +17,10 @@ interface GeneralSectionProps {
   userRole?: string;
   onRunArchiving: () => void;
   isArchiving: boolean;
+  senderId: string;
+  setSenderId: (v: string) => void;
+  receiverId: string;
+  setReceiverId: (v: string) => void;
 }
 
 export function GeneralSection({
@@ -29,6 +33,8 @@ export function GeneralSection({
   userRole,
   onRunArchiving,
   isArchiving,
+  senderId, setSenderId,
+  receiverId, setReceiverId,
 }: GeneralSectionProps) {
   return (
     <>
@@ -43,6 +49,17 @@ export function GeneralSection({
           <Input value={lastName} onChange={(e) => track(() => setLastName(e.target.value))} size="sm" w="220px" bg="white" />
         </RowItem>
       </SettingsCard>
+
+      {userRole === "super_admin" && (
+        <SettingsCard title="E2B XML Regulatory Info" icon={Database}>
+          <RowItem label="Sender ID" desc="Your organization's registered ClinSolution ID">
+            <Input value={senderId} onChange={(e) => track(() => setSenderId(e.target.value))} size="sm" w="220px" bg="white" />
+          </RowItem>
+          <RowItem label="Receiver ID" desc="The Regulatory Agency's registered ID">
+            <Input value={receiverId} onChange={(e) => track(() => setReceiverId(e.target.value))} size="sm" w="220px" bg="white" />
+          </RowItem>
+        </SettingsCard>
+      )}
 
       {userRole === "super_admin" && (
         <SettingsCard title="Data Management" icon={Database}>

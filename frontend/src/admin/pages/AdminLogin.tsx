@@ -46,11 +46,12 @@ const MotionText = motion(Text);
 interface OtpInputProps {
   otp: string[];
   setOtp: (otp: string[]) => void;
-  onComplete: () => void;
+  onComplete: (code: string) => void;
   isLoading: boolean;
+  clearError: () => void;
 }
 
-function OtpInput({ otp, setOtp, onComplete, isLoading }: OtpInputProps) {
+function OtpInput({ otp, setOtp, onComplete, isLoading, clearError }: OtpInputProps) {
   const inputs = useRef<(HTMLInputElement | null)[]>([]);
 
   const handleChange = (v: string, i: number) => {
@@ -58,12 +59,14 @@ function OtpInput({ otp, setOtp, onComplete, isLoading }: OtpInputProps) {
     const newOtp = [...otp];
     newOtp[i] = v.slice(-1);
     setOtp(newOtp);
+    clearError();
 
     if (v && i < 7) {
       inputs.current[i + 1]?.focus();
     }
-    if (newOtp.every((digit) => digit !== "") && newOtp.length === 8) {
-      setTimeout(onComplete, 50);
+    const combined = newOtp.join("");
+    if (combined.length === 8) {
+      onComplete(combined);
     }
   };
 
@@ -248,8 +251,8 @@ export default function AdminLogin() {
     }
   };
 
-  const handleVerify = async () => {
-    const code = otp.join("");
+  const handleVerify = async (codeOverride?: string) => {
+    const code = codeOverride || otp.join("");
     if (code.length < 8) {
       setError("Please enter the complete 8-digit code.");
       return;
@@ -298,6 +301,29 @@ export default function AdminLogin() {
       if (!err.message?.includes("server configuration") && !err.message?.includes("sync")) {
         setOtp(["", "", "", "", "", "", "", ""]);
       }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    if (!email) return;
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: { shouldCreateUser: false },
+      });
+      if (error) throw error;
+      toast({
+        title: "Code Resent",
+        description: "A new verification code has been sent to your email.",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch (err: any) {
+      setError(err.message || "Failed to resend code.");
     } finally {
       setLoading(false);
     }
@@ -690,8 +716,9 @@ export default function AdminLogin() {
                   <OtpInput
                     otp={otp}
                     setOtp={setOtp}
-                    onComplete={handleVerify}
+                    onComplete={(code) => handleVerify(code)}
                     isLoading={loading}
+                    clearError={() => setError("")}
                   />
 
                   <VStack spacing={5}>
@@ -703,7 +730,7 @@ export default function AdminLogin() {
                       color="white"
                       borderRadius="16px"
                       _hover={{ bg: "#a1002b", boxShadow: "0 10px 20px -5px rgba(206, 0, 55, 0.4)" }}
-                      onClick={handleVerify}
+                      onClick={() => handleVerify()}
                       isLoading={loading}
                       fontWeight="700"
                     >
@@ -712,7 +739,16 @@ export default function AdminLogin() {
                     <VStack spacing={3}>
                       <Text fontSize="xs" color="#64748b" fontWeight="600">
                         Didn't receive a code?{" "}
-                        <Text as="span" color="#CE0037" cursor="pointer" onClick={() => {}} fontWeight="800">Resend</Text>
+                        <Text 
+                          as="span" 
+                          color="#CE0037" 
+                          cursor="pointer" 
+                          onClick={handleResendOtp} 
+                          fontWeight="800"
+                          _hover={{ textDecoration: "underline" }}
+                        >
+                          Resend
+                        </Text>
                       </Text>
                       <Button
                         variant="ghost"

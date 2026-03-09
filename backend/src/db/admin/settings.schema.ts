@@ -20,7 +20,7 @@ export const systemSettings = pgTable("system_settings", {
     smsAlerts: boolean;
   }>().notNull().default({
     urgentAlerts: true,
-    alertThreshold: "Critical & High",
+    alertThreshold: "All Severities",
     notifyOnApproval: true,
     emailDigest: true,
     digestFrequency: "Daily",
@@ -36,6 +36,8 @@ export const systemSettings = pgTable("system_settings", {
     sessionTimeout: string;
     maxLoginAttempts: string;
     passwordExpiry: string;
+    senderId: string;
+    receiverId: string;
   }>().notNull().default({
     adminEmail: "admin@pharma.com",
     timezone: "UTC+05:30 (IST)",
@@ -45,6 +47,8 @@ export const systemSettings = pgTable("system_settings", {
     sessionTimeout: "60 min",
     maxLoginAttempts: "5",
     passwordExpiry: "90 days",
+    senderId: "CLINSOLUTION-DEFAULT",
+    receiverId: "EVHUMAN",
   }),
   updatedAt: timestamp("updated_at").defaultNow(),
   updatedBy: text("updated_by"),

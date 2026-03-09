@@ -39,7 +39,10 @@ export const hcpRouter = router({
 
       const notifData = determineNotificationData(input, "HCP", row.referenceId || row.id);
       
-      const [settings] = await db.select().from(systemSettings).where(eq(systemSettings.id, 1));
+      let [settings] = await db.select().from(systemSettings).where(eq(systemSettings.id, 1));
+      if (!settings) {
+        settings = { id: 1, notificationThresholds: { urgentAlerts: true, alertThreshold: "All Severities", notifyOnApproval: true, emailDigest: false, digestFrequency: "Daily", smsAlerts: false } } as any;
+      }
       
       if (shouldCreateNotification(settings, notifData)) {
         await db.insert(notifications).values({

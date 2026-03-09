@@ -6,6 +6,7 @@ import { z } from "zod";
 
 const conditionSchema = z.object({
   name: z.string().optional(),
+  meddraCode: z.string().optional(),
 });
 
 const batchSchema = z.object({
@@ -32,6 +33,7 @@ const productSchema = z.object({
 
 const symptomSchema = z.object({
   name: z.string().min(1, "Symptom name is required"),
+  meddraCode: z.string().optional(),
   eventStartDate: z.string().optional(),
   eventEndDate: z.string().optional(),
   symptomTreated: z.string().optional(),

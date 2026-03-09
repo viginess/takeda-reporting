@@ -42,7 +42,7 @@ const MotionHeading = motion(Heading);
 const MotionText = motion(Text);
 
 // --- Sub-component: OTP Input ---
-function OtpInput({ onComplete, isLoading }: { onComplete: (code: string) => void; isLoading: boolean }) {
+function OtpInput({ onComplete, isLoading, clearError }: { onComplete: (code: string) => void; isLoading: boolean; clearError: () => void }) {
   const [otp, setOtp] = useState(["", "", "", "", "", "", "", ""]);
   const inputs = useRef<(HTMLInputElement | null)[]>([]);
 
@@ -52,13 +52,15 @@ function OtpInput({ onComplete, isLoading }: { onComplete: (code: string) => voi
     const newOtp = [...otp];
     newOtp[i] = digit;
     setOtp(newOtp);
+    clearError();
 
     if (digit && i < 7) {
       inputs.current[i + 1]?.focus();
     }
     
-    if (newOtp.every((d) => d !== "") && newOtp.length === 8) {
-      onComplete(newOtp.join(""));
+    const combined = newOtp.join("");
+    if (combined.length === 8) {
+      onComplete(combined);
     }
   };
 
@@ -238,6 +240,29 @@ useEffect(() => {
       });
     } catch (err: any) {
       setError(err.message || "Invalid code. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    if (!email) return;
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: { shouldCreateUser: false },
+      });
+      if (error) throw error;
+      toast({
+        title: "Code Resent",
+        description: "A new verification code has been sent to your email.",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch (err: any) {
+      setError(err.message || "Failed to resend code.");
     } finally {
       setLoading(false);
     }
@@ -564,6 +589,7 @@ useEffect(() => {
                   <OtpInput
                     onComplete={handleVerifyOtp}
                     isLoading={loading}
+                    clearError={() => setError("")}
                   />
 
                   <VStack spacing={5}>
@@ -588,7 +614,16 @@ useEffect(() => {
                     <VStack spacing={3}>
                       <Text fontSize="xs" color="#64748b" fontWeight="600">
                         Didn't receive a code?{" "}
-                        <Text as="span" color="#CE0037" cursor="pointer" onClick={() => {}} fontWeight="800">Resend</Text>
+                        <Text 
+                          as="span" 
+                          color="#CE0037" 
+                          cursor="pointer" 
+                          onClick={handleResendOtp} 
+                          fontWeight="800"
+                          _hover={{ textDecoration: "underline" }}
+                        >
+                          Resend
+                        </Text>
                       </Text>
                     </VStack>
                   </VStack>

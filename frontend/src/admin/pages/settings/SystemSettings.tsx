@@ -63,6 +63,8 @@ export default function SystemSettings() {
 
   // ── State ──
   const [adminEmail, setAdminEmail] = useState("");
+  const [senderId, setSenderId] = useState("");
+  const [receiverId, setReceiverId] = useState("");
   const [language, setLanguage] = useState("");
   const [timezone, setTimezone] = useState("");
   const [retention, setRetention] = useState("");
@@ -97,9 +99,11 @@ export default function SystemSettings() {
       setSessionTimeout(clinical.sessionTimeout || "60 min");
       setMaxLoginAttempts(clinical.maxLoginAttempts || "5");
       setPasswordExpiry(clinical.passwordExpiry || "90 days");
+      setSenderId(clinical.senderId || "CLINSOLUTION-DEFAULT");
+      setReceiverId(clinical.receiverId || "EVHUMAN");
       const notifs = data.notificationThresholds || {};
       setUrgentAlerts(notifs.urgentAlerts !== false);
-      setAlertThreshold(notifs.alertThreshold || "Critical & High");
+      setAlertThreshold(notifs.alertThreshold || "All Severities");
       setNotifyOnApproval(notifs.notifyOnApproval !== false);
     }
   }, [data]);
@@ -129,7 +133,7 @@ export default function SystemSettings() {
           digestFrequency: data?.notificationThresholds.digestFrequency || "Daily",
           smsAlerts: data?.notificationThresholds.smsAlerts || false,
         },
-        clinicalConfig: { adminEmail, timezone, retention, maintenanceMode, twoFA, sessionTimeout, maxLoginAttempts, passwordExpiry }
+        clinicalConfig: { adminEmail, timezone, retention, maintenanceMode, twoFA, sessionTimeout, maxLoginAttempts, passwordExpiry, senderId, receiverId }
       });
     }
     if (userId) await updateAdminProfile.mutateAsync({ firstName, lastName });
@@ -156,9 +160,11 @@ export default function SystemSettings() {
       setSessionTimeout(clinical.sessionTimeout || "60 min");
       setMaxLoginAttempts(clinical.maxLoginAttempts || "5");
       setPasswordExpiry(clinical.passwordExpiry || "90 days");
+      setSenderId(clinical.senderId || "CLINSOLUTION-DEFAULT");
+      setReceiverId(clinical.receiverId || "EVHUMAN");
       const notifs = data.notificationThresholds || {};
       setUrgentAlerts(notifs.urgentAlerts !== false);
-      setAlertThreshold(notifs.alertThreshold || "Critical & High");
+      setAlertThreshold(notifs.alertThreshold || "All Severities");
       setNotifyOnApproval(notifs.notifyOnApproval !== false);
     }
     if (adminUsers && userId) {
@@ -273,6 +279,8 @@ export default function SystemSettings() {
               userRole={user?.role ?? undefined}
               onRunArchiving={() => runArchivingManual.mutate()}
               isArchiving={runArchivingManual.isPending}
+              senderId={senderId} setSenderId={setSenderId}
+              receiverId={receiverId} setReceiverId={setReceiverId}
             />
           )}
 
