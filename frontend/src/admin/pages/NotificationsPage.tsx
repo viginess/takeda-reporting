@@ -38,7 +38,7 @@ const filterOptions: { label: string; value: string }[] = [
 // ── Component ─────────────────────────────────────────────────────────────────
 export default function NotificationsPage() {
   const utils = trpc.useContext();
-  const { data: notifications = [], isLoading } = trpc.notifications.getAll.useQuery();
+  const { data: notifications = [], isLoading } = trpc.notifications.getAll.useQuery(undefined, { refetchInterval: 5000 });
 
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");

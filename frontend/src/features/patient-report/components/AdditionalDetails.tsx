@@ -163,7 +163,7 @@ export function AdditionalDetails({
                     size="sm"
                     mt={2}
                     borderColor="gray.300"
-                    onClick={() => setValue(`otherMedications.${index}.condition`, t('forms.patient.common.unknown'))}
+                    onClick={() => setValue(`otherMedications.${index}.condition`, 'Unknown')}
                   >
                     {t('forms.patient.common.unknown')}
                   </Button>
@@ -174,8 +174,9 @@ export function AdditionalDetails({
                 </FormLabel>
                 <Flex gap={3} flexWrap="wrap" align="center" mb={2}>
                   <Input
-                    key={watch(`otherMedications.${index}.startDate`) === t('forms.patient.common.unknown') ? 'untouchable' : 'selectable'}
-                    type={watch(`otherMedications.${index}.startDate`) === t('forms.patient.common.unknown') ? 'text' : 'date'}
+                    key={watch(`otherMedications.${index}.startDate`) === 'Unknown' ? 'untouchable' : 'selectable'}
+                    type={watch(`otherMedications.${index}.startDate`) === 'Unknown' ? 'text' : 'date'}
+                    value={watch(`otherMedications.${index}.startDate`) === 'Unknown' ? t('forms.patient.common.unknown') : watch(`otherMedications.${index}.startDate`)}
                     placeholder={t('forms.patient.productDetails.startDatePlaceholder')}
                     flex="1"
                     minW="140px"
@@ -186,15 +187,16 @@ export function AdditionalDetails({
                     variant="outline"
                     size="lg"
                     borderColor="gray.300"
-                    onClick={() => setValue(`otherMedications.${index}.startDate`, t('forms.patient.common.unknown'))}
+                    onClick={() => setValue(`otherMedications.${index}.startDate`, 'Unknown')}
                   >
                     {t('forms.patient.common.unknown')}
                   </Button>
                 </Flex>
                 <Flex gap={3} flexWrap="wrap" align="center">
                   <Input
-                    key={[t('forms.patient.common.unknown'), t('forms.patient.common.ongoing')].includes(watch(`otherMedications.${index}.endDate`)) ? 'untouchable' : 'selectable'}
-                    type={[t('forms.patient.common.unknown'), t('forms.patient.common.ongoing')].includes(watch(`otherMedications.${index}.endDate`)) ? 'text' : 'date'}
+                    key={['Unknown', 'Ongoing'].includes(watch(`otherMedications.${index}.endDate`)) ? 'untouchable' : 'selectable'}
+                    type={['Unknown', 'Ongoing'].includes(watch(`otherMedications.${index}.endDate`)) ? 'text' : 'date'}
+                    value={watch(`otherMedications.${index}.endDate`) === 'Unknown' ? t('forms.patient.common.unknown') : watch(`otherMedications.${index}.endDate`) === 'Ongoing' ? t('forms.patient.common.ongoing') : watch(`otherMedications.${index}.endDate`)}
                     placeholder={t('forms.patient.productDetails.endDatePlaceholder')}
                     flex="1"
                     minW="140px"
@@ -205,7 +207,7 @@ export function AdditionalDetails({
                     variant="outline"
                     size="lg"
                     borderColor="gray.300"
-                    onClick={() => setValue(`otherMedications.${index}.endDate`, t('forms.patient.common.unknown'))}
+                    onClick={() => setValue(`otherMedications.${index}.endDate`, 'Unknown')}
                   >
                     {t('forms.patient.common.unknown')}
                   </Button>
@@ -213,7 +215,7 @@ export function AdditionalDetails({
                     variant="outline"
                     size="lg"
                     borderColor="gray.300"
-                    onClick={() => setValue(`otherMedications.${index}.endDate`, t('forms.patient.common.ongoing'))}
+                    onClick={() => setValue(`otherMedications.${index}.endDate`, 'Ongoing')}
                   >
                     {t('forms.patient.common.ongoing')}
                   </Button>
@@ -293,7 +295,9 @@ export function AdditionalDetails({
                 </FormLabel>
                 <Flex gap={3} flexWrap="wrap" align="center" mb={2}>
                   <Input
-                    type={watch(`medicalHistory.${index}.startDate`) === t('forms.patient.common.unknown') ? 'text' : 'date'}
+                    key={watch(`medicalHistory.${index}.startDate`) === 'Unknown' ? 'untouchable' : 'selectable'}
+                    type={watch(`medicalHistory.${index}.startDate`) === 'Unknown' ? 'text' : 'date'}
+                    value={watch(`medicalHistory.${index}.startDate`) === 'Unknown' ? t('forms.patient.common.unknown') : watch(`medicalHistory.${index}.startDate`)}
                     placeholder={t('forms.patient.productDetails.startDatePlaceholder')}
                     flex="1"
                     minW="140px"
@@ -304,14 +308,16 @@ export function AdditionalDetails({
                     variant="outline"
                     size="lg"
                     borderColor="gray.300"
-                    onClick={() => setValue(`medicalHistory.${index}.startDate`, t('forms.patient.common.unknown'))}
+                    onClick={() => setValue(`medicalHistory.${index}.startDate`, 'Unknown')}
                   >
                     {t('forms.patient.common.unknown')}
                   </Button>
                 </Flex>
                 <Flex gap={3} flexWrap="wrap" align="center">
                   <Input
-                    type={[t('forms.patient.common.unknown'), t('forms.patient.common.ongoing')].includes(watch(`medicalHistory.${index}.endDate`)) ? 'text' : 'date'}
+                    key={['Unknown', 'Ongoing'].includes(watch(`medicalHistory.${index}.endDate`)) ? 'untouchable' : 'selectable'}
+                    type={['Unknown', 'Ongoing'].includes(watch(`medicalHistory.${index}.endDate`)) ? 'text' : 'date'}
+                    value={watch(`medicalHistory.${index}.endDate`) === 'Unknown' ? t('forms.patient.common.unknown') : watch(`medicalHistory.${index}.endDate`) === 'Ongoing' ? t('forms.patient.common.ongoing') : watch(`medicalHistory.${index}.endDate`)}
                     placeholder={t('forms.patient.productDetails.endDatePlaceholder')}
                     flex="1"
                     minW="140px"
@@ -322,7 +328,7 @@ export function AdditionalDetails({
                     variant="outline"
                     size="lg"
                     borderColor="gray.300"
-                    onClick={() => setValue(`medicalHistory.${index}.endDate`, t('forms.patient.common.unknown'))}
+                    onClick={() => setValue(`medicalHistory.${index}.endDate`, 'Unknown')}
                   >
                     {t('forms.patient.common.unknown')}
                   </Button>
@@ -330,7 +336,7 @@ export function AdditionalDetails({
                     variant="outline"
                     size="lg"
                     borderColor="gray.300"
-                    onClick={() => setValue(`medicalHistory.${index}.endDate`, t('forms.patient.common.ongoing'))}
+                    onClick={() => setValue(`medicalHistory.${index}.endDate`, 'Ongoing')}
                   >
                     {t('forms.patient.common.ongoing')}
                   </Button>

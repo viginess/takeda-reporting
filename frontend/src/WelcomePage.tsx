@@ -29,11 +29,13 @@ import { ChevronLeft } from 'lucide-react';
 type Step = 'select' | 'audience' | 'patient' | 'family' | 'hcp';
 
 function WelcomePage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { loadLanguage, isLoading } = useLanguageLoader();
   const [step, setStep] = useState<Step>('select');
   const [country, setCountry] = useState('');
   const [language, setLanguage] = useState('');
+
+  const isRTLValue = i18n.dir() === 'rtl';
 
   const handleContinue = () => {
     if (country && language) {
@@ -100,7 +102,7 @@ function WelcomePage() {
           overflow="hidden"
         >
           <CardBody p={0}>
-            <Flex direction={{ base: 'column', md: 'row' }}>
+            <Flex direction={{ base: 'column', md: isRTLValue ? 'row-reverse' : 'row' }}>
               {/* Left Side - Branding */}
               <Box
                 flex="0 0 300px"
@@ -141,16 +143,16 @@ function WelcomePage() {
                   as="h2" 
                   size="xl" 
                   mb={4} 
-                  textAlign="center"
+                  textAlign={isRTLValue ? 'right' : 'center'}
                   fontWeight="700"
                   position="relative"
                   zIndex={1}
                 >
-                  Welcome
+                  {t('welcome.welcomeHeading', 'Welcome')}
                 </Heading>
                 <Text
                   fontSize="sm"
-                  textAlign="center"
+                  textAlign={isRTLValue ? 'right' : 'center'}
                   opacity={0.95}
                   fontWeight="400"
                   lineHeight="tall"
@@ -165,20 +167,20 @@ function WelcomePage() {
               <Box flex="1" p={10}>
                 {step === 'select' ? (
                   <>
-                    <Heading as="h2" size="lg" mb={2} color="gray.800" fontWeight="600">
-                      {t('welcome.getStarted')}
+                    <Heading as="h2" size="lg" mb={2} color="gray.800" fontWeight="600" textAlign={isRTLValue ? 'right' : 'left'}>
+                      {t('welcome.getStarted', 'Get Started')}
                     </Heading>
-                    <Text fontSize="sm" color="gray.600" mb={8}>
+                    <Text fontSize="sm" color="gray.600" mb={8} textAlign={isRTLValue ? 'right' : 'left'}>
                       {t('welcome.select_country_language', 'Please select your country and preferred language')}
                     </Text>
 
                     {/* Country Field */}
                     <FormControl mb={6}>
-                      <FormLabel fontWeight="600" color="gray.700" mb={2}>
-                        Country
+                      <FormLabel fontWeight="600" color="gray.700" mb={2} textAlign={isRTLValue ? 'right' : 'left'}>
+                        {t('welcome.country', 'Country')}
                       </FormLabel>
                       <Select
-                        placeholder="Select country"
+                        placeholder={t('welcome.selectCountry', 'Select country')}
                         size="lg"
                         value={country}
                         onChange={(e) => setCountry(e.target.value)}
@@ -201,11 +203,11 @@ function WelcomePage() {
 
                     {/* Language Field */}
                     <FormControl mb={10}>
-                      <FormLabel fontWeight="600" color="gray.700" mb={2}>
-                        Language
+                      <FormLabel fontWeight="600" color="gray.700" mb={2} textAlign={isRTLValue ? 'right' : 'left'}>
+                        {t('welcome.language', 'Language')}
                       </FormLabel>
                       <Select
-                        placeholder="Select language"
+                        placeholder={t('welcome.selectLanguage', 'Select language')}
                         size="lg"
                         value={language}
                         onChange={(e) => {
@@ -268,10 +270,10 @@ function WelcomePage() {
                   </>
                 ) : step === 'audience' ? (
                   <>
-                    <Heading as="h2" size="lg" mb={2} color="gray.800" fontWeight="600">
+                    <Heading as="h2" size="lg" mb={2} color="gray.800" fontWeight="600" textAlign={isRTLValue ? 'right' : 'left'}>
                       {t('welcome.whoAreYou')}
                     </Heading>
-                    <Text fontSize="sm" color="gray.600" mb={8}>
+                    <Text fontSize="sm" color="gray.600" mb={8} textAlign={isRTLValue ? 'right' : 'left'}>
                       {t('welcome.roleDescription')}
                     </Text>
                     <SimpleGrid columns={{ base: 1, md: 3 }} spacing={4}>

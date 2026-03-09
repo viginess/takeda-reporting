@@ -15,6 +15,8 @@ import { useFormContext } from 'react-hook-form';
 import { HiPlus } from 'react-icons/hi2';
 import { useTranslation } from 'react-i18next';
 
+import { MedDRASymptomAutocomplete } from '../../patient-report/components/MedDRASymptomAutocomplete.js';
+
 interface HcpEventDetailsProps {
   inputStyles: any;
   symptomTreated: string;
@@ -37,11 +39,11 @@ export function HcpEventDetails({
   const firstProductName = watch('products.0.productName');
 
   const setUnknown = (fieldName: string) => {
-    setValue(`${prefix}.${fieldName}`, t('forms.patient.common.unknown'));
+    setValue(`${prefix}.${fieldName}`, 'Unknown');
   };
 
   const setOngoing = (fieldName: string) => {
-    setValue(`${prefix}.${fieldName}`, t('forms.patient.common.ongoing'));
+    setValue(`${prefix}.${fieldName}`, 'Ongoing');
   };
 
   return (
@@ -54,11 +56,17 @@ export function HcpEventDetails({
         <FormLabel fontWeight="500" color="gray.700">
           {t('forms.patient.eventDetails.symptomQuestion')}
         </FormLabel>
-        <Input
-          placeholder={t('forms.patient.eventDetails.symptomPlaceholder')}
-          {...inputStyles}
-          {...register(`${prefix}.name`)}
+        <MedDRASymptomAutocomplete
+          value={watch(`${prefix}.name`) || ''}
+          onChange={(val, code) => {
+            setValue(`${prefix}.name`, val);
+            if (code) {
+              setValue(`${prefix}.meddraCode`, code);
+            }
+          }}
+          inputStyles={inputStyles}
         />
+        <Input type="hidden" {...register(`${prefix}.meddraCode`)} />
       </FormControl>
 
       <FormControl mb={6}>
@@ -67,8 +75,9 @@ export function HcpEventDetails({
         </FormLabel>
         <Flex gap={3} flexWrap="wrap" align="center" mb={2}>
           <Input
-            key={watch(`${prefix}.eventStartDate`) === t('forms.patient.common.unknown') ? 'untouchable' : 'selectable'}
-            type={watch(`${prefix}.eventStartDate`) === t('forms.patient.common.unknown') ? 'text' : 'date'}
+            key={watch(`${prefix}.eventStartDate`) === 'Unknown' ? 'untouchable' : 'selectable'}
+            type={watch(`${prefix}.eventStartDate`) === 'Unknown' ? 'text' : 'date'}
+            value={watch(`${prefix}.eventStartDate`) === 'Unknown' ? t('forms.patient.common.unknown') : watch(`${prefix}.eventStartDate`)}
             placeholder={t('forms.patient.eventDetails.startDatePlaceholder')}
             flex="1"
             minW="140px"
@@ -86,8 +95,9 @@ export function HcpEventDetails({
         </Flex>
         <Flex gap={3} flexWrap="wrap" align="center">
           <Input
-            key={[t('forms.patient.common.unknown'), t('forms.patient.common.ongoing')].includes(watch(`${prefix}.eventEndDate`)) ? 'untouchable' : 'selectable'}
-            type={[t('forms.patient.common.unknown'), t('forms.patient.common.ongoing')].includes(watch(`${prefix}.eventEndDate`)) ? 'text' : 'date'}
+            key={['Unknown', 'Ongoing'].includes(watch(`${prefix}.eventEndDate`)) ? 'untouchable' : 'selectable'}
+            type={['Unknown', 'Ongoing'].includes(watch(`${prefix}.eventEndDate`)) ? 'text' : 'date'}
+            value={watch(`${prefix}.eventEndDate`) === 'Unknown' ? t('forms.patient.common.unknown') : watch(`${prefix}.eventEndDate`) === 'Ongoing' ? t('forms.patient.common.ongoing') : watch(`${prefix}.eventEndDate`)}
             placeholder={t('forms.patient.eventDetails.endDatePlaceholder')}
             flex="1"
             minW="140px"

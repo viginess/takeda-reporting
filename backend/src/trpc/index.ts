@@ -8,6 +8,7 @@ import { patientRouter } from "../modules/patient/patient.router.js";
 import { familyRouter } from "../modules/family/family.router.js";
 import { notificationsRouter } from "../modules/notifications/notifications.router.js";
 import { translationRouter } from "../modules/translation/translationRouter.js";
+import { referenceRouter } from "../modules/meddra/reference.router.js";
 
 export const appRouter = router({
   admin: adminRouter,
@@ -17,6 +18,7 @@ export const appRouter = router({
   family: familyRouter,
   notifications: notificationsRouter,
   translation: translationRouter,
+  reference: referenceRouter,
 });
 
 export type AppRouter = typeof appRouter;

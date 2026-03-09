@@ -15,6 +15,8 @@ import {
   getUrgentReports,
   getStatusDistribution,
   getMonthlyVolume,
+  getReportPDF,
+  getReportXML,
 } from "./reportsrouter.js";
 import {
   getSystemSettings,
@@ -41,4 +43,6 @@ export const adminRouter = router({
   updateAdminRole,
   inviteAdmin,
   runManualArchiving,
+  getReportPDF,
+  getReportXML,
 });

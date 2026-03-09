@@ -17,7 +17,7 @@ import {
   StepsCompleted,
   useStepperContext,
 } from '@saas-ui/react';
-import { StepForm, SubmitButton } from '@saas-ui/forms';
+import { StepForm, SubmitButton, NextButton } from '@saas-ui/forms';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createFamilySchema } from '../../../../backend/src/modules/family/family.validation';
 
@@ -145,11 +145,8 @@ function PrevButtonTranslatedFamily() {
 
 function NextButtonTranslatedFamily(props: any) {
   const { t } = useTranslation();
-  const { nextStep } = useStepperContext();
   return (
-    <Button size="lg" borderRadius="lg" onClick={nextStep} {...props}>
-      {t('common.continue', 'Next')}
-    </Button>
+    <NextButton size="lg" borderRadius="lg" label={t('common.continue', 'Next')} {...props} />
   );
 }
 
@@ -165,7 +162,7 @@ function FormNavigationFamily({ primaryButtonStyles }: { primaryButtonStyles: an
       <Spacer />
       {isLastStep ? (
         <SubmitButton {...primaryButtonStyles} size="lg" borderRadius="lg">
-          {t('forms.family.submit', 'Submit Report')}
+          {t('forms.family.submit', 'Submit')}
         </SubmitButton>
       ) : (
         <NextButtonTranslatedFamily {...primaryButtonStyles} />
@@ -193,10 +190,19 @@ function FamilyForm({ onBack }: FamilyFormProps) {
   const toast = useToast();
 
   const createFamilyReport = trpc.family.create.useMutation({
+    onSuccess() {
+      toast({
+        title: t("success.title", "Report Submitted Successfully"),
+        description: t("success.description", "Your report has been successfully submitted."),
+        status: 'success',
+        duration: 5000,
+        isClosable: true,
+      });
+    },
     onError(err) {
       toast({
-        title: 'Submission failed',
-        description: err.message,
+        title: t("common.error"),
+        description: err.message || t("errors.submissionFailed", "Submission failed. Please try again."),
         status: 'error',
         duration: 5000,
         isClosable: true,
@@ -209,8 +215,8 @@ function FamilyForm({ onBack }: FamilyFormProps) {
     try {
       if (!params.captchaChecked || !params.agreedToTerms) {
         toast({
-          title: 'Validation Error',
-          description: 'Please confirm you are not a robot and agree to the terms to submit.',
+          title: t('common.error', 'Validation Error'),
+          description: t('forms.family.reviewConfirm.bothRequired', 'Please confirm you are not a robot and agree to the terms to submit.'),
           status: 'error',
           duration: 3000,
           isClosable: true,

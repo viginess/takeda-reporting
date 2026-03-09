@@ -17,7 +17,7 @@ import {
   StepsCompleted,
   useStepperContext,
 } from '@saas-ui/react';
-import { StepForm, SubmitButton } from '@saas-ui/forms';
+import { StepForm, SubmitButton, NextButton } from '@saas-ui/forms';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createHcpSchema } from '../../../../backend/src/modules/hcp/hcp.validation';
 
@@ -143,11 +143,8 @@ function PrevButtonTranslatedHcp() {
 
 function NextButtonTranslatedHcp(props: any) {
   const { t } = useTranslation();
-  const { nextStep } = useStepperContext();
   return (
-    <Button size="lg" borderRadius="lg" onClick={nextStep} {...props}>
-      {t('common.continue', 'Next')}
-    </Button>
+    <NextButton size="lg" borderRadius="lg" label={t('common.continue', 'Next')} {...props} />
   );
 }
 
@@ -163,7 +160,7 @@ function FormNavigationHcp({ primaryButtonStyles }: { primaryButtonStyles: any }
       <Spacer />
       {isLastStep ? (
         <SubmitButton {...primaryButtonStyles} size="lg" borderRadius="lg">
-          {t('forms.hcp.submit', 'Submit Report')}
+          {t('forms.hcp.submit', 'Submit')}
         </SubmitButton>
       ) : (
         <NextButtonTranslatedHcp {...primaryButtonStyles} />
@@ -190,10 +187,19 @@ function HcpForm({ onBack }: HcpFormProps) {
   const toast = useToast();
 
   const createHcpReport = trpc.hcp.create.useMutation({
+    onSuccess() {
+      toast({
+        title: t("success.title", "Report Submitted Successfully"),
+        description: t("success.description", "Your report has been successfully submitted."),
+        status: 'success',
+        duration: 5000,
+        isClosable: true,
+      });
+    },
     onError(err) {
       toast({
-        title: 'Submission failed',
-        description: err.message,
+        title: t("common.error"),
+        description: err.message || t("errors.submissionFailed", "Submission failed. Please try again."),
         status: 'error',
         duration: 5000,
         isClosable: true,
@@ -205,8 +211,8 @@ function HcpForm({ onBack }: HcpFormProps) {
     try {
       if (!params.captchaChecked || !params.agreedToTerms) {
         toast({
-          title: 'Validation Error',
-          description: 'Please confirm you are not a robot and agree to the terms to submit.',
+          title: t("common.error", 'Validation Error'),
+          description: t("forms.hcp.reviewConfirm.bothRequired", 'Please confirm you are not a robot and agree to the terms to submit.'),
           status: 'error',
           duration: 3000,
           isClosable: true,

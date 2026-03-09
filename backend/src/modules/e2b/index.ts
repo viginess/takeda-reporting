@@ -2,6 +2,7 @@ import { generateE2BR3 } from './generator.js';
 import { validateE2BR3 } from './validator.js';
 import { storeE2BR3 } from './storage.js';
 import { patientReports, hcpReports, familyReports } from '../../db/schema.js';
+import { systemSettings } from '../../db/admin/settings.schema.js';
 import { db } from '../../db/index.js';
 import { eq } from 'drizzle-orm';
 /**
@@ -38,9 +39,12 @@ export async function processE2BWorkflow(reportId: string) {
       throw new Error(`Report not found in any form table: ${reportId}`);
     }
 
+    const [settings] = await db.select().from(systemSettings).where(eq(systemSettings.id, 1));
+    const senderId = settings?.clinicalConfig?.senderId || 'CLINSOLUTION-DEFAULT';
+    const receiverId = settings?.clinicalConfig?.receiverId || 'EVHUMAN';
+
     // 2. Generate XML
-    // Assuming generateE2BR3 can handle the slight variations in structure or mapping them generically
-    const xml = generateE2BR3(report);
+    const xml = generateE2BR3(report, { senderId, receiverId });
     console.log('XML Generated');
 
     // 3. Validate XML

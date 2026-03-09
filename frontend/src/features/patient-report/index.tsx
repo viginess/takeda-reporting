@@ -8,50 +8,49 @@ import {
   Spacer,
   ButtonGroup,
   Button,
-
-} from '@chakra-ui/react';
+} from "@chakra-ui/react";
 import {
   FormLayout,
   FormStepper,
   StepsCompleted,
   useStepperContext,
-} from '@saas-ui/react';
-import { StepForm, SubmitButton } from '@saas-ui/forms';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { createPatientSchema } from '../../../../backend/src/modules/patient/patient.validation';
+} from "@saas-ui/react";
+import { StepForm, SubmitButton, NextButton } from "@saas-ui/forms";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { createPatientSchema } from "../../../../backend/src/modules/patient/patient.validation";
 
-import logo from '../../assets/logo.jpg';
-import { ProductDetails } from './components/ProductDetails';
-import { EventDetails } from './components/EventDetails';
-import { PersonalDetails } from './components/PersonalDetails';
-import { AdditionalDetails } from './components/AdditionalDetails';
-import { ReviewConfirm } from './components/ReviewConfirm';
-import { SuccessStep } from '../../shared/components/SuccessStep';
-import { useState } from 'react';
-import { useFieldArray, useFormContext } from 'react-hook-form';
-import { useToast } from '@chakra-ui/react';
-import { trpc } from '../../utils/trpc';
-import { useTranslation } from 'react-i18next';
+import logo from "../../assets/logo.jpg";
+import { ProductDetails } from "./components/ProductDetails";
+import { EventDetails } from "./components/EventDetails";
+import { PersonalDetails } from "./components/PersonalDetails";
+import { AdditionalDetails } from "./components/AdditionalDetails";
+import { ReviewConfirm } from "./components/ReviewConfirm";
+import { SuccessStep } from "../../shared/components/SuccessStep";
+import { useState } from "react";
+import { useFieldArray, useFormContext } from "react-hook-form";
+import { useToast } from "@chakra-ui/react";
+import { trpc } from "../../utils/trpc";
+import { useTranslation } from "react-i18next";
 
 const inputStyles = {
-  size: 'lg' as const,
-  focusBorderColor: '#CE0037',
-  borderColor: 'gray.300',
-  borderRadius: 'lg',
-  _hover: { borderColor: 'gray.400' },
+  size: "lg" as const,
+  focusBorderColor: "#CE0037",
+  borderColor: "gray.300",
+  borderRadius: "lg",
+  _hover: { borderColor: "gray.400" },
   _focusVisible: {
-    borderColor: '#CE0037',
-    boxShadow: '0 0 0 1px #CE0037',
+    borderColor: "#CE0037",
+    boxShadow: "0 0 0 1px #CE0037",
   },
 };
 
 const primaryButtonStyles = {
-  bg: '#CE0037',
-  color: 'white',
+  bg: "#CE0037",
+  color: "white",
   fontWeight: 600,
-  borderRadius: 'lg',
-  _hover: { bg: '#E31C5F', transform: 'translateY(-1px)', boxShadow: 'md' },
-  _active: { bg: '#B3002F', transform: 'translateY(0)' },
+  borderRadius: "lg",
+  _hover: { bg: "#E31C5F", transform: "translateY(-1px)", boxShadow: "md" },
+  _active: { bg: "#B3002F", transform: "translateY(0)" },
 };
 
 type PatientFormProps = {
@@ -64,7 +63,7 @@ function ProductStep({ inputStyles }: { inputStyles: any }) {
   const { control } = useFormContext();
   const { fields, append, remove } = useFieldArray({
     control,
-    name: 'products',
+    name: "products",
   });
 
   return (
@@ -73,17 +72,24 @@ function ProductStep({ inputStyles }: { inputStyles: any }) {
         <Box key={field.id} mb={10} position="relative">
           {index > 0 && (
             <Flex justify="flex-end" mb={2}>
-              <Button size="sm" variant="ghost" colorScheme="red" onClick={() => remove(index)}>
-                {t('forms.patient.common.removeProduct')}
+              <Button
+                size="sm"
+                variant="ghost"
+                colorScheme="red"
+                onClick={() => remove(index)}
+              >
+                {t("forms.patient.common.removeProduct")}
               </Button>
             </Flex>
           )}
           <ProductDetails
             inputStyles={inputStyles}
             index={index}
-            onAddProduct={() => append({ productName: '', condition: '' })}
+            onAddProduct={() => append({ productName: "", condition: "" })}
           />
-          {index < fields.length - 1 && <Box borderBottom="1px solid" borderColor="gray.100" my={10} />}
+          {index < fields.length - 1 && (
+            <Box borderBottom="1px solid" borderColor="gray.100" my={10} />
+          )}
         </Box>
       ))}
     </Box>
@@ -104,7 +110,7 @@ function EventStep({
   const { control } = useFormContext();
   const { fields, append, remove } = useFieldArray({
     control,
-    name: 'symptoms',
+    name: "symptoms",
   });
 
   return (
@@ -113,8 +119,13 @@ function EventStep({
         <Box key={field.id} mb={10} position="relative">
           {index > 0 && (
             <Flex justify="flex-end" mb={2}>
-              <Button size="sm" variant="ghost" colorScheme="red" onClick={() => remove(index)}>
-                {t('forms.patient.common.removeSymptom')}
+              <Button
+                size="sm"
+                variant="ghost"
+                colorScheme="red"
+                onClick={() => remove(index)}
+              >
+                {t("forms.patient.common.removeSymptom")}
               </Button>
             </Flex>
           )}
@@ -123,9 +134,11 @@ function EventStep({
             index={index}
             symptomTreated={symptomTreated}
             setSymptomTreated={setSymptomTreated}
-            onAddSymptom={() => append({ name: '' })}
+            onAddSymptom={() => append({ name: "" })}
           />
-          {index < fields.length - 1 && <Box borderBottom="1px solid" borderColor="gray.100" my={10} />}
+          {index < fields.length - 1 && (
+            <Box borderBottom="1px solid" borderColor="gray.100" my={10} />
+          )}
         </Box>
       ))}
     </Box>
@@ -138,18 +151,15 @@ function PrevButtonTranslated() {
   if (isFirstStep) return null;
   return (
     <Button variant="outline" size="lg" borderRadius="lg" onClick={prevStep}>
-      {t('common.back', 'Back')}
+      {t("common.back", "Back")}
     </Button>
   );
 }
 
 function NextButtonTranslated(props: any) {
   const { t } = useTranslation();
-  const { nextStep } = useStepperContext();
   return (
-    <Button size="lg" borderRadius="lg" onClick={nextStep} {...props}>
-      {t('common.continue', 'Next')}
-    </Button>
+    <NextButton size="lg" borderRadius="lg" label={t('common.continue', 'Next')} {...props} />
   );
 }
 
@@ -165,7 +175,7 @@ function FormNavigation({ primaryButtonStyles }: { primaryButtonStyles: any }) {
       <Spacer />
       {isLastStep ? (
         <SubmitButton {...primaryButtonStyles} size="lg" borderRadius="lg">
-          {t('forms.patient.submit', 'Submit Report')}
+          {t("forms.patient.submit", "Submit")}
         </SubmitButton>
       ) : (
         <NextButtonTranslated {...primaryButtonStyles} />
@@ -176,32 +186,43 @@ function FormNavigation({ primaryButtonStyles }: { primaryButtonStyles: any }) {
 
 function PatientForm({ onBack }: PatientFormProps) {
   const { t } = useTranslation();
-  const [additionalDetails, setAdditionalDetails] = useState('');
+  const [additionalDetails, setAdditionalDetails] = useState("");
   const [agreedToTerms, setAgreedToTerms] = useState(false);
-  const [captchaChecked, setCaptchaChecked] = useState(!import.meta.env.VITE_RECAPTCHA_SITE_KEY);
+  const [captchaChecked, setCaptchaChecked] = useState(
+    !import.meta.env.VITE_RECAPTCHA_SITE_KEY,
+  );
   const [reportId, setReportId] = useState<string | undefined>(undefined);
   const [accordionIndex, setAccordionIndex] = useState<number[]>([0, 1, 2, 3]);
 
   // Step 3 state
-  const [ageType, setAgeType] = useState<'dob' | 'age' | ''>('');
-  const [contactPermission, setContactPermission] = useState('');
-  const [hcpContactPermission, setHcpContactPermission] = useState('');
+  const [ageType, setAgeType] = useState<"dob" | "age" | "">("");
+  const [contactPermission, setContactPermission] = useState("");
+  const [hcpContactPermission, setHcpContactPermission] = useState("");
 
   // Step 2 state
-  const [symptomTreated, setSymptomTreated] = useState('');
+  const [symptomTreated, setSymptomTreated] = useState("");
 
   // Step 4 state
-  const [takingOtherMeds, setTakingOtherMeds] = useState('');
-  const [hasRelevantHistory, setHasRelevantHistory] = useState('');
-  const [labTestsPerformed, setLabTestsPerformed] = useState('');
+  const [takingOtherMeds, setTakingOtherMeds] = useState("");
+  const [hasRelevantHistory, setHasRelevantHistory] = useState("");
+  const [labTestsPerformed, setLabTestsPerformed] = useState("");
 
   const toast = useToast();
   const createPatient = trpc.patient.create.useMutation({
+    onSuccess() {
+      toast({
+        title: t("success.title", "Report Submitted Successfully"),
+        description: t("success.description", "Your report has been successfully submitted."),
+        status: "success",
+        duration: 5000,
+        isClosable: true,
+      });
+    },
     onError(err) {
       toast({
-        title: t('welcome.error'),
-        description: err.message,
-        status: 'error',
+        title: t("common.error"),
+        description: err.message || t("errors.submissionFailed", "Submission failed. Please try again."),
+        status: "error",
         duration: 5000,
         isClosable: true,
       });
@@ -211,13 +232,13 @@ function PatientForm({ onBack }: PatientFormProps) {
   const onSubmit = async (params: any) => {
     if (!params.captchaChecked || !params.agreedToTerms) {
       toast({
-        title: 'Validation Error',
-        description: 'Please confirm you are not a robot and agree to the terms.',
-        status: 'error',
+        title: t("common.error", "Validation Error"),
+        description: t("forms.patient.reviewConfirm.bothRequired", "Please confirm you are not a robot and agree to the terms."),
+        status: "error",
         duration: 3000,
         isClosable: true,
       });
-      throw new Error('Validation failed');
+      throw new Error("Validation failed");
     }
 
     const result = await createPatient.mutateAsync({
@@ -225,10 +246,13 @@ function PatientForm({ onBack }: PatientFormProps) {
       products: params.products ?? [],
 
       // ── Step 2: Event ────────────────────────────────
-      symptoms: params.symptoms?.map((s: any) => ({
-        ...s,
-        seriousness: Array.isArray(s.seriousness) ? s.seriousness.join(', ') : s.seriousness,
-      })) ?? [],
+      symptoms:
+        params.symptoms?.map((s: any) => ({
+          ...s,
+          seriousness: Array.isArray(s.seriousness)
+            ? s.seriousness.join(", ")
+            : s.seriousness,
+        })) ?? [],
 
       // ── Step 3: Personal & HCP (nested objects) ──────
       patientDetails: {
@@ -258,15 +282,22 @@ function PatientForm({ onBack }: PatientFormProps) {
 
       // ── Step 5: Confirm ──────────────────────────────
       agreedToTerms: params.agreedToTerms,
-      reporterType: 'patient',
-      status: 'new',
+      reporterType: "patient",
+      status: "new",
     });
     // Store the real report UUID returned from Supabase
-    if (result?.data?.id) setReportId(result.data.referenceId || result.data.id);
+    if (result?.data?.id)
+      setReportId(result.data.referenceId || result.data.id);
   };
 
   return (
-    <Flex direction="column" minH="100vh" bg="gray.50" color="gray.800" w="full">
+    <Flex
+      direction="column"
+      minH="100vh"
+      bg="gray.50"
+      color="gray.800"
+      w="full"
+    >
       {/* Header */}
       <Flex
         as="header"
@@ -281,21 +312,45 @@ function PatientForm({ onBack }: PatientFormProps) {
       >
         {onBack ? (
           <Box as="button" onClick={onBack} p={0} minW="auto" h="auto">
-            <Image src={logo} alt="Clin Solutions L.L.C." h="48px" cursor="pointer" filter="drop-shadow(0 2px 4px rgba(0,0,0,0.1))" />
+            <Image
+              src={logo}
+              alt="Clin Solutions L.L.C."
+              h="48px"
+              cursor="pointer"
+              filter="drop-shadow(0 2px 4px rgba(0,0,0,0.1))"
+            />
           </Box>
         ) : (
           <Link href="/">
-            <Image src={logo} alt="Clin Solutions L.L.C." h="48px" cursor="pointer" filter="drop-shadow(0 2px 4px rgba(0,0,0,0.1))" />
+            <Image
+              src={logo}
+              alt="Clin Solutions L.L.C."
+              h="48px"
+              cursor="pointer"
+              filter="drop-shadow(0 2px 4px rgba(0,0,0,0.1))"
+            />
           </Link>
         )}
         <Heading as="h1" size="md" fontWeight="600" color="gray.800">
-          {t('forms.patient.title')}
+          {t("forms.patient.title")}
         </Heading>
         <Box w="32px" />
       </Flex>
 
-      <Flex flex="1" justify="center" px={{ base: 2, md: 4 }} py={{ base: 4, md: 8 }}>
-        <Box maxW="800px" w="full" bg="white" borderRadius="xl" boxShadow="md" p={{ base: 4, sm: 6, md: 10 }}>
+      <Flex
+        flex="1"
+        justify="center"
+        px={{ base: 2, md: 4 }}
+        py={{ base: 4, md: 8 }}
+      >
+        <Box
+          maxW="800px"
+          w="full"
+          bg="white"
+          borderRadius="xl"
+          boxShadow="md"
+          p={{ base: 4, sm: 6, md: 10 }}
+        >
           <StepForm
             resolver={zodResolver(createPatientSchema) as any}
             onSubmit={onSubmit}
@@ -303,44 +358,54 @@ function PatientForm({ onBack }: PatientFormProps) {
               // Step 1
               products: [
                 {
-                  productName: '',
-                  condition: '',
-                  actionTaken: '',
-                  batches: [{ batchNumber: '', expiryDate: '', startDate: '', endDate: '', dosage: '' }],
+                  productName: "",
+                  condition: "",
+                  actionTaken: "",
+                  batches: [
+                    {
+                      batchNumber: "",
+                      expiryDate: "",
+                      startDate: "",
+                      endDate: "",
+                      dosage: "",
+                    },
+                  ],
                 },
               ],
               // Step 2
-              symptoms: [{ 
-                name: '', 
-                eventStartDate: '', 
-                eventEndDate: '', 
-                symptomTreated: '',
-                treatment: '',
-                seriousness: [],
-                outcome: ''
-              }],
+              symptoms: [
+                {
+                  name: "",
+                  eventStartDate: "",
+                  eventEndDate: "",
+                  symptomTreated: "",
+                  treatment: "",
+                  seriousness: [],
+                  outcome: "",
+                },
+              ],
               // Step 3
               patientDetails: {
-                name: '',
-                gender: '',
-                initials: '',
-                dob: '',
-                ageValue: '',
-                contactPermission: '',
-                email: '',
+                name: "",
+                gender: "",
+                initials: "",
+                dob: "",
+                ageValue: "",
+                contactPermission: "",
+                email: "",
               },
               hcpDetails: {
-                contactPermission: '',
-                firstName: '',
-                lastName: '',
-                email: '',
-                phone: '',
-                institution: '',
-                address: '',
-                city: '',
-                state: '',
-                zipCode: '',
-                country: '',
+                contactPermission: "",
+                firstName: "",
+                lastName: "",
+                email: "",
+                phone: "",
+                institution: "",
+                address: "",
+                city: "",
+                state: "",
+                zipCode: "",
+                country: "",
               },
               // Step 4
               otherMedications: [],
@@ -354,11 +419,14 @@ function PatientForm({ onBack }: PatientFormProps) {
             {({ FormStep }) => (
               <FormLayout spacing={8}>
                 <FormStepper colorScheme="red" mb={10}>
-                  <FormStep name="product" title={t('forms.patient.steps.product')}>
+                  <FormStep
+                    name="product"
+                    title={t("forms.patient.steps.product")}
+                  >
                     <ProductStep inputStyles={inputStyles} />
                   </FormStep>
 
-                  <FormStep name="event" title={t('forms.patient.steps.event')}>
+                  <FormStep name="event" title={t("forms.patient.steps.event")}>
                     <EventStep
                       inputStyles={inputStyles}
                       symptomTreated={symptomTreated}
@@ -366,7 +434,10 @@ function PatientForm({ onBack }: PatientFormProps) {
                     />
                   </FormStep>
 
-                  <FormStep name="personal" title={t('forms.patient.steps.you')}>
+                  <FormStep
+                    name="personal"
+                    title={t("forms.patient.steps.you")}
+                  >
                     <Box mt={12}>
                       <PersonalDetails
                         inputStyles={inputStyles}
@@ -380,7 +451,10 @@ function PatientForm({ onBack }: PatientFormProps) {
                     </Box>
                   </FormStep>
 
-                  <FormStep name="additional" title={t('forms.patient.steps.additional')}>
+                  <FormStep
+                    name="additional"
+                    title={t("forms.patient.steps.additional")}
+                  >
                     <Box mt={12}>
                       <AdditionalDetails
                         inputStyles={inputStyles}
@@ -396,7 +470,10 @@ function PatientForm({ onBack }: PatientFormProps) {
                     </Box>
                   </FormStep>
 
-                  <FormStep name="confirm" title={t('forms.patient.steps.confirm')}>
+                  <FormStep
+                    name="confirm"
+                    title={t("forms.patient.steps.confirm")}
+                  >
                     <Box mt={12}>
                       <ReviewConfirm
                         accordionIndex={accordionIndex}
@@ -438,9 +515,7 @@ function PatientForm({ onBack }: PatientFormProps) {
         borderTop="1px solid"
         borderColor="gray.200"
       >
-        <Text>
-          {t('welcome.footer')}
-        </Text>
+        <Text>{t("welcome.footer")}</Text>
         <Text mt={1} fontSize="xs">
           Copyright © 2026 Clin Solutions L.L.C.
         </Text>

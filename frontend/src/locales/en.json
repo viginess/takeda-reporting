@@ -10,15 +10,20 @@
     "success": "Success",
     "edit": "Edit"
   },
+  "errors": {
+    "submissionFailed": "We were unable to submit your report. Please check your information or try again later."
+  },
   "upload": {
     "dragDrop": "Drag & drop or click to select",
     "chooseImages": "Choose images",
     "maxInfo": "Max {{maxFiles}} files \u00b7 Max {{maxFileSizeMB}}MB each \u00b7 Images only"
   },
   "welcome": {
-    "title": "Welcome to Takeda Reporting",
+    "title": "Welcome to ClinSolution Reporting",
     "subtitle": "Your comprehensive digital health companion for personalized care and progress tracking.",
+    "welcomeHeading": "Welcome",
     "getStarted": "Get Started",
+    "select_country_language": "Please select your country and preferred language",
     "adminLogin": "Admin Login",
     "selectCountry": "Select country",
     "selectLanguage": "Select language",
@@ -64,6 +69,7 @@
       }
     },
     "patient": {
+      "submit": "Submit",
       "title": "Patient Reporting Form",
       "subtitle": "Thank you for helping us make our products safer and more effective for everyone, everywhere.",
       "steps": {
@@ -135,7 +141,8 @@
       "eventDetails": {
         "title": "Okay, tell us more about the adverse event(s)",
         "symptomLabel": "What is the symptom?",
-        "symptomPlaceholder": "Enter symptom (e.g. nausea)",
+        "symptomPlaceholder": "Type symptom (e.g. Headache, Nausea)...",
+        "noTermsFound": "No medical terms found. You can still use your text.",
         "datesLabel": "On which dates did you first/last experience the symptom?",
         "treatedLabel": "Was the symptom treated?",
         "yes": "Yes",
@@ -183,12 +190,15 @@
         "sexLabel": "Sex assigned at birth",
         "sexOptions": {
           "male": "Male",
-          "female": "Female"
+          "female": "Female",
+          "other": "Other",
+          "unknown": "Prefer not to provide"
         },
         "male": "Male",
         "female": "Female",
         "dobLabel": "Date of birth",
         "ageValueLabel": "Age",
+        "ageValuePlaceholder": "32",
         "contactPermissionLabel": "Do we have permission to contact you?",
         "contactPreferenceLabel": "How would you prefer to be contacted?",
         "emailRequired": "Email is required",
@@ -293,6 +303,7 @@
       }
     },
     "family": {
+      "submit": "Submit",
       "title": "Friend, Caregiver or Family Reporting Form",
       "steps": {
         "product": "Product",
@@ -493,18 +504,22 @@
         "terms": {
           "agreeLabel": "I agree to the processing of my information as described in the <privacy>{{privacy}}</privacy> and <terms>{{terms}}</terms>. I consent to Clin Solutions L.L.C. sharing this report with regulatory authorities and other parties as required by law.",
           "privacy": "Privacy Notice",
-          "terms": "Terms and Conditions"
+          "terms": "Terms and Conditions",
+          "captchaError": "Please confirm you are not a robot and agree to the terms to submit.",
+          "captchaOnly": "Please confirm you are not a robot.",
+          "termsOnly": "Please agree to the terms to submit."
         }
-      }
-    },
-    "success": {
-      "title": "Report Submitted Successfully",
-      "description": "Thank you for helping us make our products safer and more effective for everyone. Your report has been successfully received and will be reviewed by our team.",
-      "message": "Your report has been submitted successfully.",
-      "referenceId": "Reference ID",
-      "submitAnother": "Submit Another Report",
-      "backToHome": "Back to Home",
-      "copied": "Report ID copied!"
+      },
+      "submit": "Submit"
     }
+  },
+  "success": {
+    "title": "Report Submitted Successfully",
+    "description": "Thank you for helping us make our products safer and more effective for everyone. Your report has been successfully received and will be reviewed by our team.",
+    "message": "Your report has been submitted successfully.",
+    "referenceId": "Reference ID",
+    "submitAnother": "Submit Another Report",
+    "backToHome": "Back to Home",
+    "copied": "Report ID copied!"
   }
 }

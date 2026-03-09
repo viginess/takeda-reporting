@@ -8,7 +8,9 @@ import {
   Clock,
   CheckCircle,
   Check,
-  History
+  History,
+  DownloadCloud,
+  FileCode
 } from "lucide-react";
 import {
   Box, Flex, Text, Heading, Button, Badge, Input,
@@ -52,7 +54,7 @@ interface Report {
 
 // ── Style Config ──────────────────────────────────────────────────────────────
 const statusCfg: Record<Status, { bg: string; text: string; border: string; icon: any }> = {
-  Urgent:    { bg: "red.50", text: "#CE0037", border: "red.200", icon: AlertTriangle },
+  Urgent:    { bg: "red.50", text: "#1e293b", border: "red.200", icon: AlertTriangle },
   "In Review": { bg: "yellow.50", text: "orange.500", border: "yellow.200", icon: Clock },
   Submitted: { bg: "blue.50", text: "blue.600", border: "blue.200", icon: FileText },
   Approved:  { bg: "green.50", text: "emerald.600", border: "green.200", icon: CheckCircle },
@@ -210,11 +212,12 @@ const DataDisplay = ({ data, depth = 0 }: { data: any; depth?: number }): any =>
         v !== null &&
         v !== undefined &&
         v !== "" &&
+        k !== "xmlUrl" &&
+        k !== "pdfUrl" &&
         !(Array.isArray(v) && v.length === 0) &&
         !(typeof v === "object" && !Array.isArray(v) && Object.keys(v).length === 0)
       );
     });
-    if (keys.length === 0) return null;
 
     const flatKeys = keys.filter((k) => isPrimitive(data[k]));
     const nestedKeys = keys.filter((k) => !isPrimitive(data[k]));
@@ -292,6 +295,8 @@ export default function ReportManagementPage() {
   const [showAudit, setShowAudit] = useState(false);
   const [showFullDetails, setShowFullDetails] = useState(true);
   const [saved, setSaved] = useState(false);
+  const [downloadingXml, setDownloadingXml] = useState(false);
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
   
   const toast = useToast();
   const utils = trpc.useContext();
@@ -372,6 +377,39 @@ export default function ReportManagementPage() {
 
     setSelectedReport({ ...selectedReport, ...editData as Report });
     setMode("view");
+  };
+
+  const pdfMutation = trpc.admin.getReportPDF.useMutation();
+  const xmlMutation = trpc.admin.getReportXML.useMutation();
+
+  const handleDownloadPdf = async (report: Report) => {
+    setDownloadingPdf(true);
+    try {
+      const res = await pdfMutation.mutateAsync({ 
+        reportId: report.originalId || report.id, 
+        reporterType: report.reporterType 
+      });
+      if (res.url) window.open(res.url, "_blank");
+    } catch (err: any) {
+      toast({ title: "PDF Generation Failed", description: err.message, status: "error" });
+    } finally {
+      setDownloadingPdf(false);
+    }
+  };
+
+  const handleDownloadXml = async (report: Report) => {
+    setDownloadingXml(true);
+    try {
+      const res = await xmlMutation.mutateAsync({ 
+        reportId: report.originalId || report.id, 
+        reporterType: report.reporterType 
+      });
+      if (res.url) window.open(res.url, "_blank");
+    } catch (err: any) {
+      toast({ title: "XML Retrieval Failed", description: err.message, status: "error" });
+    } finally {
+      setDownloadingXml(false);
+    }
   };
 
   return (
@@ -600,6 +638,27 @@ export default function ReportManagementPage() {
                 <Flex gap={2}>
                   {mode === "view" ? (
                     <>
+                      <Button
+                        onClick={() => handleDownloadXml(selectedReport)}
+                        variant="outline"
+                        colorScheme="blue"
+                        size="sm"
+                        leftIcon={<FileCode size={13} />}
+                        isLoading={downloadingXml}
+                      >
+                        XML
+                      </Button>
+                      <Button
+                        onClick={() => handleDownloadPdf(selectedReport)}
+                        variant="outline"
+                        colorScheme="blue"
+                        size="sm"
+                        leftIcon={<DownloadCloud size={13} />}
+                        isLoading={downloadingPdf}
+                      >
+                        PDF
+                      </Button>
+                      <Box w="1px" h="20px" bg="#e2e8f0" mx={1} alignSelf="center" />
                       {!selectedReport.adminNotes && (
                         <Button
                           as={motion.button}

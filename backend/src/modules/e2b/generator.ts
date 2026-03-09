@@ -7,7 +7,7 @@ type PatientReport = typeof patientReports.$inferSelect;
  * Generates an E2B R3 (HL7 v3) XML from a Patient Report.
  * Mapping rules based on REQ_159-A12 spec.
  */
-export function generateE2BR3(report: PatientReport): string {
+export function generateE2BR3(report: PatientReport, options: { senderId: string, receiverId: string }): string {
   const now = new Date();
   const timestamp = now.toISOString().replace(/[-:T]/g, '').split('.')[0] + '+00'; // CCYYMMDDhhmmss
 
@@ -31,17 +31,17 @@ export function generateE2BR3(report: PatientReport): string {
     .ele('processingModeCode', { code: 'T' }).up()
     .ele('acceptAckCode', { code: 'AL' }).up();
 
-  // Receiver (Placeholder)
-  const receiver = doc.ele('receiver', { typeCode: 'RCV' })
+  // Receiver
+  doc.ele('receiver', { typeCode: 'RCV' })
     .ele('device', { classCode: 'DEV', determinerCode: 'INSTANCE' })
-      .ele('id', { root: '2.16.840.1.113883.3.989.2.1.3.14', extension: 'RECEIVER_ID' }).up()
+      .ele('id', { root: '2.16.840.1.113883.3.989.2.1.3.14', extension: options.receiverId || 'EVHUMAN' }).up()
     .up()
   .up();
 
-  // Sender (Placeholder)
-  const sender = doc.ele('sender', { typeCode: 'SND' })
+  // Sender
+  doc.ele('sender', { typeCode: 'SND' })
     .ele('device', { classCode: 'DEV', determinerCode: 'INSTANCE' })
-      .ele('id', { root: '2.16.840.1.113883.3.989.2.1.3.13', extension: 'SENDER_ID' }).up()
+      .ele('id', { root: '2.16.840.1.113883.3.989.2.1.3.13', extension: options.senderId || 'CLINSOLUTION-DEFAULT' }).up()
     .up()
   .up();
 
@@ -72,9 +72,13 @@ export function generateE2BR3(report: PatientReport): string {
   }
 
   if (pDetails.gender) {
-    // 1=male, 2=female, 0=unknown
-    const genderCode = pDetails.gender.toLowerCase() === 'male' ? '1' : 
-                       pDetails.gender.toLowerCase() === 'female' ? '2' : '0';
+    // ICH standard: 1=male, 2=female, 9=not specified, 0=unknown
+    let genderCode = '9';
+    const g = pDetails.gender.toString().toLowerCase();
+    if (g === 'male' || g === '1') genderCode = '1';
+    else if (g === 'female' || g === '2') genderCode = '2';
+    else if (g === 'unknown' || g === '0') genderCode = '0';
+    
     patientPerson.ele('administrativeGenderCode', { code: genderCode, codeSystem: '1.0.5218' }).up();
   }
 
@@ -101,7 +105,7 @@ export function generateE2BR3(report: PatientReport): string {
         .ele('code', { code: '29', codeSystem: '2.16.840.1.113883.3.989.2.1.1.19' }).up() // Reaction code
         .ele('value', { 
           'xsi:type': 'CE', 
-          code: s.meddra_code || '10000000', 
+          code: s.meddraCode || '10000000', 
           codeSystem: '2.16.840.1.113883.6.163' 
         })
           .ele('originalText').txt(s.term || s.name || 'Unknown Symptom').up()
@@ -112,7 +116,7 @@ export function generateE2BR3(report: PatientReport): string {
 
   // Products mapping to G.k.2.2
   const products: any[] = (report.products as any[]) || [];
-  products.forEach((p, idx) => {
+  products.forEach((p) => {
     // Note: HL7v3 structure for products is very nested. 
     // This is a high-level placeholder for G.k.2.2.
     subject1.ele('subjectOf2', { typeCode: 'SBJ' })

@@ -19,6 +19,8 @@ import {
   determineUpdateNotification,
   shouldCreateNotification,
 } from "../../utils/notification-helper.js";
+import { generateSafetyPDF } from "../pdf/pdf-generator.js";
+import { storeSafetyPDF, getSignedPDFUrl } from "../pdf/storage.js";
 
 export const getAllReports = viewerProcedure.query(async () => {
   const res = await db.execute(sql`
@@ -42,7 +44,9 @@ export const getAllReports = viewerProcedure.query(async () => {
         attachments,
         taking_other_meds as "takingOtherMeds",
         has_relevant_history as "hasRelevantHistory",
-        lab_tests_performed as "labTestsPerformed"
+        lab_tests_performed as "labTestsPerformed",
+        xml_url as "xmlUrl",
+        pdf_url as "pdfUrl"
       FROM patient_reports
       UNION ALL
       SELECT 
@@ -65,7 +69,9 @@ export const getAllReports = viewerProcedure.query(async () => {
         attachments,
         taking_other_meds as "takingOtherMeds",
         has_relevant_history as "hasRelevantHistory",
-        lab_tests_performed as "labTestsPerformed"
+        lab_tests_performed as "labTestsPerformed",
+        xml_url as "xmlUrl",
+        pdf_url as "pdfUrl"
       FROM hcp_reports
       UNION ALL
       SELECT 
@@ -88,7 +94,9 @@ export const getAllReports = viewerProcedure.query(async () => {
         attachments,
         taking_other_meds as "takingOtherMeds",
         has_relevant_history as "hasRelevantHistory",
-        lab_tests_performed as "labTestsPerformed"
+        lab_tests_performed as "labTestsPerformed",
+        xml_url as "xmlUrl",
+        pdf_url as "pdfUrl"
       FROM family_reports
       ORDER BY "createdAt" DESC
     `);
@@ -243,6 +251,8 @@ export const getAllReports = viewerProcedure.query(async () => {
         },
         attachments: row.attachments || null,
         additionalDetails: row.additionalDetails || null,
+        xmlUrl: row.xmlUrl || null,
+        pdfUrl: row.pdfUrl || null,
       },
     };
   });
@@ -513,3 +523,62 @@ export const getMonthlyVolume = viewerProcedure.query(async () => {
   }));
 });
 
+export const getReportPDF = viewerProcedure
+  .input(z.object({ 
+    reportId: z.string().uuid(),
+    reporterType: z.enum(["Patient", "HCP", "Family"])
+  }))
+  .mutation(async ({ input }) => {
+    const { reportId, reporterType } = input;
+    
+    let table: any;
+    if (reporterType === "Patient") table = patientReports;
+    else if (reporterType === "HCP") table = hcpReports;
+    else if (reporterType === "Family") table = familyReports;
+    else throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid reporter type" });
+
+    const [report] = await db.select().from(table).where(eq(table.id, reportId));
+    if (!report) throw new TRPCError({ code: "NOT_FOUND", message: "Report not found" });
+
+    // If PDF already exists, return its signed URL
+    if (report.pdfUrl) {
+      try {
+        const url = await getSignedPDFUrl(report.pdfUrl);
+        return { success: true, url };
+      } catch (e) {
+        console.warn("Failed to get signed URL for existing PDF, regenerating...");
+      }
+    }
+
+    // Otherwise, generate it now
+    const buffer = await generateSafetyPDF(report as any);
+    const filePath = await storeSafetyPDF(report.referenceId || report.id, buffer);
+
+    // Save path to DB
+    await db.update(table).set({ pdfUrl: filePath }).where(eq(table.id, reportId));
+
+    const signedUrl = await getSignedPDFUrl(filePath);
+    return { success: true, url: signedUrl };
+  });
+
+export const getReportXML = viewerProcedure
+  .input(z.object({ 
+    reportId: z.string().uuid(),
+    reporterType: z.enum(["Patient", "HCP", "Family"])
+  }))
+  .mutation(async ({ input }) => {
+    // Similar logic for XML if needed, but we often already have it from the submission trigger
+    const { reportId, reporterType } = input;
+    let table: any;
+    if (reporterType === "Patient") table = patientReports;
+    else if (reporterType === "HCP") table = hcpReports;
+    else if (reporterType === "Family") table = familyReports;
+    else throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid reporter type" });
+
+    const [report] = await db.select().from(table).where(eq(table.id, reportId));
+    if (!report || !report.xmlUrl) throw new TRPCError({ code: "NOT_FOUND", message: "XML not found" });
+
+    const { getSignedE2BUrl } = await import("../e2b/storage.js");
+    const url = await getSignedE2BUrl(report.xmlUrl);
+    return { success: true, url };
+  });
