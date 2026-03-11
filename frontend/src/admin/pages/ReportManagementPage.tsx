@@ -16,7 +16,8 @@ import {
   Box, Flex, Text, Heading, Button, Badge, Input,
   InputGroup, InputLeftElement, SimpleGrid, VStack,
    IconButton as ChakraIconButton, useToast, Spinner, Center,
-   Image
+   Image, Modal, ModalOverlay, ModalContent, ModalBody, ModalCloseButton, useDisclosure,
+   Checkbox
 } from "@chakra-ui/react";
 import { trpc } from "../../utils/trpc";
 
@@ -77,6 +78,14 @@ const reporterTypeCfg: Record<ReporterType, { color: string; bg: string }> = {
 const statusOptions: Status[] = ["Submitted", "In Review", "Approved", "Closed", "Urgent"];
 const severityOptions: Severity[] = ["Critical", "High", "Medium", "Low"];
 
+// ── MedDRA Types ──────────────────────────────────────────────────────────────
+interface MedDRATerm {
+  term: string;
+  code: string | null;
+  description?: string;
+  type?: string;
+}
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function formatKey(key: string) {
   return key
@@ -132,17 +141,36 @@ const DataDisplay = ({ data, depth = 0 }: { data: any; depth?: number }): any =>
   // Primitive leaf value
   if (isPrimitive(data)) {
     const str = data.toString();
-    // Check for base64 image
-    if (typeof data === "string" && data.startsWith("data:image/")) {
+    // Check for base64 image or data URL
+    if (typeof data === "string" && (data.startsWith("data:image/") || (data.length > 50 && data.includes(";base64,")))) {
       return (
-        <Box mt={2} borderRadius="lg" overflow="hidden" border="1px solid" borderColor="#e2e8f0" maxW="300px">
-        <Image
-            src={data}
-            alt="Attachment"
-            w="100%"
-            h="auto"
-            display="block"
-          />
+        <Box 
+          mt={2} 
+          borderRadius="lg" 
+          overflow="hidden" 
+          border="1px solid" 
+          borderColor="#e2e8f0" 
+          maxW="400px" 
+          boxShadow="sm"
+          cursor="zoom-in"
+          transition="all 0.2s"
+          _hover={{ transform: "scale(1.01)", borderColor: "#CE0037" }}
+          onClick={() => {
+            // We'll pass a global handler or use a Custom Event if needed, 
+            // but for simplicity, let's look for the state in context or pass it down.
+            // Since DataDisplay is a recursive component, let's use a window event 
+            // or just rely on the parent having a global ImageZoom handler.
+            (window as any).__zoomImage?.(data);
+          }}
+        >
+          <Image
+              src={data}
+              alt="Attachment Preview"
+              w="100%"
+              h="auto"
+              display="block"
+              fallback={<Text fontSize="xs" color="gray.500" p={2}>Unable to load image preview</Text>}
+            />
         </Box>
       );
     } 
@@ -158,7 +186,20 @@ const DataDisplay = ({ data, depth = 0 }: { data: any; depth?: number }): any =>
     if (data.length === 0) return null;
     const allPrimitive = data.every(isPrimitive);
     if (allPrimitive) {
-      // Render as pill-badges
+      // Check if any item looks like a base64 image
+      const hasImages = data.some(item => typeof item === "string" && (item.startsWith("data:image/") || (item.length > 50 && item.includes(";base64,"))));
+      
+      if (hasImages) {
+        return (
+          <Flex wrap="wrap" gap={3} mt={2}>
+            {data.map((item, i) => (
+              <DataDisplay key={i} data={item} depth={depth + 1} />
+            ))}
+          </Flex>
+        );
+      }
+
+      // Render as pill-badges for normal text
       return (
         <Flex wrap="wrap" gap={1.5} mt={1}>
           {data.map((item, i) => (
@@ -293,10 +334,34 @@ export default function ReportManagementPage() {
   const [mode, setMode] = useState<"view" | "edit">("view");
   const [editData, setEditData] = useState<{ status?: Status; severity?: Severity; adminNotes: string }>({ adminNotes: "" });
   const [showAudit, setShowAudit] = useState(false);
-  const [showFullDetails, setShowFullDetails] = useState(true);
-  const [saved, setSaved] = useState(false);
+  const [showFullDetails, setShowFullDetails] = useState(false);
   const [downloadingXml, setDownloadingXml] = useState(false);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
+  const [downloadingBulk, setDownloadingBulk] = useState(false);
+  
+  // MedDRA Coding State
+  const { 
+    isOpen: isCodingOpen, 
+    onOpen: onCodingOpen, 
+    onClose: onCodingClose 
+  } = useDisclosure();
+  const [meddraQuery, setMeddraQuery] = useState("");
+  const [codingSymptomIndex, setCodingSymptomIndex] = useState<number | null>(null);
+
+  const { data: meddraResults, isLoading: searchingMeddra } = trpc.reference.searchMeddra.useQuery(
+    { query: meddraQuery },
+    { enabled: meddraQuery.length >= 2 }
+  );
+  const [saved, setSaved] = useState(false);
+  const [selectedReportIds, setSelectedReportIds] = useState<string[]>([]);
+  const { isOpen: isZoomOpen, onOpen: onZoomOpen, onClose: onZoomClose } = useDisclosure();
+  const [zoomedImage, setZoomedImage] = useState("");
+
+  // Global handler for DataDisplay to trigger zoom
+  (window as any).__zoomImage = (src: string) => {
+    setZoomedImage(src);
+    onZoomOpen();
+  };
   
   const toast = useToast();
   const utils = trpc.useContext();
@@ -344,6 +409,21 @@ export default function ReportManagementPage() {
     setSaved(false);
   };
 
+  const toggleSelectAll = () => {
+    if (selectedReportIds.length === filtered.length) {
+      setSelectedReportIds([]);
+    } else {
+      setSelectedReportIds(filtered.map(r => r.originalId || r.id));
+    }
+  };
+
+  const toggleSelectReport = (id: string, e: React.MouseEvent | React.ChangeEvent) => {
+    e.stopPropagation();
+    setSelectedReportIds(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
   const handleSave = () => {
     if (!selectedReport) return;
 
@@ -381,6 +461,7 @@ export default function ReportManagementPage() {
 
   const pdfMutation = trpc.admin.getReportPDF.useMutation();
   const xmlMutation = trpc.admin.getReportXML.useMutation();
+  const bulkMutation = trpc.admin.getBulkReports.useMutation();
 
   const handleDownloadPdf = async (report: Report) => {
     setDownloadingPdf(true);
@@ -389,7 +470,15 @@ export default function ReportManagementPage() {
         reportId: report.originalId || report.id, 
         reporterType: report.reporterType 
       });
-      if (res.url) window.open(res.url, "_blank");
+      if (res.url) {
+        const link = document.createElement('a');
+        link.href = res.url;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
     } catch (err: any) {
       toast({ title: "PDF Generation Failed", description: err.message, status: "error" });
     } finally {
@@ -404,11 +493,48 @@ export default function ReportManagementPage() {
         reportId: report.originalId || report.id, 
         reporterType: report.reporterType 
       });
-      if (res.url) window.open(res.url, "_blank");
+      if (res.url) {
+        const link = document.createElement('a');
+        link.href = res.url;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
     } catch (err: any) {
       toast({ title: "XML Retrieval Failed", description: err.message, status: "error" });
     } finally {
       setDownloadingXml(false);
+    }
+  };
+
+  const handleBulkDownload = async () => {
+    if (selectedReportIds.length === 0) return;
+    setDownloadingBulk(true);
+    try {
+      const reportItems = selectedReportIds.map(id => {
+        const r = reportsData.find(rep => (rep.originalId || rep.id) === id);
+        return { reportId: r!.originalId || r!.id, reporterType: r!.reporterType };
+      });
+
+      const res = await bulkMutation.mutateAsync({ reports: reportItems });
+      if (res.url) {
+        const link = document.createElement('a');
+        link.href = res.url;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        setSelectedReportIds([]);
+        toast({ title: "Bulk download complete", status: "success" });
+      }
+    } catch (err: any) {
+      toast({ title: "Bulk download failed", description: err.message, status: "error" });
+    } finally {
+      setDownloadingBulk(false);
     }
   };
 
@@ -521,15 +647,25 @@ export default function ReportManagementPage() {
           overflow="hidden"
         >
           {/* Table Header */}
-          <SimpleGrid columns={selectedReport ? 1 : 5} gap={0} p="10px 18px" bg="#f8fafc" borderBottom="1px solid" borderColor="#f1f5f9" pt={3} pb={3}
-             templateColumns={selectedReport ? "1fr" : "90px 1fr 100px 90px 80px"}
+          <SimpleGrid columns={selectedReport ? 1 : 6} gap={0} p="10px 18px" bg="#f8fafc" borderBottom="1px solid" borderColor="#f1f5f9" pt={3} pb={3}
+             templateColumns={selectedReport ? "1fr" : "40px 90px 1fr 100px 90px 80px"}
           >
             {selectedReport ? (
                  <Text fontSize="xs" fontWeight="bold" color="#94a3b8" textTransform="uppercase" letterSpacing="0.06em">Selected Reports Match</Text>
             ) : (
-                ["Report ID", "Drug / Reporter", "Status", "Severity", "Type"].map((h) => (
-                  <Text key={h} fontSize="xs" fontWeight="bold" color="#94a3b8" textTransform="uppercase" letterSpacing="0.06em">{h}</Text>
-                ))
+                <>
+                  <Box pl={1}>
+                    <Checkbox 
+                      colorScheme="red" 
+                      isChecked={filtered.length > 0 && selectedReportIds.length === filtered.length}
+                      isIndeterminate={selectedReportIds.length > 0 && selectedReportIds.length < filtered.length}
+                      onChange={toggleSelectAll}
+                    />
+                  </Box>
+                  {["Report ID", "Drug / Reporter", "Status", "Severity", "Type"].map((h) => (
+                    <Text key={h} fontSize="xs" fontWeight="bold" color="#94a3b8" textTransform="uppercase" letterSpacing="0.06em">{h}</Text>
+                  ))}
+                </>
             )}
             
           </SimpleGrid>
@@ -545,19 +681,28 @@ export default function ReportManagementPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.04 }}
                 onClick={() => openReport(r)}
-                columns={selectedReport ? 1 : 5}
-                templateColumns={selectedReport ? "1fr" : "90px 1fr 100px 90px 80px"}
+                columns={selectedReport ? 1 : 6}
+                templateColumns={selectedReport ? "1fr" : "40px 90px 1fr 100px 90px 80px"}
                 gap={0}
                 p="13px 18px"
                 cursor="pointer"
                 borderBottom="1px solid"
                 borderColor="#f8fafc"
                 alignItems="center"
-                bg={selectedReport?.originalId === (r.originalId || r.id) ? "red.50" : "transparent"}
+                bg={selectedReport?.originalId === (r.originalId || r.id) || selectedReportIds.includes(r.originalId || r.id) ? "red.50" : "transparent"}
                 borderLeft="3px solid"
                 borderLeftColor={selectedReport?.originalId === (r.originalId || r.id) ? "#CE0037" : "transparent"}
-                _hover={{ bg: selectedReport?.originalId === (r.originalId || r.id) ? "red.50" : "#f8fafc" }}
+                _hover={{ bg: selectedReport?.originalId === (r.originalId || r.id) || selectedReportIds.includes(r.originalId || r.id) ? "red.50" : "#f8fafc" }}
               >
+                  {!selectedReport && (
+                    <Box pl={1} onClick={(e) => e.stopPropagation()}>
+                      <Checkbox 
+                        colorScheme="red" 
+                        isChecked={selectedReportIds.includes(r.originalId || r.id)}
+                        onChange={(e) => toggleSelectReport(r.originalId || r.id, e)}
+                      />
+                    </Box>
+                  )}
                   {selectedReport ? (
                       <VStack align="flex-start" spacing={1}>
                           <Flex justify="space-between" w="full">
@@ -846,6 +991,45 @@ export default function ReportManagementPage() {
                   </Box>
                 </SimpleGrid>
 
+                {/* Medical Coding Section */}
+                {selectedReport.fullDetails?.symptoms?.length > 0 && (
+                  <Box mb={5} bg="red.50" borderRadius="xl" p={4} border="1px solid" borderColor="red.100">
+                    <Flex align="center" gap={2} mb={3}>
+                      <Activity size={13} color="#CE0037" />
+                      <Text fontSize="xs" color="#CE0037" fontWeight="800" textTransform="uppercase" letterSpacing="0.05em">Medical Coding</Text>
+                    </Flex>
+                    <VStack align="stretch" spacing={2.5}>
+                      {selectedReport.fullDetails.symptoms.map((s: any, idx: number) => (
+                        <Flex key={idx} justify="space-between" align="center" bg="white" p={2.5} borderRadius="lg" border="1px solid" borderColor="red.100">
+                          <Box>
+                            <Text fontSize="xs" fontWeight="bold" color="#1e293b" noOfLines={1}>
+                              {s.name || s.symptom || "Unknown Symptom"}
+                            </Text>
+                            {s.meddraCode ? (
+                              <Text fontSize="2xs" color="emerald.600" fontWeight="bold">Mapped: {s.meddraCode}</Text>
+                            ) : (
+                              <Text fontSize="2xs" color="#94a3b8">Uncoded</Text>
+                            )}
+                          </Box>
+                          <Button 
+                            size="xs" 
+                            variant="ghost" 
+                            colorScheme="red" 
+                            fontSize="2xs"
+                            onClick={() => {
+                              setCodingSymptomIndex(idx);
+                              onCodingOpen();
+                            }}
+                            leftIcon={<Plus size={10} />}
+                          >
+                            {s.meddraCode ? "Remap" : "Code"}
+                          </Button>
+                        </Flex>
+                      ))}
+                    </VStack>
+                  </Box>
+                )}
+
                 {/* Admin Notes Section */}
                 {(mode === "edit" || selectedReport.adminNotes) && (
                   <Box mb={5}>
@@ -974,7 +1158,7 @@ export default function ReportManagementPage() {
                 )}
 
                 {/* Audit Trail */}
-                <Box bg="#f8fafc" borderRadius="xl" border="1px solid" borderColor="#f1f5f9" overflow="hidden">
+                <Box bg="#f8fafc" borderRadius="xl" border="1px solid" borderColor="#e2e8f0" overflow="hidden">
                   <Button
                     onClick={() => setShowAudit((v) => !v)}
                     variant="ghost"
@@ -1041,6 +1225,206 @@ export default function ReportManagementPage() {
         </>
         )}
       </Flex>
+
+      {/* ── MedDRA Coding Modal ── */}
+      <Modal isOpen={isCodingOpen} onClose={onCodingClose} size="xl">
+        <ModalOverlay backdropFilter="blur(5px)" />
+        <ModalContent borderRadius="2xl" p={2}>
+          <ModalCloseButton mt={2} mr={2} />
+          <ModalBody p={5}>
+            <Heading size="md" mb={1} color="#1e293b">Medical Coding (MedDRA)</Heading>
+            <Text fontSize="sm" color="#64748b" mb={6}>
+              Map the reported symptom to an official MedDRA term.
+            </Text>
+
+            {codingSymptomIndex !== null && selectedReport?.fullDetails?.symptoms?.[codingSymptomIndex] && (
+               <Box bg="#f8fafc" p={4} borderRadius="xl" border="1px solid" borderColor="#e2e8f0" mb={6}>
+                 <Text fontSize="xs" fontWeight="bold" color="#94a3b8" textTransform="uppercase" mb={1}>Reported Symptom</Text>
+                 <Text fontWeight="700" color="#0f172a">
+                    {selectedReport.fullDetails.symptoms[codingSymptomIndex].name || 
+                     selectedReport.fullDetails.symptoms[codingSymptomIndex].symptom || "Unknown"}
+                 </Text>
+                 {selectedReport.fullDetails.symptoms[codingSymptomIndex].meddraCode && (
+                    <Badge mt={2} colorScheme="green" variant="subtle" borderRadius="md">
+                      Current Code: {selectedReport.fullDetails.symptoms[codingSymptomIndex].meddraCode}
+                    </Badge>
+                 )}
+               </Box>
+            )}
+
+            <InputGroup mb={4}>
+              <InputLeftElement pointerEvents="none">
+                <Search size={18} color="#94a3b8" />
+              </InputLeftElement>
+              <Input 
+                placeholder="Search MedDRA (e.g. Headache, Nausea...)" 
+                value={meddraQuery}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/"/g, ''); // Remove auto-quotes
+                  setMeddraQuery(val);
+                }}
+                borderRadius="xl"
+                border="2px solid"
+                borderColor="#f1f5f9"
+                _focus={{ borderColor: "#CE0037", boxShadow: "none" }}
+              />
+            </InputGroup>
+
+            <VStack align="stretch" spacing={2} maxH="400px" overflowY="auto" pr={2}>
+              {searchingMeddra && <Center py={8}><Spinner color="#CE0037" /></Center>}
+              
+              {meddraResults?.map((term: MedDRATerm) => (
+                <Box 
+                  key={term.code}
+                  p={3}
+                  borderRadius="xl"
+                  border="1px solid"
+                  borderColor="#f1f5f9"
+                  cursor="pointer"
+                  transition="all 0.2s"
+                  _hover={{ bg: "red.50", borderColor: "red.100" }}
+                  onClick={async () => {
+                    if (codingSymptomIndex === null || !selectedReport) return;
+                    
+                    const updatedSymptoms = [...selectedReport.fullDetails.symptoms];
+                    updatedSymptoms[codingSymptomIndex] = {
+                      ...updatedSymptoms[codingSymptomIndex],
+                      meddraCode: term.code,
+                      meddraTerm: term.term
+                    };
+
+                    try {
+                      await updateMutation.mutateAsync({
+                        reportId: selectedReport.originalId!,
+                        reporterType: selectedReport.reporterType,
+                        updates: {
+                          symptoms: updatedSymptoms
+                        }
+                      });
+                      
+                      toast({ title: "Symptom Coded", status: "success" });
+                      
+                      // Update local state for immediate feedback
+                      if (selectedReport) {
+                        setSelectedReport({
+                          ...selectedReport,
+                          fullDetails: {
+                            ...selectedReport.fullDetails,
+                            symptoms: updatedSymptoms
+                          }
+                        });
+                      }
+                      
+                      onCodingClose();
+                    } catch (err: any) {
+                      toast({ title: "Coding Failed", description: err.message, status: "error" });
+                    }
+                  }}
+                >
+                  <Flex justify="space-between" align="center">
+                    <Box>
+                      <Text fontWeight="bold" fontSize="sm" color="#1e293b">{term.term}</Text>
+                      <Text fontSize="xs" color="#64748b">{term.description || "No description"}</Text>
+                    </Box>
+                    {term.code ? (
+                      <Badge colorScheme="red" variant="outline" fontSize="2xs">{term.code}</Badge>
+                    ) : (
+                      <Badge colorScheme="gray" variant="solid" fontSize="2xs">Uncoded Term</Badge>
+                    )}
+                  </Flex>
+                </Box>
+              ))}
+
+              {!searchingMeddra && meddraQuery.length >= 2 && meddraResults?.length === 0 && (
+                <Center py={8} flexDirection="column" gap={2}>
+                  <AlertCircle size={24} color="#94a3b8" />
+                  <Text color="#94a3b8" fontSize="sm">No matching MedDRA terms found</Text>
+                </Center>
+              )}
+            </VStack>
+          </ModalBody>
+        </ModalContent>
+      </Modal>
+
+      {/* ── Image Zoom Modal ── */}
+      <Modal isOpen={isZoomOpen} onClose={onZoomClose} size="full">
+        <ModalOverlay bg="blackAlpha.800" backdropFilter="blur(10px)" />
+        <ModalContent bg="transparent" boxShadow="none">
+          <ModalCloseButton color="white" size="lg" zIndex={2} />
+          <ModalBody display="flex" alignItems="center" justifyContent="center" p={0} onClick={onZoomClose}>
+            <Center w="full" h="full">
+               <Image 
+                src={zoomedImage} 
+                maxH="90vh" 
+                maxW="90vw" 
+                objectFit="contain" 
+                borderRadius="lg"
+                boxShadow="2xl"
+                onClick={(e) => e.stopPropagation()} // Prevent close on image click
+               />
+            </Center>
+          </ModalBody>
+        </ModalContent>
+      </Modal>
+
+      {/* ── Bulk Action Toolbar ── */}
+      <AnimatePresence>
+        {selectedReportIds.length > 0 && (
+          <Box
+            as={motion.div}
+            initial={{ opacity: 0, y: 100 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 100 }}
+            position="fixed"
+            bottom="24px"
+            left="50%"
+            transform="translateX(-50%)"
+            bg="#0f172a"
+            color="white"
+            borderRadius="2xl"
+            px={6}
+            py={4}
+            boxShadow="0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.3)"
+            zIndex={1000}
+            display="flex"
+            alignItems="center"
+            gap={6}
+            minW="400px"
+          >
+            <Flex align="center" gap={3}>
+              <Flex bg="#CE0037" borderRadius="full" w="24px" h="24px" align="center" justify="center" fontSize="xs" fontWeight="bold">
+                {selectedReportIds.length}
+              </Flex>
+              <Text fontSize="sm" fontWeight="bold">Reports Selected</Text>
+            </Flex>
+            <Box w="1px" h="24px" bg="whiteAlpha.300" />
+            <Flex gap={2}>
+              <Button 
+                size="sm" 
+                variant="outline" 
+                color="white" 
+                borderColor="whiteAlpha.400" 
+                _hover={{ bg: "whiteAlpha.200" }}
+                isLoading={downloadingBulk}
+                leftIcon={<DownloadCloud size={14} />}
+                onClick={handleBulkDownload}
+              >
+                Download ZIP
+              </Button>
+              <Button 
+                size="sm" 
+                bg="#CE0037" 
+                color="white" 
+                _hover={{ bg: "#b3002f" }}
+                leftIcon={<X size={14} />}
+                onClick={() => setSelectedReportIds([])}
+              >
+                Clear Selection
+              </Button>
+            </Flex>
+          </Box>
+        )}
+      </AnimatePresence>
     </Flex>
   );
 }

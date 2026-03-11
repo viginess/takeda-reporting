@@ -9,11 +9,18 @@ type PatientReport = typeof patientReports.$inferSelect;
  */
 export function generateE2BR3(report: PatientReport, options: { senderId: string, receiverId: string }): string {
   const now = new Date();
-  const timestamp = now.toISOString().replace(/[-:T]/g, '').split('.')[0] + '+00'; // CCYYMMDDhhmmss
 
   // N.2.r.1: Message Identifier (country + MMM + reference)
-  // Defaulting to US for now if not specified
   const messageId = `US-MMM-${report.referenceId || report.id}`;
+
+  const formatDate = (d: string | Date | null | undefined) => {
+    if (!d) return null;
+    const date = typeof d === 'string' ? new Date(d) : d;
+    if (isNaN(date.getTime())) return null;
+    return date.toISOString().replace(/[-:T]/g, '').split('.')[0];
+  };
+
+  const timestamp = formatDate(now) + '+00';
 
   const doc = create({ version: '1.0', encoding: 'UTF-8' })
     .ele('MCCI_IN200100UV01', {
@@ -99,58 +106,117 @@ export function generateE2BR3(report: PatientReport, options: { senderId: string
   // Symptoms (Reactions) mapping to E.i.2.1b
   const symptoms: any[] = (report.symptoms as any[]) || [];
   symptoms.forEach((s, idx) => {
-    subject1.ele('subjectOf2', { typeCode: 'SBJ' })
-      .ele('observation', { classCode: 'OBS', moodCode: 'EVN' })
-        .ele('id', { root: '2.16.840.1.113883.3.989.2.1.3.2', extension: `REACT-${idx}` }).up()
+    const reactionObs = subject1.ele('subjectOf2', { typeCode: 'SBJ' })
+      .ele('observation', { classCode: 'OBS', moodCode: 'EVN' });
+
+      // E.i.2.1b: Reaction Code
+      const valueAttrs: any = { 'xsi:type': 'CE' };
+      if (s.meddraCode) {
+        valueAttrs.code = s.meddraCode;
+        valueAttrs.codeSystem = '2.16.840.1.113883.6.163';
+      } else {
+        valueAttrs.nullFlavor = 'UNK';
+      }
+
+      reactionObs.ele('id', { root: '2.16.840.1.113883.3.989.2.1.3.2', extension: `REACT-${idx}` }).up()
         .ele('code', { code: '29', codeSystem: '2.16.840.1.113883.3.989.2.1.1.19' }).up() // Reaction code
-        .ele('value', { 
-          'xsi:type': 'CE', 
-          code: s.meddraCode || '10000000', 
-          codeSystem: '2.16.840.1.113883.6.163' 
-        })
-          .ele('originalText').txt(s.term || s.name || 'Unknown Symptom').up()
-        .up()
-      .up()
-    .up();
+        .ele('value', valueAttrs)
+          .ele('originalText').txt(s.meddraTerm || s.term || s.name || 'Unknown Symptom').up()
+        .up();
+
+    // E.i.4: Terminal Dates/Duration
+    if (s.eventStartDate || s.eventEndDate) {
+      const time = reactionObs.ele('effectiveTime');
+      if (s.eventStartDate) {
+        const start = formatDate(s.eventStartDate);
+        if (start) time.ele('low', { value: start }).up();
+      }
+      if (s.eventEndDate && s.eventEndDate !== 'Ongoing') {
+        const end = formatDate(s.eventEndDate);
+        if (end) time.ele('high', { value: end }).up();
+      }
+      time.up();
+    }
+
+    // E.i.7: Outcome
+    if (s.outcome) {
+      const outcomeMap: Record<string, string> = {
+        'recovered': '1',
+        'recovered-lasting': '2',
+        'improved': '3',
+        'ongoing': '4',
+        'death': '6',
+        'unknown': '0'
+      };
+      reactionObs.ele('value', { 
+        'xsi:type': 'CE', 
+        code: outcomeMap[s.outcome] || '0', 
+        codeSystem: '2.16.840.1.113883.3.989.2.1.1.11' 
+      }).up();
+    }
+
+    reactionObs.up().up();
   });
 
-  // Products mapping to G.k.2.2
+  // Products mapping to G.k.2.1
   const products: any[] = (report.products as any[]) || [];
-  products.forEach((p) => {
-    // Note: HL7v3 structure for products is very nested. 
-    // This is a high-level placeholder for G.k.2.2.
-    subject1.ele('subjectOf2', { typeCode: 'SBJ' })
+  products.forEach((p, pIdx) => {
+    const substAdmin = subject1.ele('subjectOf2', { typeCode: 'SBJ' })
       .ele('organizer', { classCode: 'CATEGORY', moodCode: 'EVN' })
         .ele('code', { code: '4', codeSystem: '2.16.840.1.113883.3.989.2.1.1.20' }).up()
         .ele('component', { typeCode: 'COMP' })
-          .ele('substanceAdministration', { classCode: 'SBADM', moodCode: 'EVN' })
-            .ele('consumable', { typeCode: 'CSM' })
-              .ele('instanceOfKind', { classCode: 'INST' })
-                .ele('kindOfProduct', { classCode: 'MMAT', determinerCode: 'KIND' })
-                  .ele('name').txt(p.name || 'Unknown Product').up()
-                .up()
-              .up()
-            .up()
-          .up()
-        .up()
-      .up()
-    .up();
+          .ele('substanceAdministration', { classCode: 'SBADM', moodCode: 'EVN' });
+
+    substAdmin.ele('id', { root: '2.16.840.1.113883.3.989.2.1.3.22', extension: `PROD-${pIdx}` }).up();
+
+    // G.k.4.r.1a: Dosage
+    if (p.dosage) {
+      substAdmin.ele('doseQuantity', { value: p.dosage.match(/\d+/)?.[0] || '1', unit: p.dosage.replace(/\d+/g, '').trim() || '1' }).up();
+    }
+
+    // G.k.4.r.10: Route
+    if (p.route) {
+       substAdmin.ele('routeCode', { code: p.route.toUpperCase(), codeSystem: '2.16.840.1.113883.3.989.2.1.1.21' }).up();
+    }
+
+    const consumable = substAdmin.ele('consumable', { typeCode: 'CSM' })
+      .ele('instanceOfKind', { classCode: 'INST' })
+        .ele('kindOfProduct', { classCode: 'MMAT', determinerCode: 'KIND' });
+
+    consumable.ele('name').txt(p.productName || p.name || 'Unknown Product').up();
+
+    // G.k.2.3.r.1: Batch Number
+    const batch = p.batches?.[0]?.batchNumber || p.batch;
+    if (batch) {
+      consumable.ele('lotNumberName').txt(batch).up();
+    }
+
+    substAdmin.up().up().up().up().up();
   });
 
   // ── Step 4: Reporter Details (C.2.r) ────────────────────────
-  const hDetails: any = report.hcpDetails || {};
+  // Robust mapping: Check reporterDetails (HCP reports) or hcpDetails (Patient reports)
+  const hDetails: any = (report as any).reporterDetails || (report as any).hcpDetails || {};
   const author = controlAct.ele('authorOrPerformer', { typeCode: 'AUT' })
     .ele('assignedEntity', { classCode: 'ASSIGNED' });
 
   if (hDetails.email) {
     author.ele('telecom', { value: `mailto:${hDetails.email}` }).up();
+  } else if (hDetails.phone) {
+    author.ele('telecom', { value: `tel:${hDetails.phone}` }).up();
   }
 
   const assignedPerson = author.ele('assignedPerson', { classCode: 'PSN', determinerCode: 'INSTANCE' });
-  if (hDetails.firstName || hDetails.lastName) {
+  const rFirstName = hDetails.firstName || hDetails.name;
+  const rLastName = hDetails.lastName;
+
+  if (rFirstName || rLastName) {
     const name = assignedPerson.ele('name');
-    if (hDetails.firstName) name.ele('given').txt(hDetails.firstName).up();
-    if (hDetails.lastName) name.ele('family').txt(hDetails.lastName).up();
+    if (rFirstName) name.ele('given').txt(rFirstName).up();
+    if (rLastName) name.ele('family').txt(rLastName).up();
+  } else {
+    // E2B R3 requires a name, if missing we use MS (Masked) or Unknown
+    assignedPerson.ele('name').ele('given', { nullFlavor: 'MS' }).up().up();
   }
 
   // Return formatted XML

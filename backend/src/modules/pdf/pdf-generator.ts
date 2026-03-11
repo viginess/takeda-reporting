@@ -1,18 +1,18 @@
 import PDFDocument from 'pdfkit';
 import { patientReports } from '../../db/schema.js';
 
-
 type PatientReport = typeof patientReports.$inferSelect;
 
 /**
  * Generates a branded Takeda PDF report for a safety case.
  * Maps data to E2B R3 field labels for consistency.
  */
-export async function generateSafetyPDF(report: PatientReport): Promise<Buffer> {
+export async function generateSafetyPDF(report: any): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ 
       margin: 50, 
       size: 'A4',
+      bufferPages: true,
       info: {
         Title: `Safety Report - ${report.referenceId || report.id}`,
         Author: 'Takeda Safety Reporting System',
@@ -25,94 +25,130 @@ export async function generateSafetyPDF(report: PatientReport): Promise<Buffer> 
     doc.on('error', reject);
 
     // --- Branding Essentials ---
-    const clinSolutionBlue = '#1E3A8A';
+    const takedaRed = '#CE0037';
     const slateGray = '#64748B';
 
     // Header Branding
-    doc.rect(0, 0, 600, 40).fill(clinSolutionBlue);
-    doc.fillColor('white').fontSize(16).font('Helvetica-Bold').text('CLINSOLUTION SAFETY REPORTING', 50, 12);
+    doc.rect(0, 0, 600, 50).fill(takedaRed);
+    
+    try {
+      doc.image('d:\\takeda-reporting\\frontend\\src\\assets\\logo.jpg', 500, 5, { width: 80 });
+    } catch (e) {
+      console.error('Logo not found, skipping image rendering');
+    }
+
+    doc.fillColor('white').fontSize(16).font('Helvetica-Bold').text('TAKEDA SAFETY REPORTING', 50, 15);
     
     doc.moveDown(3);
 
     // Title & Report ID
-    doc.fillColor(clinSolutionBlue).fontSize(22).text('Individual Case Safety Report (ICSR)', 50, 70);
-    doc.fontSize(10).fillColor(slateGray).text(`Internal Report ID: ${report.id}`, 50, 95);
-    doc.moveDown();
+    doc.fillColor(takedaRed).fontSize(22).text('Individual Case Safety Report (ICSR)', 50, 80);
+    doc.fontSize(10).fillColor(slateGray).text(`Internal Report ID: ${report.id}`, 50, 105);
+    doc.moveDown(0.5);
 
     // Horizontal Line
-    doc.strokeColor(clinSolutionBlue).lineWidth(1).moveTo(50, 115).lineTo(550, 115).stroke();
+    doc.strokeColor(takedaRed).lineWidth(1).moveTo(50, 125).lineTo(550, 125).stroke();
     doc.moveDown(2);
 
     // Section 1: Regulatory Metadata (N)
-    drawSectionHeader(doc, 'SECTION 1: REGULATORY METADATA', clinSolutionBlue);
+    drawSectionHeader(doc, 'SECTION 1: REGULATORY METADATA', takedaRed);
     
-    doc.fillColor('black').font('Helvetica').fontSize(10);
-    const metaY = 145;
-    doc.font('Helvetica-Bold').text('E2B Code', 50, metaY);
-    doc.text('Field Description', 130, metaY);
-    doc.text('Value', 350, metaY);
-    
-    doc.font('Helvetica');
-    doc.text('N.2.r.1', 50, metaY + 20);
-    doc.text('Message Identifier', 130, metaY + 20);
-    doc.font('Helvetica-Bold').text(report.referenceId || 'PENDING', 350, metaY + 20);
+    renderGridHeader(doc, ['E2B Code', 'Field Description', 'Value']);
+    renderGridRow(doc, 'N.2.r.1', 'Message Identifier', report.referenceId || 'PENDING', true);
+    renderGridRow(doc, 'N.2.r.4', 'Date of Creation', report.createdAt instanceof Date ? report.createdAt.toISOString() : 'N/A', true);
 
-    doc.font('Helvetica');
-    doc.text('N.2.r.4', 50, metaY + 40);
-    doc.text('Date of Creation', 130, metaY + 40);
-    doc.text(report.createdAt ? report.createdAt.toISOString() : 'N/A', 350, metaY + 40);
+    doc.moveDown(2);
 
-    doc.moveDown(4);
+    // Section 1.5: Reporter Information (C)
+    // Extract reporter detail based on report table structure
+    const reporter = report.reporterDetails || report.hcpDetails || report.patientDetails || {};
+    drawSectionHeader(doc, 'SECTION 1.5: PRIMARY REPORTER DETAILS', takedaRed);
+    const reporterName = [reporter.firstName || reporter.name, reporter.lastName].filter(Boolean).join(' ');
+    renderGridRow(doc, 'C.2.r.1', 'Reporter Name', reporterName || 'N/A', true);
+    renderGridRow(doc, 'C.2.r.2', 'Institution', reporter.institution || 'N/A', true);
+    renderGridRow(doc, 'C.2.r.3', 'Country', reporter.country || 'N/A', true);
+
+    doc.moveDown(2);
 
     // Section 2: Patient Information (D)
-    drawSectionHeader(doc, 'SECTION 2: PATIENT CHARACTERISTICS', clinSolutionBlue);
+    drawSectionHeader(doc, 'SECTION 2: PATIENT CHARACTERISTICS', takedaRed);
     
     const pDetails = (report.patientDetails as any) || {};
-    const patientY = 225;
-    
-    renderGridRow(doc, 'D.1', 'Patient Initials', pDetails.initials || 'N/A', patientY);
-    renderGridRow(doc, 'D.2.1', 'Date of Birth', pDetails.dob || 'N/A', patientY + 20);
-    renderGridRow(doc, 'D.5', 'Gender', pDetails.gender || 'Unknown', patientY + 40);
+    renderGridRow(doc, 'D.1', 'Patient Initials', pDetails.initials || 'N/A', true);
+    renderGridRow(doc, 'D.2.1', 'Date of Birth', pDetails.dob || 'N/A', true);
+    renderGridRow(doc, 'D.3', 'Weight (kg)', pDetails.weight || 'N/A', true);
+    renderGridRow(doc, 'D.4', 'Height (cm)', pDetails.height || 'N/A', true);
+    renderGridRow(doc, 'D.5', 'Gender', pDetails.gender || 'Unknown', true);
 
-    doc.moveDown(4);
+    doc.moveDown(2);
 
     // Section 3: Adverse Events / Reactions (E)
-    drawSectionHeader(doc, 'SECTION 3: ADVERSE REACTIONS', clinSolutionBlue);
+    drawSectionHeader(doc, 'SECTION 3: ADVERSE REACTIONS', takedaRed);
     
-    const reactionsY = 320;
+    renderGridHeader(doc, ['E2B Code', 'Term (MedDRA LLT)', 'Code']);
+    
     const symptoms = (report.symptoms as any[]) || [];
-    
-    doc.font('Helvetica-Bold').text('E2B Code', 50, reactionsY);
-    doc.text('Term (MedDRA LLT)', 130, reactionsY);
-    doc.text('Code', 350, reactionsY);
-    
-    doc.font('Helvetica');
     symptoms.forEach((s, idx) => {
-      const y = reactionsY + 20 + (idx * 20);
-      doc.text(`E.i.2.1b.${idx+1}`, 50, y);
-      doc.text(s.term || s.name || 'Unknown', 130, y);
-      doc.font('Helvetica-Bold').text(s.meddraCode || '00000000', 350, y);
+      renderGridRow(doc, `E.i.2.1b.${idx+1}`, s.term || s.name || 'Unknown', s.meddraCode || '00000000', true);
     });
 
-    doc.moveDown(4);
+    doc.moveDown(2);
 
     // Section 4: Drug / Product Information (G)
-    drawSectionHeader(doc, 'SECTION 4: SUSPECT DRUG INFORMATION', clinSolutionBlue);
+    drawSectionHeader(doc, 'SECTION 4: SUSPECT DRUG INFORMATION', takedaRed);
     
-    const drugY = reactionsY + 40 + (symptoms.length * 20); // Dynamic offset
+    renderGridHeader(doc, ['E2B Code', 'Product Name', 'Indication (MedDRA)']);
+    
     const products = (report.products as any[]) || [];
-    
-    doc.font('Helvetica-Bold').text('E2B Code', 50, drugY);
-    doc.text('Product Name', 130, drugY);
-    doc.text('Indication (MedDRA)', 350, drugY);
-    
-    doc.font('Helvetica');
     products.forEach((p, idx) => {
-      const y = drugY + 20 + (idx * 20);
-      doc.text(`G.k.2.2.${idx+1}`, 50, y);
-      doc.text(p.name || 'Unknown Product', 130, y);
-      doc.text(p.condition || 'Not Stated', 350, y);
+      renderGridRow(doc, `G.k.2.2.${idx+1}`, p.name || 'Unknown Product', p.condition || 'Not Stated');
     });
+
+    doc.moveDown(2);
+
+    // Section 4.5: Other Medications (G.k.2.3.r)
+    const otherMeds = (report.otherMedications as any[]) || [];
+    if (otherMeds.length > 0) {
+        drawSectionHeader(doc, 'SECTION 4.5: CONCOMITANT MEDICATIONS', takedaRed);
+        renderGridHeader(doc, ['E2B Code', 'Product Name', 'Indication / Reason']);
+        otherMeds.forEach((p, idx) => {
+           renderGridRow(doc, `G.k.2.3.r.${idx+1}`, p.productName || 'Unknown', p.reason || 'N/A', true);
+        });
+        doc.moveDown(2);
+    }
+
+    // Section 5: Medical History & Lab Tests
+    if (report.hasRelevantHistory === 'yes' || report.labTestsPerformed === 'yes') {
+        drawSectionHeader(doc, 'SECTION 5: RELEVANT HISTORY & LAB TESTS', takedaRed);
+        
+        if (report.hasRelevantHistory === 'yes') {
+            doc.fillColor(takedaRed).font('Helvetica-Bold').fontSize(10).text('Medical History (D.7.1.r)', 50);
+            doc.fillColor('black').font('Helvetica').fontSize(10).text(typeof report.medicalHistory === 'string' ? report.medicalHistory : JSON.stringify(report.medicalHistory), 50);
+            doc.moveDown();
+        }
+
+        if (report.labTestsPerformed === 'yes') {
+            doc.fillColor(takedaRed).font('Helvetica-Bold').fontSize(10).text('Lab Tests & Procedures (F.r)', 50);
+            const labs = Array.isArray(report.labTests) ? report.labTests : [];
+            labs.forEach((lab: any, idx: number) => {
+                doc.fillColor('black').font('Helvetica').fontSize(10).text(`${idx + 1}. ${lab.testName || 'Unknown Test'}: ${lab.result || 'No Result'} ${lab.unit || ''} (${lab.date || 'No Date'})`, 60);
+            });
+            doc.moveDown();
+        }
+    }
+
+    // Section 6: Narrative & Sender Comments
+    drawSectionHeader(doc, 'SECTION 6: CASE NARRATIVE & SENDER COMMENTS', takedaRed);
+    
+    doc.fillColor('black').font('Helvetica-Bold').fontSize(10).text('Case Narrative (H.1)', 50);
+    doc.font('Helvetica').fontSize(10).text(report.additionalDetails || 'No narrative provided.', 50, undefined, { align: 'justify', width: 500 });
+    doc.moveDown();
+
+    if (report.adminNotes) {
+        doc.fillColor('black').font('Helvetica-Bold').fontSize(10).text("Sender's Comments (H.4)", 50);
+        doc.font('Helvetica').fontSize(10).text(report.adminNotes, 50, undefined, { align: 'justify', width: 500 });
+        doc.moveDown();
+    }
 
     // --- Footer ---
     const pageCount = doc.bufferedPageRange().count;
@@ -120,7 +156,7 @@ export async function generateSafetyPDF(report: PatientReport): Promise<Buffer> 
       doc.switchToPage(i);
       doc.fontSize(8).fillColor('#94A3B8');
       doc.text(
-        `Confidential - Clin Solution L.L.C. Information | Page ${i + 1} of ${pageCount}`,
+        `Confidential - Takeda Safety Reporting System | Page ${i + 1} of ${pageCount}`,
         50,
         780,
         { align: 'center' }
@@ -132,15 +168,38 @@ export async function generateSafetyPDF(report: PatientReport): Promise<Buffer> 
 }
 
 function drawSectionHeader(doc: PDFKit.PDFDocument, title: string, color: string) {
+  // Ensure we have enough space for the header, otherwise start a new page
+  if (doc.y > 700) doc.addPage();
+
   const currentY = doc.y;
-  doc.rect(50, currentY, 500, 18).fill(color + '15'); // Very light red background
-  doc.fillColor(color).font('Helvetica-Bold').fontSize(11).text(title, 55, currentY + 4);
-  doc.moveDown(1);
+  // Professional style: Subtle bottom border instead of tinted background
+  doc.strokeColor(color).lineWidth(0.5).moveTo(50, currentY + 15).lineTo(550, currentY + 15).stroke();
+  doc.fillColor(color).font('Helvetica-Bold').fontSize(11).text(title, 50, currentY);
+  doc.moveDown(1.2);
 }
 
-function renderGridRow(doc: PDFKit.PDFDocument, code: string, desc: string, value: string, y: number) {
-  doc.fillColor('black').font('Helvetica').fontSize(10);
-  doc.text(code, 50, y);
-  doc.text(desc, 130, y);
-  doc.font('Helvetica-Bold').text(value, 350, y);
+function renderGridHeader(doc: PDFKit.PDFDocument, headers: string[]) {
+    doc.fillColor('#CE0037').font('Helvetica-Bold').fontSize(10);
+    const currentY = doc.y;
+    doc.text(headers[0], 50, currentY);
+    doc.text(headers[1], 130, currentY);
+    if (headers[2]) doc.text(headers[2], 350, currentY);
+    doc.moveDown(0.5);
 }
+
+function renderGridRow(doc: PDFKit.PDFDocument, code: string, desc: string, value: string, boldValue: boolean = false) {
+  // Ensure we don't start a row with only 1 line left on page
+  if (doc.y > 750) doc.addPage();
+    
+  const currentY = doc.y;
+  doc.fillColor('black').font('Helvetica').fontSize(10);
+  doc.text(code, 50, currentY);
+  doc.text(desc, 130, currentY);
+  
+  if (boldValue) doc.font('Helvetica-Bold');
+  doc.text(value, 350, currentY, { width: 200 });
+  doc.font('Helvetica');
+  
+  doc.moveDown(0.5);
+}
+

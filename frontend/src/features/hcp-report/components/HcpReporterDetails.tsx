@@ -8,7 +8,6 @@ import {
   RadioGroup,
   Stack,
   Radio,
-  Select,
   Flex,
 } from '@chakra-ui/react';
 import { useFormContext } from 'react-hook-form';
@@ -39,26 +38,33 @@ export function HcpReporterDetails({
       <Box borderBottom="2px solid" borderColor="#CE0037" mb={6} w="full" maxW="200px" />
 
       <Flex gap={4} mb={4} direction={{ base: 'column', md: 'row' }}>
-        <FormControl>
+        <FormControl isRequired isInvalid={!!(watch('reporterDetails.firstName') === '' && watch('reporterDetails.firstName') !== undefined)}>
           <FormLabel fontWeight="500" color="gray.700">
             {t('forms.shared.reporterDetails.firstNameLabel')}
           </FormLabel>
           <Input 
             placeholder={t('forms.shared.reporterDetails.firstNamePlaceholder')} 
             {...inputStyles} 
-            {...register('firstName')} 
+            {...register('reporterDetails.firstName', { required: t('forms.shared.reporterDetails.firstNameRequired', 'First name is required') })} 
           />
+          {/* Error Message */}
+          <Text color="red.500" fontSize="xs" mt={1}>
+            {watch('reporterDetails.firstName') === '' ? t('forms.shared.reporterDetails.firstNameRequired') : ''}
+          </Text>
         </FormControl>
 
-        <FormControl>
+        <FormControl isRequired isInvalid={!!(watch('reporterDetails.lastName') === '' && watch('reporterDetails.lastName') !== undefined)}>
           <FormLabel fontWeight="500" color="gray.700">
             {t('forms.shared.reporterDetails.lastNameLabel')}
           </FormLabel>
           <Input 
             placeholder={t('forms.shared.reporterDetails.lastNamePlaceholder')} 
             {...inputStyles} 
-            {...register('lastName')} 
+            {...register('reporterDetails.lastName', { required: t('forms.shared.reporterDetails.lastNameRequired', 'Last name is required') })} 
           />
+          <Text color="red.500" fontSize="xs" mt={1}>
+            {watch('reporterDetails.lastName') === '' ? t('forms.shared.reporterDetails.lastNameRequired') : ''}
+          </Text>
         </FormControl>
       </Flex>
 
@@ -67,10 +73,10 @@ export function HcpReporterDetails({
           {t('forms.patient.personalDetails.contactPermissionLabel')}
         </FormLabel>
         <RadioGroup
-          value={watch('reporterDetails.contactPermission') || watch('contactPermission') || contactPermission}
+          value={watch('reporterDetails.contactPermission') || contactPermission}
           onChange={(val) => {
             setContactPermission(val);
-            setValue('contactPermission', val);
+            setValue('reporterDetails.contactPermission', val);
           }}
         >
           <Stack direction="row" spacing={6}>
@@ -101,7 +107,7 @@ export function HcpReporterDetails({
               placeholder={t('forms.patient.personalDetails.emailPlaceholder')} 
               type="email" 
               {...inputStyles} 
-              {...register('email', { 
+              {...register('reporterDetails.email', { 
                 required: t('forms.patient.personalDetails.emailRequired'),
                 pattern: {
                   value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
@@ -109,6 +115,9 @@ export function HcpReporterDetails({
                 }
               })} 
             />
+            <Text color="red.500" fontSize="xs" mt={1}>
+              {watch('reporterDetails.email') === '' ? t('forms.patient.personalDetails.emailRequired') : ''}
+            </Text>
           </FormControl>
 
           <FormControl mb={6} isRequired>
@@ -119,7 +128,7 @@ export function HcpReporterDetails({
               placeholder={t('forms.patient.personalDetails.phonePlaceholder')} 
               type="tel" 
               {...inputStyles} 
-              {...register('phone', { 
+              {...register('reporterDetails.phone', { 
                 required: t('forms.patient.personalDetails.phoneRequired'),
                 pattern: {
                   value: /^\d{10}$/,
@@ -127,6 +136,10 @@ export function HcpReporterDetails({
                 }
               })} 
             />
+            {/* Phone specific error hint */}
+            <Text color="red.500" fontSize="xs" mt={1}>
+              {watch('reporterDetails.phone') && !/^\d{10}$/.test(watch('reporterDetails.phone')) ? t('forms.patient.personalDetails.phoneDigits', 'Must be 10 digits') : ''}
+            </Text>
           </FormControl>
 
           <Box mt={10} mb={4}>
@@ -140,46 +153,46 @@ export function HcpReporterDetails({
             <FormLabel fontWeight="500" color="gray.700">
               {t('forms.hcp.reporterDetails.institutionLabel')}
             </FormLabel>
-            <Input placeholder={t('forms.hcp.reporterDetails.institutionPlaceholder')} {...inputStyles} {...register('institution')} />
+            <Input placeholder={t('forms.hcp.reporterDetails.institutionPlaceholder')} {...inputStyles} {...register('reporterDetails.institution')} />
           </FormControl>
 
           <FormControl mb={4}>
             <FormLabel fontWeight="500" color="gray.700">
               {t('forms.hcp.reporterDetails.addressLabel')}
             </FormLabel>
-            <Input placeholder={t('forms.hcp.reporterDetails.addressPlaceholder')} {...inputStyles} {...register('address')} />
+            <Input placeholder={t('forms.hcp.reporterDetails.addressPlaceholder')} {...inputStyles} {...register('reporterDetails.address')} />
           </FormControl>
 
           <FormControl mb={4}>
             <FormLabel fontWeight="500" color="gray.700">
               {t('forms.hcp.reporterDetails.cityLabel')}
             </FormLabel>
-            <Input placeholder={t('forms.hcp.reporterDetails.cityLabel')} {...inputStyles} {...register('city')} />
+            <Input placeholder={t('forms.hcp.reporterDetails.cityLabel')} {...inputStyles} {...register('reporterDetails.city')} />
           </FormControl>
 
           <FormControl mb={4}>
             <FormLabel fontWeight="500" color="gray.700">
               {t('forms.hcp.reporterDetails.stateLabel')}
             </FormLabel>
-            <Input placeholder={t('forms.hcp.reporterDetails.stateLabel')} {...inputStyles} {...register('state')} />
+            <Input placeholder={t('forms.hcp.reporterDetails.stateLabel')} {...inputStyles} {...register('reporterDetails.state')} />
           </FormControl>
 
           <FormControl mb={4}>
             <FormLabel fontWeight="500" color="gray.700">
               {t('forms.hcp.reporterDetails.zipLabel')}
             </FormLabel>
-            <Input placeholder={t('forms.hcp.reporterDetails.zipLabel')} {...inputStyles} {...register('zipCode')} />
+            <Input placeholder={t('forms.hcp.reporterDetails.zipLabel')} {...inputStyles} {...register('reporterDetails.zipCode')} />
           </FormControl>
 
-          <FormControl mb={8}>
+          <FormControl mb={8} isRequired>
             <FormLabel fontWeight="500" color="gray.700">
               {t('forms.hcp.reporterDetails.countryLabel')}
             </FormLabel>
-            <Select placeholder={t('forms.hcp.reporterDetails.countryLabel')} {...inputStyles} {...register('country')}>
-              <option value="us">{t('forms.hcp.reporterDetails.countries.us')}</option>
-              <option value="uk">{t('forms.hcp.reporterDetails.countries.uk')}</option>
-              <option value="ca">{t('forms.hcp.reporterDetails.countries.ca')}</option>
-            </Select>
+            <Input 
+              placeholder={t('forms.hcp.reporterDetails.countryPlaceholder', 'Type Country')} 
+              {...inputStyles} 
+              {...register('reporterDetails.country', { required: t('forms.shared.reporterDetails.countryRequired', 'Country is required') })}
+            />
           </FormControl>
         </>
       )}

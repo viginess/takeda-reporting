@@ -72,8 +72,8 @@ const hcpPatientDetailsSchema = z.object({
 // ─── HCP reporter/you details ─────────────────────────────────────────────────
 
 const hcpReporterDetailsSchema = z.object({
-  firstName: z.string().optional(),
-  lastName: z.string().optional(),
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
   email: z.string().optional(),
   phone: z.string().optional(),
   institution: z.string().optional(),
@@ -81,8 +81,16 @@ const hcpReporterDetailsSchema = z.object({
   city: z.string().optional(),
   state: z.string().optional(),
   zipCode: z.string().optional(),
-  country: z.string().optional(),
-  contactPermission: z.string().optional(),
+  country: z.string().min(1, "Country is required"),
+  contactPermission: z.string().min(1, "Contact permission is required"),
+}).refine(data => {
+  if (data.contactPermission === 'yes') {
+    return !!data.email && !!data.phone;
+  }
+  return true;
+}, {
+  message: "Email and phone are required if contact permission is granted",
+  path: ["email"]
 });
 
 // ─── Create schema ────────────────────────────────────────────────────────────

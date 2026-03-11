@@ -17,6 +17,7 @@ import {
   getMonthlyVolume,
   getReportPDF,
   getReportXML,
+  getBulkReports,
 } from "./reportsrouter.js";
 import {
   getSystemSettings,
@@ -45,4 +46,5 @@ export const adminRouter = router({
   runManualArchiving,
   getReportPDF,
   getReportXML,
+  getBulkReports,
 });
