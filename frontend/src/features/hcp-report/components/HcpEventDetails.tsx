@@ -10,12 +10,12 @@ import {
   Radio,
   Box,
   Text,
-} from '@chakra-ui/react';
-import { useFormContext } from 'react-hook-form';
-import { HiPlus } from 'react-icons/hi2';
-import { useTranslation } from 'react-i18next';
+} from "@chakra-ui/react";
+import { useFormContext } from "react-hook-form";
+import { HiPlus } from "react-icons/hi2";
+import { useTranslation } from "react-i18next";
 
-import { MedDRASymptomAutocomplete } from '../../patient-report/components/MedDRASymptomAutocomplete.js';
+import { MedDRASymptomAutocomplete } from "../../patient-report/components/MedDRASymptomAutocomplete.js";
 
 interface HcpEventDetailsProps {
   inputStyles: any;
@@ -36,28 +36,28 @@ export function HcpEventDetails({
   const { setValue, register, watch } = useFormContext();
 
   const prefix = `symptoms.${index}`;
-  const firstProductName = watch('products.0.productName');
+  const firstProductName = watch("products.0.productName");
 
   const setUnknown = (fieldName: string) => {
-    setValue(`${prefix}.${fieldName}`, 'Unknown');
+    setValue(`${prefix}.${fieldName}`, "Unknown");
   };
 
   const setOngoing = (fieldName: string) => {
-    setValue(`${prefix}.${fieldName}`, 'Ongoing');
+    setValue(`${prefix}.${fieldName}`, "Ongoing");
   };
 
   return (
     <>
       <Heading as="h2" size="lg" mb={2} color="gray.800" fontWeight="600">
-        {t('forms.patient.eventDetails.title')}
+        {t("forms.patient.eventDetails.title")}
       </Heading>
 
       <FormControl mb={6} isRequired>
         <FormLabel fontWeight="500" color="gray.700">
-          {t('forms.patient.eventDetails.symptomQuestion')}
+          {t("forms.patient.eventDetails.symptomQuestion")}
         </FormLabel>
         <MedDRASymptomAutocomplete
-          value={watch(`${prefix}.name`) || ''}
+          value={watch(`${prefix}.name`) || ""}
           onChange={(val, code) => {
             setValue(`${prefix}.name`, val);
             if (code) {
@@ -71,14 +71,24 @@ export function HcpEventDetails({
 
       <FormControl mb={6}>
         <FormLabel fontWeight="500" color="gray.700">
-          {t('forms.patient.eventDetails.dateQuestion')}
+          {t("forms.patient.eventDetails.dateQuestion")}
         </FormLabel>
         <Flex gap={3} flexWrap="wrap" align="center" mb={2}>
           <Input
-            key={watch(`${prefix}.eventStartDate`) === 'Unknown' ? 'untouchable' : 'selectable'}
-            type={watch(`${prefix}.eventStartDate`) === 'Unknown' ? 'text' : 'date'}
-            value={watch(`${prefix}.eventStartDate`) === 'Unknown' ? t('forms.patient.common.unknown') : watch(`${prefix}.eventStartDate`)}
-            placeholder={t('forms.patient.eventDetails.startDatePlaceholder')}
+            key={
+              watch(`${prefix}.eventStartDate`) === "Unknown"
+                ? "untouchable"
+                : "selectable"
+            }
+            type={
+              watch(`${prefix}.eventStartDate`) === "Unknown" ? "text" : "date"
+            }
+            value={
+              watch(`${prefix}.eventStartDate`) === "Unknown"
+                ? t("forms.patient.common.unknown")
+                : watch(`${prefix}.eventStartDate`)
+            }
+            placeholder={t("forms.patient.eventDetails.startDatePlaceholder")}
             flex="1"
             minW="140px"
             {...inputStyles}
@@ -88,17 +98,31 @@ export function HcpEventDetails({
             variant="outline"
             size="lg"
             borderColor="gray.300"
-            onClick={() => setUnknown('eventStartDate')}
+            onClick={() => setUnknown("eventStartDate")}
           >
-            {t('forms.patient.common.unknown')}
+            {t("forms.patient.common.unknown")}
           </Button>
         </Flex>
         <Flex gap={3} flexWrap="wrap" align="center">
           <Input
-            key={['Unknown', 'Ongoing'].includes(watch(`${prefix}.eventEndDate`)) ? 'untouchable' : 'selectable'}
-            type={['Unknown', 'Ongoing'].includes(watch(`${prefix}.eventEndDate`)) ? 'text' : 'date'}
-            value={watch(`${prefix}.eventEndDate`) === 'Unknown' ? t('forms.patient.common.unknown') : watch(`${prefix}.eventEndDate`) === 'Ongoing' ? t('forms.patient.common.ongoing') : watch(`${prefix}.eventEndDate`)}
-            placeholder={t('forms.patient.eventDetails.endDatePlaceholder')}
+            key={
+              ["Unknown", "Ongoing"].includes(watch(`${prefix}.eventEndDate`))
+                ? "untouchable"
+                : "selectable"
+            }
+            type={
+              ["Unknown", "Ongoing"].includes(watch(`${prefix}.eventEndDate`))
+                ? "text"
+                : "date"
+            }
+            value={
+              watch(`${prefix}.eventEndDate`) === "Unknown"
+                ? t("forms.patient.common.unknown")
+                : watch(`${prefix}.eventEndDate`) === "Ongoing"
+                  ? t("forms.patient.common.ongoing")
+                  : watch(`${prefix}.eventEndDate`)
+            }
+            placeholder={t("forms.patient.eventDetails.endDatePlaceholder")}
             flex="1"
             minW="140px"
             {...inputStyles}
@@ -108,24 +132,24 @@ export function HcpEventDetails({
             variant="outline"
             size="lg"
             borderColor="gray.300"
-            onClick={() => setUnknown('eventEndDate')}
+            onClick={() => setUnknown("eventEndDate")}
           >
-            {t('forms.patient.common.unknown')}
+            {t("forms.patient.common.unknown")}
           </Button>
           <Button
             variant="outline"
             size="lg"
             borderColor="gray.300"
-            onClick={() => setOngoing('eventEndDate')}
+            onClick={() => setOngoing("eventEndDate")}
           >
-            {t('forms.patient.common.ongoing')}
+            {t("forms.patient.common.ongoing")}
           </Button>
         </Flex>
       </FormControl>
 
       <FormControl mb={6}>
         <FormLabel fontWeight="500" color="gray.700">
-          {t('forms.patient.eventDetails.treatedQuestion')}
+          {t("forms.patient.eventDetails.treatedQuestion")}
         </FormLabel>
         <RadioGroup
           value={symptomTreated}
@@ -136,56 +160,100 @@ export function HcpEventDetails({
         >
           <Stack direction="row" spacing={6}>
             <Radio value="yes" colorScheme="red">
-              {t('forms.patient.common.yes')}
+              {t("forms.patient.common.yes")}
             </Radio>
             <Radio value="no" colorScheme="red">
-              {t('forms.patient.common.no')}
+              {t("forms.patient.common.no")}
             </Radio>
           </Stack>
         </RadioGroup>
       </FormControl>
 
+      {symptomTreated === "yes" && (
+        <FormControl mb={6} isRequired>
+          <FormLabel fontWeight="500" color="gray.700">
+            {t(
+              "forms.patient.eventDetails.treatmentLabel",
+              "Treatment Details",
+            )}
+          </FormLabel>
+          <Box
+            as="textarea"
+            width="full"
+            p={3}
+            borderRadius="lg"
+            border="1px solid"
+            borderColor="gray.300"
+            _focus={{ borderColor: "#CE0037", boxShadow: "0 0 0 1px #CE0037" }}
+            rows={3}
+            placeholder={t(
+              "forms.patient.eventDetails.treatmentPlaceholder",
+              "Describe the treatment given...",
+            )}
+            {...register(`${prefix}.treatment`, {
+              required: symptomTreated === "yes",
+            })}
+          />
+        </FormControl>
+      )}
+
       <FormControl mb={6}>
         <FormLabel fontWeight="500" color="gray.700">
-          {t('forms.hcp.eventDetails.seriousness.label')}
+          {t("forms.hcp.eventDetails.seriousness.label")}
         </FormLabel>
-        <RadioGroup 
+        <RadioGroup
           value={watch(`${prefix}.seriousness`)}
           onChange={(val) => setValue(`${prefix}.seriousness`, val)}
         >
           <Stack direction="row" spacing={6} flexWrap="wrap">
-            <Radio value="not-serious" colorScheme="red">{t('forms.hcp.eventDetails.seriousness.not-serious')}</Radio>
-            <Radio value="medical-intervention" colorScheme="red">{t('forms.hcp.eventDetails.seriousness.medical-intervention')}</Radio>
-            <Radio value="hospitalization" colorScheme="red">{t('forms.hcp.eventDetails.seriousness.hospitalization')}</Radio>
-            <Radio value="life-threatening" colorScheme="red">{t('forms.hcp.eventDetails.seriousness.life-threatening')}</Radio>
-            <Radio value="disability" colorScheme="red">{t('forms.hcp.eventDetails.seriousness.disability')}</Radio>
-            <Radio value="congenital" colorScheme="red">{t('forms.hcp.eventDetails.seriousness.congenital')}</Radio>
-            <Radio value="medically-significant" colorScheme="red">{t('forms.hcp.eventDetails.seriousness.medically-significant')}</Radio>
-            <Radio value="death" colorScheme="red">{t('forms.hcp.eventDetails.seriousness.death')}</Radio>
+            <Radio value="not-serious" colorScheme="red">
+              {t("forms.hcp.eventDetails.seriousness.not-serious")}
+            </Radio>
+            <Radio value="medical-intervention" colorScheme="red">
+              {t("forms.hcp.eventDetails.seriousness.medical-intervention")}
+            </Radio>
+            <Radio value="hospitalization" colorScheme="red">
+              {t("forms.hcp.eventDetails.seriousness.hospitalization")}
+            </Radio>
+            <Radio value="life-threatening" colorScheme="red">
+              {t("forms.hcp.eventDetails.seriousness.life-threatening")}
+            </Radio>
+            <Radio value="disability" colorScheme="red">
+              {t("forms.hcp.eventDetails.seriousness.disability")}
+            </Radio>
+            <Radio value="congenital" colorScheme="red">
+              {t("forms.hcp.eventDetails.seriousness.congenital")}
+            </Radio>
+            <Radio value="medically-significant" colorScheme="red">
+              {t("forms.hcp.eventDetails.seriousness.medically-significant")}
+            </Radio>
+            <Radio value="death" colorScheme="red">
+              {t("forms.hcp.eventDetails.seriousness.death")}
+            </Radio>
           </Stack>
         </RadioGroup>
       </FormControl>
 
       <FormControl mb={8}>
         <FormLabel fontWeight="500" color="gray.700">
-          {t('forms.hcp.eventDetails.outcome.label')}
+          {t("forms.hcp.eventDetails.outcome.label")}
         </FormLabel>
-        <RadioGroup 
+        <RadioGroup
           value={watch(`${prefix}.outcome`)}
           onChange={(val) => setValue(`${prefix}.outcome`, val)}
         >
           <Stack direction="row" spacing={6} flexWrap="wrap">
             <Radio value="recovered" colorScheme="red">
-              {t('forms.hcp.eventDetails.outcome.recovered')}
+              {t("forms.hcp.eventDetails.outcome.recovered")}
             </Radio>
             <Radio value="recovered-lasting" colorScheme="red">
-              {t('forms.hcp.eventDetails.outcome.recovered-lasting')}
+              {t("forms.hcp.eventDetails.outcome.recovered-lasting")}
             </Radio>
             <Radio value="improved" colorScheme="red">
-              {t('forms.hcp.eventDetails.outcome.improved')}
+              {t("forms.hcp.eventDetails.outcome.improved")}
             </Radio>
             <Radio value="ongoing" colorScheme="red">
-              {t('forms.hcp.eventDetails.outcome.ongoing')}
+              {t("forms.hcp.eventDetails.outcome.ongoing")}
             </Radio>
           </Stack>
         </RadioGroup>
@@ -193,7 +261,7 @@ export function HcpEventDetails({
 
       <Box mt={10} mb={6}>
         <Text fontWeight="600" color="gray.700" fontSize="sm">
-          {t('forms.hcp.eventDetails.relatedness.label')}
+          {t("forms.hcp.eventDetails.relatedness.label")}
         </Text>
       </Box>
 
@@ -207,21 +275,23 @@ export function HcpEventDetails({
         boxShadow="sm"
       >
         <Text fontWeight="700" mb={4} color="gray.800" fontSize="sm">
-          {t('forms.hcp.eventDetails.relatedness.suspectProduct', { product: firstProductName || t('forms.patient.common.unknown') })}
+          {t("forms.hcp.eventDetails.relatedness.suspectProduct", {
+            product: firstProductName || t("forms.patient.common.unknown"),
+          })}
         </Text>
-        <RadioGroup 
+        <RadioGroup
           value={watch(`${prefix}.relatedToProduct`)}
           onChange={(val) => setValue(`${prefix}.relatedToProduct`, val)}
         >
           <Stack spacing={2}>
             <Radio value="yes" colorScheme="red">
-              {t('forms.patient.common.yes')}
+              {t("forms.patient.common.yes")}
             </Radio>
             <Radio value="no" colorScheme="red">
-              {t('forms.patient.common.no')}
+              {t("forms.patient.common.no")}
             </Radio>
             <Radio value="unknown" colorScheme="red">
-              {t('forms.patient.common.unknown')}
+              {t("forms.patient.common.unknown")}
             </Radio>
           </Stack>
         </RadioGroup>
@@ -236,11 +306,11 @@ export function HcpEventDetails({
           fontWeight={600}
           borderRadius="lg"
           size="lg"
-          _hover={{ bg: '#E31C5F' }}
+          _hover={{ bg: "#E31C5F" }}
           leftIcon={<HiPlus />}
           onClick={onAddSymptom}
         >
-          {t('forms.patient.eventDetails.anotherSymptom')}
+          {t("forms.patient.eventDetails.anotherSymptom")}
         </Button>
       )}
     </>
