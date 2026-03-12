@@ -8,7 +8,6 @@ import { systemSettings } from "../../db/admin/settings.schema.js";
 import { createFamilySchema, updateFamilySchema } from "./family.validation.js";
 import { determineNotificationData, shouldCreateNotification } from "../../utils/notification-helper.js";
 import { assertNoMaintenance } from "../../utils/config-helper.js";
-import { processE2BWorkflow } from "../e2b/index.js";
 
 export const familyRouter = router({
   create: rateLimitedProcedure
