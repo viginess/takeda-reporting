@@ -9,9 +9,9 @@ const conditionSchema = z.object({
 
 const batchSchema = z.object({
   batchNumber: z.string().min(1, "Batch number is required"),
-  expiryDate: z.string().optional(),
-  startDate: z.string().optional(),
-  endDate: z.string().optional(),
+  expiryDate: z.string().optional().or(z.literal("")),
+  startDate: z.string().optional().or(z.literal("")),
+  endDate: z.string().optional().or(z.literal("")),
   dosage: z.string().optional(),
 });
 
@@ -26,8 +26,8 @@ const productSchema = z.object({
 const symptomSchema = z.object({
   name: z.string().min(1, "Symptom name is required"),
   meddraCode: z.string().optional(),
-  eventStartDate: z.string().optional(),
-  eventEndDate: z.string().optional(),
+  eventStartDate: z.string().optional().or(z.literal("")),
+  eventEndDate: z.string().optional().or(z.literal("")),
   symptomTreated: z.string().optional(),
   treatment: z.string().optional(),
   seriousness: z.union([z.string(), z.array(z.string())]).optional(),
@@ -38,14 +38,14 @@ const symptomSchema = z.object({
 const otherMedicationSchema = z.object({
   product: z.string().optional(),
   condition: z.string().optional(),
-  startDate: z.string().optional(),
-  endDate: z.string().optional(),
+  startDate: z.string().optional().or(z.literal("")),
+  endDate: z.string().optional().or(z.literal("")),
 });
 
 const medicalHistorySchema = z.object({
   conditionName: z.string().optional(),
-  startDate: z.string().optional(),
-  endDate: z.string().optional(),
+  startDate: z.string().optional().or(z.literal("")),
+  endDate: z.string().optional().or(z.literal("")),
   info: z.string().optional(),
 });
 
@@ -61,9 +61,17 @@ const labTestSchema = z.object({
 
 const hcpPatientDetailsSchema = z.object({
   initials: z.string().optional(),
-  dob: z.string().optional(),
-  age: z.union([z.number(), z.string()]).optional(),
-  gender: z.string().optional(),
+  dob: z.string().optional().or(z.literal("")),
+  age: z.preprocess((val) => (typeof val === "string" ? parseInt(val, 10) : val), z.number({ invalid_type_error: "Age must be a number" }).optional()),
+  gender: z.preprocess((val) => {
+    if (typeof val === "string") {
+      const low = val.toLowerCase();
+      if (low === "male") return "M";
+      if (low === "female") return "F";
+      if (low === "other") return "O";
+    }
+    return val;
+  }, z.enum(["M", "F", "O", "Unknown"]).optional().default("Unknown")),
   reference: z.string().optional(),
   height: z.string().optional(),
   weight: z.string().optional(),

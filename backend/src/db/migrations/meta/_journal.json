@@ -8,6 +8,13 @@
       "when": 1771617685800,
       "tag": "0000_famous_gauntlet",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1773316427980,
+      "tag": "0001_fresh_hydra",
+      "breakpoints": true
     }
   ]
 }

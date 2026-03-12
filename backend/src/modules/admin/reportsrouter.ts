@@ -546,7 +546,7 @@ export const getMonthlyVolume = viewerProcedure.query(async () => {
   }));
 });
 
-export const getReportPDF = viewerProcedure
+export const getReportPDF = adminProcedure
   .input(z.object({ 
     reportId: z.string().uuid(),
     reporterType: z.enum(["Patient", "HCP", "Family"])
@@ -584,7 +584,7 @@ export const getReportPDF = viewerProcedure
     return { success: true, url: signedUrl };
   });
 
-export const getReportXML = viewerProcedure
+export const getReportXML = adminProcedure
   .input(z.object({ 
     reportId: z.string().uuid(),
     reporterType: z.enum(["Patient", "HCP", "Family"])
@@ -606,7 +606,7 @@ export const getReportXML = viewerProcedure
     return { success: true, url };
   });
 
-export const getBulkReports = viewerProcedure
+export const getBulkReports = adminProcedure
   .input(z.object({
     reports: z.array(z.object({
       reportId: z.string().uuid(),

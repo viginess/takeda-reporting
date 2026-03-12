@@ -45,6 +45,7 @@ export const patientReports = pgTable("patient_reports", {
   adminNotes: text("admin_notes"),
   xmlUrl: text("xml_url"),
   pdfUrl: text("pdf_url"),
+  meddraVersion: text("meddra_version"),
   lastUpdatedAt: timestamp("last_updated_at"),
 
   // Meta

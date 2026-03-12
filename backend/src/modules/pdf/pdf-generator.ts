@@ -52,7 +52,12 @@ export async function generateSafetyPDF(report: any): Promise<Buffer> {
     
     renderGridHeader(doc, ['E2B Code', 'Field Description', 'Value']);
     renderGridRow(doc, 'N.2.r.1', 'Message Identifier', report.referenceId || 'PENDING', true);
-    renderGridRow(doc, 'N.2.r.4', 'Date of Creation', report.createdAt instanceof Date ? report.createdAt.toISOString() : 'N/A', true);
+    let creationDate = 'N/A';
+    if (report.createdAt) {
+      const d = new Date(report.createdAt);
+      if (!isNaN(d.getTime())) creationDate = d.toISOString();
+    }
+    renderGridRow(doc, 'N.2.r.4', 'Date of Creation', creationDate, true);
 
     doc.moveDown(2);
 
@@ -98,7 +103,7 @@ export async function generateSafetyPDF(report: any): Promise<Buffer> {
     
     const products = (report.products as any[]) || [];
     products.forEach((p, idx) => {
-      renderGridRow(doc, `G.k.2.2.${idx+1}`, p.name || 'Unknown Product', p.condition || 'Not Stated');
+      renderGridRow(doc, `G.k.2.2.${idx+1}`, p.productName || p.name || 'Unknown Product', p.condition || 'Not Stated');
     });
 
     doc.moveDown(2);
