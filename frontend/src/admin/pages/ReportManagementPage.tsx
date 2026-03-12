@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FileText, Edit3, ChevronDown, Search,
@@ -15,9 +15,9 @@ import {
 import {
   Box, Flex, Text, Heading, Button, Badge, Input,
   InputGroup, InputLeftElement, SimpleGrid, VStack,
-   IconButton as ChakraIconButton, useToast, Spinner, Center,
+   IconButton as ChakraIconButton, useToast, Center,
    Image, Modal, ModalOverlay, ModalContent, ModalBody, ModalCloseButton, useDisclosure,
-   Checkbox
+   Checkbox, Skeleton
 } from "@chakra-ui/react";
 import { trpc } from "../../utils/trpc";
 
@@ -338,6 +338,12 @@ export default function ReportManagementPage() {
   const [downloadingXml, setDownloadingXml] = useState(false);
   const [downloadingPdf, setDownloadingPdf] = useState(false);
   const [downloadingBulk, setDownloadingBulk] = useState(false);
+  const [isMounting, setIsMounting] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsMounting(false), 700);
+    return () => clearTimeout(timer);
+  }, []);
   
   // MedDRA Coding State
   const { 
@@ -614,13 +620,26 @@ export default function ReportManagementPage() {
 
       {/* ── Main Layout ── */}
       <Flex flex={1} px={8} pb={8} minH={0} gap={0}>
-        {isLoading ? (
-          <Center w="100%" h="100%" flex={1}>
-            <VStack gap={4}>
-              <Spinner size="xl" color="#CE0037" thickness="4px" />
-              <Text color="gray.500" fontWeight="medium">Loading reports...</Text>
-            </VStack>
-          </Center>
+        {isLoading || isMounting ? (
+          <Box w="full" bg="white" p={6} borderRadius="2xl" border="1px solid" borderColor="#e2e8f0">
+             <VStack align="stretch" spacing={5}>
+                <Skeleton h="40px" w="200px" borderRadius="md" mb={2} />
+                <Flex gap={4} mb={4}>
+                   <Skeleton h="40px" flex={1} borderRadius="lg" />
+                   <Skeleton h="40px" w="150px" borderRadius="lg" />
+                   <Skeleton h="40px" w="150px" borderRadius="lg" />
+                </Flex>
+                {[1, 2, 3, 4, 5, 6].map(i => (
+                  <Flex key={i} gap={6} align="center" py={2} borderBottom="1px solid" borderColor="#f1f5f9">
+                    <Skeleton h="20px" w="80px" />
+                    <Skeleton h="20px" flex={1} />
+                    <Skeleton h="20px" w="100px" />
+                    <Skeleton h="20px" w="80px" />
+                    <Skeleton h="20px" w="60px" />
+                  </Flex>
+                ))}
+             </VStack>
+          </Box>
         ) : isError ? (
           <Center w="100%" h="100%" flex={1}>
             <VStack gap={4}>
@@ -639,7 +658,7 @@ export default function ReportManagementPage() {
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.12 }}
           w={selectedReport ? "420px" : "100%"}
-          shrink={0}
+          flexShrink={0}
           bg="white"
           borderRadius="2xl"
           border="1px solid"
@@ -1194,7 +1213,7 @@ export default function ReportManagementPage() {
                         <Box borderTop="1px solid" borderColor="#f1f5f9">
                           {selectedReport.audit.map((entry, i) => (
                             <Flex key={i} gap={3} p={3} px={4} borderBottom={i < selectedReport.audit.length - 1 ? "1px solid" : "none"} borderColor="#f8fafc" align="flex-start">
-                              <Flex w="28px" h="28px" borderRadius="full" bg="red.50" border="1px solid" borderColor="red.200" align="center" justify="center" shrink={0} mt="2px">
+                              <Flex w="28px" h="28px" borderRadius="full" bg="red.50" border="1px solid" borderColor="red.200" align="center" justify="center" flexShrink={0} mt="2px">
                                 <History size={12} color="#CE0037" />
                               </Flex>
                               <Box flex={1}>
@@ -1271,7 +1290,11 @@ export default function ReportManagementPage() {
             </InputGroup>
 
             <VStack align="stretch" spacing={2} maxH="400px" overflowY="auto" pr={2}>
-              {searchingMeddra && <Center py={8}><Spinner color="#CE0037" /></Center>}
+              {searchingMeddra && (
+                <VStack spacing={2} align="stretch" py={2}>
+                  {[1, 2, 3].map(i => <Skeleton key={i} h="40px" borderRadius="xl" />)}
+                </VStack>
+              )}
               
               {meddraResults?.map((term: MedDRATerm) => (
                 <Box 

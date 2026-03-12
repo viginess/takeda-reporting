@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Settings, Shield, Bell, Save, RotateCcw, Check, AlertTriangle, AlertCircle, Users } from "lucide-react";
 import {
   Box, Flex, Text, Heading, Button, Modal, ModalOverlay, ModalContent, ModalHeader,
-  ModalBody, ModalFooter, useDisclosure, useToast, Spinner, Center
+  ModalBody, ModalFooter, useDisclosure, useToast,Skeleton,
+  VStack
 } from "@chakra-ui/react";
 import { trpc } from "../../../utils/trpc";
 import { supabase } from "../../../utils/supabaseClient";
@@ -28,6 +29,12 @@ export default function SystemSettings() {
   const [pendingSection, setPendingSection] = useState<Section | null>(null);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const toast = useToast();
+  const [isMounting, setIsMounting] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsMounting(false), 800);
+    return () => clearTimeout(timer);
+  }, []);
 
   const { data: user } = trpc.admin.getMe.useQuery();
   const { data, isLoading, refetch } = trpc.admin.getSystemSettings.useQuery();
@@ -76,6 +83,8 @@ export default function SystemSettings() {
   const [sessionTimeout, setSessionTimeout] = useState("");
   const [maxLoginAttempts, setMaxLoginAttempts] = useState("5");
   const [passwordExpiry, setPasswordExpiry] = useState("90 days");
+  const [meddraVersion, setMeddraVersion] = useState("29.1");
+  const [lockoutCooldown, setLockoutCooldown] = useState("30 min");
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState<"super_admin" | "admin" | "viewer">("admin");
   const [urgentAlerts, setUrgentAlerts] = useState(false);
@@ -99,6 +108,8 @@ export default function SystemSettings() {
       setSessionTimeout(clinical.sessionTimeout || "60 min");
       setMaxLoginAttempts(clinical.maxLoginAttempts || "5");
       setPasswordExpiry(clinical.passwordExpiry || "90 days");
+      setMeddraVersion(clinical.meddraVersion || "29.1");
+      setLockoutCooldown(clinical.lockoutCooldown || "30 min");
       setSenderId(clinical.senderId || "CLINSOLUTION-DEFAULT");
       setReceiverId(clinical.receiverId || "EVHUMAN");
       const notifs = data.notificationThresholds || {};
@@ -133,7 +144,7 @@ export default function SystemSettings() {
           digestFrequency: data?.notificationThresholds.digestFrequency || "Daily",
           smsAlerts: data?.notificationThresholds.smsAlerts || false,
         },
-        clinicalConfig: { adminEmail, timezone, retention, maintenanceMode, twoFA, sessionTimeout, maxLoginAttempts, passwordExpiry, senderId, receiverId }
+        clinicalConfig: { adminEmail, timezone, retention, maintenanceMode, twoFA, sessionTimeout, maxLoginAttempts, passwordExpiry, meddraVersion, lockoutCooldown, senderId, receiverId }
       });
     }
     if (userId) await updateAdminProfile.mutateAsync({ firstName, lastName });
@@ -160,6 +171,8 @@ export default function SystemSettings() {
       setSessionTimeout(clinical.sessionTimeout || "60 min");
       setMaxLoginAttempts(clinical.maxLoginAttempts || "5");
       setPasswordExpiry(clinical.passwordExpiry || "90 days");
+      setMeddraVersion(clinical.meddraVersion || "29.1");
+      setLockoutCooldown(clinical.lockoutCooldown || "30 min");
       setSenderId(clinical.senderId || "CLINSOLUTION-DEFAULT");
       setReceiverId(clinical.receiverId || "EVHUMAN");
       const notifs = data.notificationThresholds || {};
@@ -177,14 +190,21 @@ export default function SystemSettings() {
     onClose();
   };
 
-  if (isLoading) {
+  if (isLoading || isMounting) {
     return (
-      <Center h="100vh" w="100%">
-        <Flex direction="column" align="center" gap={4}>
-          <Spinner size="xl" color="#CE0037" thickness="4px" />
-          <Text color="#64748b" fontWeight="medium">Loading system configurations...</Text>
+      <Flex direction="column" minH="100vh" bg="#f8fafc" p={8}>
+        <Flex gap={6} flex={1}>
+          <Box w="260px" flexShrink={0}>
+             <Skeleton h="300px" borderRadius="2xl" />
+          </Box>
+          <Box flex={1}>
+             <VStack align="stretch" spacing={6}>
+                <Skeleton h="100px" borderRadius="2xl" />
+                <Skeleton h="400px" borderRadius="2xl" />
+             </VStack>
+          </Box>
         </Flex>
-      </Center>
+      </Flex>
     );
   }
 
@@ -236,7 +256,7 @@ export default function SystemSettings() {
       <Flex flex={1} p={6} px={8} gap={6}>
 
         {/* Sidebar Nav */}
-        <Box as={motion.div} {...({} as any)} initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.08 }} w="260px" shrink={0}>
+        <Box as={motion.div} {...({} as any)} initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.08 }} w="260px" flexShrink={0}>
           <Box bg="white" borderRadius="2xl" border="1px solid" borderColor="#e2e8f0" overflow="hidden">
             {filteredNavSections.map((s, i) => (
               <Flex
@@ -253,7 +273,7 @@ export default function SystemSettings() {
               >
                 <Flex w="30px" h="30px" borderRadius="md" align="center" justify="center"
                   bg={active === s.id ? "red.50" : "#f8fafc"}
-                  border="1px solid" borderColor={active === s.id ? "red.200" : "#e2e8f0"} shrink={0}>
+                  border="1px solid" borderColor={active === s.id ? "red.200" : "#e2e8f0"} flexShrink={0}>
                   <s.icon size={14} color={active === s.id ? "#CE0037" : "#94a3b8"} />
                 </Flex>
                 <Box>
@@ -281,6 +301,7 @@ export default function SystemSettings() {
               isArchiving={runArchivingManual.isPending}
               senderId={senderId} setSenderId={setSenderId}
               receiverId={receiverId} setReceiverId={setReceiverId}
+              meddraVersion={meddraVersion} setMeddraVersion={setMeddraVersion}
             />
           )}
 
@@ -290,6 +311,7 @@ export default function SystemSettings() {
               sessionTimeout={sessionTimeout} setSessionTimeout={setSessionTimeout}
               maxLoginAttempts={maxLoginAttempts} setMaxLoginAttempts={setMaxLoginAttempts}
               passwordExpiry={passwordExpiry} setPasswordExpiry={setPasswordExpiry}
+              lockoutCooldown={lockoutCooldown} setLockoutCooldown={setLockoutCooldown}
               track={track}
             />
           )}

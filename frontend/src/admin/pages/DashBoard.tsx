@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Bell, FileText, CheckCircle, Clock, AlertTriangle,
@@ -12,7 +12,7 @@ import { trpc } from "../../utils/trpc";
 import { useNavigate } from "react-router-dom";
 import {
   Box, Flex, Text, Heading, Button, IconButton, Badge, SimpleGrid,
-  Card, CardBody, HStack, VStack, Spinner
+  Card, CardBody, HStack, VStack, Skeleton
 } from "@chakra-ui/react";
 import { getRelativeTime } from "../../utils/date-utils";
 
@@ -53,7 +53,13 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const [notifOpen, setNotifOpen] = useState(false);
+  const [isMounting, setIsMounting] = useState(true);
   const utils = trpc.useContext();
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsMounting(false), 500);
+    return () => clearTimeout(timer);
+  }, []);
   
   // Real Data Queries
   const { data: notifications = [] } = trpc.notifications.getAll.useQuery(undefined, { refetchInterval: 5000 });
@@ -231,8 +237,8 @@ export default function AdminDashboard() {
                   <cfg.icon size={16} color={cfg.color} />
                 </Flex>
               </Flex>
-              {statsLoading ? (
-                <Spinner size="sm" color="#CE0037" />
+              {statsLoading || isMounting ? (
+                <Skeleton h="40px" w="60px" borderRadius="md" mt={1} />
               ) : (
                 <Text fontSize="3xl" fontWeight="extrabold" color="#0f172a" letterSpacing="-1px">
                   {dashboardStats ? (dashboardStats as any)[key] : 0}
@@ -276,8 +282,10 @@ export default function AdminDashboard() {
           </Button>
         </Flex>
         <Box>
-          {urgentLoading ? (
-            <Flex p={10} justify="center"><Spinner color="#CE0037" /></Flex>
+          {urgentLoading || isMounting ? (
+            <VStack p={4} align="stretch" spacing={3}>
+              {[1, 2, 3].map(i => <Skeleton key={i} h="48px" borderRadius="lg" />)}
+            </VStack>
           ) : urgentReports.length === 0 ? (
             <Flex p={10} justify="center"><Text color="#64748b" fontSize="sm">No urgent reports found</Text></Flex>
           ) : (
@@ -344,8 +352,8 @@ export default function AdminDashboard() {
             </HStack>
           </Flex>
           <Box p={4} pb={2}>
-            {areaLoading ? (
-              <Flex h="240px" align="center" justify="center"><Spinner color="#CE0037" /></Flex>
+            {areaLoading || isMounting ? (
+              <Skeleton h="240px" borderRadius="xl" />
             ) : (
               <ResponsiveContainer width="100%" height={240}>
                 <AreaChart data={monthlyVolume} margin={{ top: 5, right: 16, left: -20, bottom: 0 }}>
@@ -387,8 +395,8 @@ export default function AdminDashboard() {
           </Box>
           <Flex p={4} align="center" gap={4}>
             <Box w="50%" h="200px">
-              {pieLoading ? (
-                <Flex h="100%" align="center" justify="center"><Spinner color="#CE0037" /></Flex>
+              {pieLoading || isMounting ? (
+                <Skeleton h="160px" w="160px" borderRadius="full" m="auto" />
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>

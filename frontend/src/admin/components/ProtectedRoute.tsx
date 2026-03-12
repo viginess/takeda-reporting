@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { supabase } from '../../utils/supabaseClient';
-import { Center, Spinner } from '@chakra-ui/react';
+import { Flex, Box, Skeleton, VStack } from '@chakra-ui/react';
 import { trpc } from '../../utils/trpc';
 
 export default function ProtectedRoute() {
@@ -40,9 +40,19 @@ export default function ProtectedRoute() {
 
   if (loading || (authenticated && isBackendLoading)) {
     return (
-      <Center h="100vh">
-        <Spinner size="xl" color="red.500" thickness="4px" />
-      </Center>
+      <Flex direction="column" minH="100vh" bg="#f8fafc" p={8}>
+        <Flex gap={6} flex={1}>
+          <Box w="260px" flexShrink={0}>
+             <Skeleton h="300px" borderRadius="2xl" />
+          </Box>
+          <Box flex={1}>
+             <VStack align="stretch" spacing={6}>
+                <Skeleton h="100px" borderRadius="2xl" />
+                <Skeleton h="400px" borderRadius="2xl" />
+             </VStack>
+          </Box>
+        </Flex>
+      </Flex>
     );
   }
 

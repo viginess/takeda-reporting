@@ -73,7 +73,7 @@ export default function AdminLayout() {
           align="center"
           px={4}
           gap={3}
-          shrink={0}
+          flexShrink={0}
         >
           <IconButton
             aria-label="Toggle sidebar"
