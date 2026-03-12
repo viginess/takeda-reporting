@@ -1,10 +1,7 @@
 import PDFDocument from 'pdfkit';
-import { patientReports } from '../../db/schema.js';
-
-type PatientReport = typeof patientReports.$inferSelect;
 
 /**
- * Generates a branded Takeda PDF report for a safety case.
+ * Generates a branded clin solutions L.L.C PDF report for a safety case.
  * Maps data to E2B R3 field labels for consistency.
  */
 export async function generateSafetyPDF(report: any): Promise<Buffer> {
@@ -15,7 +12,7 @@ export async function generateSafetyPDF(report: any): Promise<Buffer> {
       bufferPages: true,
       info: {
         Title: `Safety Report - ${report.referenceId || report.id}`,
-        Author: 'Takeda Safety Reporting System',
+        Author: 'Clin Solutions L.L.C',
       }
     });
 
