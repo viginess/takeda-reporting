@@ -50,6 +50,8 @@ export const updateSystemSettings = superAdminProcedure
           passwordExpiry: z.string(),
           senderId: z.string().optional(),
           receiverId: z.string().optional(),
+          meddraVersion: z.string().optional(),
+          lockoutCooldown: z.string().optional(),
         })
         .optional(),
     }),
@@ -80,7 +82,9 @@ export const updateSystemSettings = superAdminProcedure
             ...input.clinicalConfig,
             senderId: input.clinicalConfig.senderId || oldSettings.clinicalConfig.senderId,
             receiverId: input.clinicalConfig.receiverId || oldSettings.clinicalConfig.receiverId,
-          } : undefined,
+            meddraVersion: input.clinicalConfig.meddraVersion || oldSettings.clinicalConfig.meddraVersion || "29.1",
+            lockoutCooldown: input.clinicalConfig.lockoutCooldown || oldSettings.clinicalConfig.lockoutCooldown || "30 min",
+          } as any : undefined,
         };
 
         const [newSettings] = await tx

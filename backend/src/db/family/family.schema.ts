@@ -44,6 +44,7 @@ export const familyReports = pgTable("family_reports", {
   adminNotes: text("admin_notes"),
   xmlUrl: text("xml_url"),
   pdfUrl: text("pdf_url"),
+  meddraVersion: text("meddra_version"),
   lastUpdatedAt: timestamp("last_updated_at"),  // Meta
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

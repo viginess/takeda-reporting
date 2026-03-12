@@ -48,6 +48,7 @@ export const patientRouter = router({
           reporterType: input.reporterType,
           status: input.status ?? "new",
           severity: determineNotificationData(input, "Patient", "TEMP").type as any,
+          meddraVersion: (await db.select().from(systemSettings).where(eq(systemSettings.id, 1)))[0]?.clinicalConfig?.meddraVersion || "29.1",
         })
         .returning();
 
@@ -70,12 +71,19 @@ export const patientRouter = router({
         });
       }
 
-      // ── Trigger E2B XML Workflow ────────────────────────────
+      // ── Trigger E2B XML & PDF Workflow ────────────────────────────
       try {
         const { processE2BWorkflow } = await import("../e2b/index.js");
         await processE2BWorkflow(row.id);
-      } catch (e2bErr) {
-        console.error("E2B Workflow non-blocking failure:", e2bErr);
+
+        const { generateSafetyPDF } = await import("../pdf/pdf-generator.js");
+        const { storeSafetyPDF } = await import("../pdf/storage.js");
+        
+        const buffer = await generateSafetyPDF(row);
+        const pdfPath = await storeSafetyPDF(row.referenceId || row.id, buffer);
+        await db.update(patientReports).set({ pdfUrl: pdfPath }).where(eq(patientReports.id, row.id));
+      } catch (workflowErr) {
+        console.error("Workflow non-blocking failure:", workflowErr);
       }
 
       return { success: true, data: row };

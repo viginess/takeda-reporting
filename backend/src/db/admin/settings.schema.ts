@@ -38,6 +38,8 @@ export const systemSettings = pgTable("system_settings", {
     passwordExpiry: string;
     senderId: string;
     receiverId: string;
+    meddraVersion: string;
+    lockoutCooldown: string;
   }>().notNull().default({
     adminEmail: "admin@pharma.com",
     timezone: "UTC+05:30 (IST)",
@@ -49,6 +51,8 @@ export const systemSettings = pgTable("system_settings", {
     passwordExpiry: "90 days",
     senderId: "CLINSOLUTION-DEFAULT",
     receiverId: "EVHUMAN",
+    meddraVersion: "29.1",
+    lockoutCooldown: "30 min",
   }),
   updatedAt: timestamp("updated_at").defaultNow(),
   updatedBy: text("updated_by"),
