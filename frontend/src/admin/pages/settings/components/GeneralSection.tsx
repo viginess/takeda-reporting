@@ -21,6 +21,8 @@ interface GeneralSectionProps {
   setSenderId: (v: string) => void;
   receiverId: string;
   setReceiverId: (v: string) => void;
+  meddraVersion: string;
+  setMeddraVersion: (v: string) => void;
 }
 
 export function GeneralSection({
@@ -35,6 +37,7 @@ export function GeneralSection({
   isArchiving,
   senderId, setSenderId,
   receiverId, setReceiverId,
+  meddraVersion, setMeddraVersion,
 }: GeneralSectionProps) {
   return (
     <>
@@ -57,6 +60,9 @@ export function GeneralSection({
           </RowItem>
           <RowItem label="Receiver ID" desc="The Regulatory Agency's registered ID">
             <Input value={receiverId} onChange={(e) => track(() => setReceiverId(e.target.value))} size="sm" w="220px" bg="white" />
+          </RowItem>
+          <RowItem label="MedDRA Version" desc="Active MedDRA version for clinical report coding">
+            <Input value={meddraVersion} onChange={(e) => track(() => setMeddraVersion(e.target.value))} size="sm" w="220px" bg="white" />
           </RowItem>
         </SettingsCard>
       )}

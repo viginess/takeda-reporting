@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Bell, AlertTriangle, CheckCircle, Info, Settings,
@@ -9,8 +9,7 @@ import { trpc } from "../../utils/trpc";
 import {
   Box, Flex, Text, Heading, Button, IconButton, Badge, Input,
   InputGroup, InputLeftElement, InputRightElement, SimpleGrid,
-  Spinner,
-
+  Skeleton, VStack
 } from "@chakra-ui/react";
 import { getRelativeTime, getGroupDate } from "../../utils/date-utils";
 
@@ -43,6 +42,12 @@ export default function NotificationsPage() {
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [showUnreadOnly, setShowUnreadOnly] = useState(false);
+  const [isMounting, setIsMounting] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsMounting(false), 600);
+    return () => clearTimeout(timer);
+  }, []);
 
   // ... (mutations same)
   const markAllReadMutation = trpc.notifications.markAllAsRead.useMutation({
@@ -260,10 +265,15 @@ export default function NotificationsPage() {
       </SimpleGrid>
 
       {/* ── Notification List ── */}
-      {isLoading ? (
-        <Flex justify="center" align="center" py={16}>
-          <Spinner color="#CE0037" size="xl" />
-        </Flex>
+      {isLoading || isMounting ? (
+        <VStack spacing={4} align="stretch">
+           <SimpleGrid columns={5} spacing={3} mb={4}>
+              {[1, 2, 3, 4, 5].map(i => <Skeleton key={i} h="100px" borderRadius="xl" />)}
+           </SimpleGrid>
+           {[1, 2, 3, 4, 5].map(i => (
+             <Skeleton key={i} h="80px" borderRadius="xl" />
+           ))}
+        </VStack>
       ) : Object.keys(grouped).length === 0 ? (
         <Flex
           as={motion.div}
@@ -328,7 +338,7 @@ export default function NotificationsPage() {
                         w="36px"
                         h="36px"
                         borderRadius="lg"
-                        shrink={0}
+                        flexShrink={0}
                         bg={n.read ? "#f8fafc" : cfg.bg}
                         border="1px solid"
                         borderColor={n.read ? "#e2e8f0" : cfg.border}
@@ -344,7 +354,7 @@ export default function NotificationsPage() {
                           <Text fontSize="sm" fontWeight={n.read ? "medium" : "bold"} color="#0f172a" lineHeight="1.4">
                             {n.title}
                           </Text>
-                          <Flex align="center" gap={2} shrink={0}>
+                          <Flex align="center" gap={2} flexShrink={0}>
                              <Text fontSize="xs" color="#94a3b8" whiteSpace="nowrap">{getRelativeTime(n.createdAt)}</Text>
                             {!n.read && (
                               <Box w="8px" h="8px" borderRadius="full" bg={cfg.color} flexShrink={0} />

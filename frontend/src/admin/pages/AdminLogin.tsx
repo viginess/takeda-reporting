@@ -148,7 +148,7 @@ export default function AdminLogin() {
 
   useEffect(() => {
     if (success) {
-      const timer = setTimeout(() => navigate("/admin"), 1500);
+      const timer = setTimeout(() => navigate("/admin"), 500);
       return () => clearTimeout(timer);
     }
   }, [success, navigate]);

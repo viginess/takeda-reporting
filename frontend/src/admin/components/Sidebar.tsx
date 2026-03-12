@@ -71,7 +71,7 @@ export default function Sidebar({ expanded }: { expanded: boolean }) {
           boxShadow="sm"
           align="center"
           justify="center"
-          shrink={0}
+          flexShrink={0}
           overflow="hidden"
         >
           <Image

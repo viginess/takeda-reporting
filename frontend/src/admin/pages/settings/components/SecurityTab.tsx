@@ -12,6 +12,8 @@ interface SecurityTabProps {
   setMaxLoginAttempts: (v: string) => void;
   passwordExpiry: string;
   setPasswordExpiry: (v: string) => void;
+  lockoutCooldown: string;
+  setLockoutCooldown: (v: string) => void;
   track: (fn: () => void) => void;
 }
 
@@ -20,6 +22,7 @@ export function SecurityTab({
   sessionTimeout, setSessionTimeout,
   maxLoginAttempts, setMaxLoginAttempts,
   passwordExpiry, setPasswordExpiry,
+  lockoutCooldown, setLockoutCooldown,
   track,
 }: SecurityTabProps) {
   return (
@@ -44,6 +47,11 @@ export function SecurityTab({
         <RowItem label="Max Login Attempts" desc="Lock account after N consecutive failed logins" sensitive>
           <select aria-label="Max login attempts" value={maxLoginAttempts} onChange={(e) => track(() => setMaxLoginAttempts(e.target.value))}>
             {["3", "5", "10"].map(o => <option key={o} value={o}>{o}</option>)}
+          </select>
+        </RowItem>
+        <RowItem label="Account Lockout Cooldown" desc="How long the account stays locked before automatic reset" sensitive>
+          <select aria-label="Lockout cooldown" value={lockoutCooldown} onChange={(e) => track(() => setLockoutCooldown(e.target.value))}>
+            {["15 min", "30 min", "60 min", "2 hours", "24 hours"].map(o => <option key={o} value={o}>{o}</option>)}
           </select>
         </RowItem>
         <RowItem label="Password Expiry" desc="Force users to reset password after this period">
