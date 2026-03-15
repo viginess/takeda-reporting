@@ -31,6 +31,7 @@ import { HcpReviewConfirm } from './components/HcpReviewConfirm';
 import { SuccessStep } from '../../shared/components/SuccessStep';
 import { useState } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
+import { HiPlus } from 'react-icons/hi2';
 import { trpc } from '../../utils/trpc';
 
 const inputStyles = {
@@ -56,6 +57,7 @@ const primaryButtonStyles = {
 
 type HcpFormProps = {
   onBack?: () => void;
+  countryCode?: string;
 };
 
 // Wrapper component to provide field array functionality for products
@@ -99,6 +101,7 @@ function EventStep({
   symptomTreated: string;
   setSymptomTreated: (val: string) => void;
 }) {
+  const { t } = useTranslation();
   const { control } = useFormContext();
   const { fields, append, remove } = useFieldArray({
     control,
@@ -108,7 +111,7 @@ function EventStep({
   return (
     <Box mt={12}>
       {fields.map((field, index) => (
-        <Box key={field.id} mb={10} position="relative">
+        <Box key={field.id} mb={10} position="relative" p={6} border="1px solid" borderColor="gray.100" borderRadius="xl" bg="white" shadow="sm">
           {index > 0 && (
             <Flex justify="flex-end" mb={2}>
               <Button size="sm" variant="ghost" colorScheme="red" onClick={() => remove(index)}>
@@ -119,13 +122,26 @@ function EventStep({
           <HcpEventDetails
             inputStyles={inputStyles}
             index={index}
+            symptomNumber={index + 1}
             symptomTreated={symptomTreated}
             setSymptomTreated={setSymptomTreated}
-            onAddSymptom={() => append({ name: '' })}
           />
-          {index < fields.length - 1 && <Box borderBottom="1px solid" borderColor="gray.100" my={10} />}
         </Box>
       ))}
+      <Button
+        mb={8}
+        width="full"
+        bg="#CE0037"
+        color="white"
+        fontWeight={600}
+        borderRadius="lg"
+        size="lg"
+        _hover={{ bg: '#E31C5F' }}
+        leftIcon={<HiPlus />}
+        onClick={() => append({ name: '', seriousness: [], outcome: '' })}
+      >
+        {t('forms.patient.eventDetails.addAnother')}
+      </Button>
     </Box>
   );
 }
@@ -169,7 +185,7 @@ function FormNavigationHcp({ primaryButtonStyles }: { primaryButtonStyles: any }
   );
 }
 
-function HcpForm({ onBack }: HcpFormProps) {
+function HcpForm({ onBack, countryCode }: HcpFormProps) {
   const { t } = useTranslation();
   const [additionalDetails, setAdditionalDetails] = useState('');
   const [agreedToTerms, setAgreedToTerms] = useState(false);
@@ -236,23 +252,15 @@ function HcpForm({ onBack }: HcpFormProps) {
           weight: params.patientWeight,
         },
         reporterDetails: {
-          firstName: params.firstName,
-          lastName: params.lastName,
-          email: params.email,
-          phone: params.phone,
-          institution: params.institution,
-          address: params.address,
-          city: params.city,
-          state: params.state,
-          zipCode: params.zipCode,
-          country: params.country,
-          contactPermission: contactPermission || params.contactPermission,
+          ...params.reporterDetails,
+          contactPermission: contactPermission || params.reporterDetails?.contactPermission,
         },
         takingOtherMeds: takingOtherMeds || undefined,
         hasRelevantHistory: hasRelevantHistory || undefined,
         labTestsPerformed: labTestsPerformed || undefined,
         additionalDetails: additionalDetails || undefined,
         agreedToTerms: params.agreedToTerms,
+        countryCode: countryCode,
         status: 'new',
       };
 

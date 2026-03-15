@@ -32,6 +32,7 @@ import { SuccessStep } from '../../shared/components/SuccessStep';
 import { useState } from 'react';
 import { useFormContext, useFieldArray } from 'react-hook-form';
 import { trpc } from '../../utils/trpc';
+import { HiPlus } from 'react-icons/hi2';
 
 const inputStyles = {
   size: 'lg' as const,
@@ -56,6 +57,7 @@ const primaryButtonStyles = {
 
 type FamilyFormProps = {
   onBack?: () => void;
+  countryCode?: string;
 };
 
 // Wrapper component to provide field array functionality for products
@@ -70,22 +72,40 @@ function ProductStep({ inputStyles }: { inputStyles: any }) {
   return (
     <Box mt={12}>
       {fields.map((field, index) => (
-        <Box key={field.id} mb={10} position="relative">
-          {index > 0 && (
-            <Flex justify="flex-end" mb={2}>
+        <Box key={field.id} mb={10} position="relative" p={6} border="1px solid" borderColor="gray.100" borderRadius="xl" bg="white" shadow="sm">
+          <Flex justify="space-between" align="center" mb={6}>
+            <Heading as="h3" size="md" color="gray.700">
+              {t('forms.patient.productDetails.productLabel')} #{index + 1}
+            </Heading>
+            {index > 0 && (
               <Button size="sm" variant="ghost" colorScheme="red" onClick={() => remove(index)}>
                 {t('forms.patient.common.removeProduct')}
               </Button>
-            </Flex>
-          )}
+            )}
+          </Flex>
           <ProductDetails
             inputStyles={inputStyles}
             index={index}
-            onAddProduct={() => append({ productName: '', condition: '' })}
           />
-          {index < fields.length - 1 && <Box borderBottom="1px solid" borderColor="gray.100" my={10} />}
         </Box>
       ))}
+      <Button
+        leftIcon={<HiPlus />}
+        onClick={() => append({ 
+          productName: '', 
+          conditions: [{ name: '' }], 
+          batches: [{ batchNumber: '', expiryDate: '', startDate: '', endDate: '', dosage: '' }] 
+        })}
+        variant="outline"
+        colorScheme="red"
+        w="full"
+        py={6}
+        borderStyle="dashed"
+        borderWidth="2px"
+        _hover={{ bg: 'red.50' }}
+      >
+        {t('forms.patient.productDetails.addProduct', 'Add Another Product')}
+      </Button>
     </Box>
   );
 }
@@ -110,24 +130,39 @@ function EventStep({
   return (
     <Box mt={12}>
       {fields.map((field, index) => (
-        <Box key={field.id} mb={10} position="relative">
-          {index > 0 && (
-            <Flex justify="flex-end" mb={2}>
+        <Box key={field.id} mb={10} position="relative" p={6} border="1px solid" borderColor="gray.100" borderRadius="xl" bg="white" shadow="sm">
+          <Flex justify="space-between" align="center" mb={6}>
+            <Heading as="h3" size="md" color="gray.700">
+               {t('forms.patient.eventDetails.symptom', 'Symptom')} #{index + 1}
+            </Heading>
+            {index > 0 && (
               <Button size="sm" variant="ghost" colorScheme="red" onClick={() => remove(index)}>
                 {t('forms.patient.common.removeSymptom')}
               </Button>
-            </Flex>
-          )}
+            )}
+          </Flex>
           <EventDetails
             inputStyles={inputStyles}
             index={index}
+            symptomNumber={index + 1}
             symptomTreated={symptomTreated}
             setSymptomTreated={setSymptomTreated}
-            onAddSymptom={() => append({ name: '' })}
           />
-          {index < fields.length - 1 && <Box borderBottom="1px solid" borderColor="gray.100" my={10} />}
         </Box>
       ))}
+      <Button
+        leftIcon={<HiPlus />}
+        onClick={() => append({ name: '', seriousness: [], outcome: '' })}
+        variant="outline"
+        colorScheme="red"
+        w="full"
+        py={6}
+        borderStyle="dashed"
+        borderWidth="2px"
+        _hover={{ bg: 'red.50' }}
+      >
+        {t('forms.patient.eventDetails.addSymptom', 'Add Another Symptom')}
+      </Button>
     </Box>
   );
 }
@@ -171,7 +206,7 @@ function FormNavigationFamily({ primaryButtonStyles }: { primaryButtonStyles: an
   );
 }
 
-function FamilyForm({ onBack }: FamilyFormProps) {
+function FamilyForm({ onBack, countryCode }: FamilyFormProps) {
   const { t } = useTranslation();
   const [additionalDetails, setAdditionalDetails] = useState('');
   const [agreedToTerms, setAgreedToTerms] = useState(false);
@@ -244,6 +279,7 @@ function FamilyForm({ onBack }: FamilyFormProps) {
         labTestsPerformed: labTestsPerformed || undefined,
         additionalDetails: additionalDetails || undefined,
         agreedToTerms: params.agreedToTerms,
+        countryCode: countryCode,
         status: 'new',
       };
 

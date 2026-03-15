@@ -5,15 +5,15 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1771617685800,
-      "tag": "0000_famous_gauntlet",
+      "when": 1773560985349,
+      "tag": "0000_goofy_jubilee",
       "breakpoints": true
     },
     {
       "idx": 1,
       "version": "7",
-      "when": 1773316427980,
-      "tag": "0001_fresh_hydra",
+      "when": 1773564811431,
+      "tag": "0001_gorgeous_nova",
       "breakpoints": true
     }
   ]

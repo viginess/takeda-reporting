@@ -27,7 +27,6 @@ import { HiQuestionMarkCircle, HiPlus } from 'react-icons/hi2';
 import { useFormContext, useFieldArray } from 'react-hook-form';
 import batchImg from '../../../assets/batch.png';
 import { useTranslation } from 'react-i18next';
-import { MedDRASymptomAutocomplete } from './MedDRASymptomAutocomplete.js';
 
 interface ProductDetailsProps {
   inputStyles: any;
@@ -86,17 +85,11 @@ export function ProductDetails({ inputStyles, index = 0, onAddProduct }: Product
         <VStack align="stretch" spacing={3}>
           {conditionFields.map((field, cIdx) => (
             <Flex key={field.id} gap={3} flexWrap="wrap">
-              <MedDRASymptomAutocomplete
-                value={watch(`${prefix}.conditions.${cIdx}.name`) || ''}
-                onChange={(val, code) => {
-                  setValue(`${prefix}.conditions.${cIdx}.name`, val);
-                  if (code) {
-                    setValue(`${prefix}.conditions.${cIdx}.meddraCode`, code);
-                  }
-                }}
-                inputStyles={inputStyles}
+              <Input
+                placeholder={t('forms.patient.productDetails.conditionPlaceholder', 'e.g. Headache, Back pain')}
+                {...inputStyles}
+                {...register(`${prefix}.conditions.${cIdx}.name`)}
               />
-              <Input type="hidden" {...register(`${prefix}.conditions.${cIdx}.meddraCode`)} />
               <Button
                 variant="outline"
                 size="lg"

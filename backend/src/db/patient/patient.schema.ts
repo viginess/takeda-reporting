@@ -6,6 +6,7 @@ import {
   timestamp,
   jsonb,
   index,
+  integer,
 } from "drizzle-orm/pg-core";
 
 export const patientReports = pgTable("patient_reports", {
@@ -46,6 +47,9 @@ export const patientReports = pgTable("patient_reports", {
   xmlUrl: text("xml_url"),
   pdfUrl: text("pdf_url"),
   meddraVersion: text("meddra_version"),
+  safetyReportId: text("safety_report_id"),
+  countryCode: text("country_code"),
+  reportVersion: integer("report_version").default(1),
   lastUpdatedAt: timestamp("last_updated_at"),
 
   // Meta

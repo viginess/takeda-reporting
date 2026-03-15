@@ -5,6 +5,7 @@ import { patientReports, hcpReports, familyReports } from '../../db/schema.js';
 import { systemSettings } from '../../db/admin/settings.schema.js';
 import { db } from '../../db/index.js';
 import { eq } from 'drizzle-orm';
+import { auditLogs } from '../../db/schema.js';
 /**
  * Main orchestrator for the E2B XML workflow.
  * Generates, validates, stores, and updates the report record.
@@ -16,6 +17,7 @@ export async function processE2BWorkflow(reportId: string) {
     // 1. Fetch the report from DB, checking all 3 tables
     let report: any = null;
     let tableToUpdate: any = null;
+    let reportType: 'Patient' | 'HCP' | 'Family' = 'Patient';
 
     const [pReport] = await db.select().from(patientReports).where(eq(patientReports.id, reportId));
     if (pReport) {
@@ -26,11 +28,13 @@ export async function processE2BWorkflow(reportId: string) {
       if (hReport) {
         report = hReport;
         tableToUpdate = hcpReports;
+        reportType = 'HCP';
       } else {
         const [fReport] = await db.select().from(familyReports).where(eq(familyReports.id, reportId));
         if (fReport) {
           report = fReport;
           tableToUpdate = familyReports;
+          reportType = 'Family';
         }
       }
     }
@@ -42,9 +46,34 @@ export async function processE2BWorkflow(reportId: string) {
     const [settings] = await db.select().from(systemSettings).where(eq(systemSettings.id, 1));
     const senderId = settings?.clinicalConfig?.senderId || 'CLINSOLUTION-DEFAULT';
     const receiverId = settings?.clinicalConfig?.receiverId || 'EVHUMAN';
+    const reportCountry = report.countryCode || (settings?.clinicalConfig as any)?.countryCode || 'US';
+
+    // 1.5. Manage Safety Report ID and Version
+    let safetyReportId = report.safetyReportId;
+    let reportVersion = report.reportVersion || 1;
+
+    if (!safetyReportId) {
+      // Generate initial Safety Report ID: COUNTRY-SENDER-ID
+      safetyReportId = `${reportCountry}-${senderId}-${(report.referenceId || report.id.substring(0, 8)).toUpperCase()}`;
+      
+      // Persist it immediately so it's locked for follow-ups
+      await db.update(tableToUpdate)
+        .set({ safetyReportId, reportVersion: 1 })
+        .where(eq(tableToUpdate.id, reportId));
+    } else {
+      // If it exists, we might be re-exporting. 
+      // In a real system, you'd increment version only on "submission", 
+      // but for this implementation we'll assume a new workflow run implies a version increment if already exists.
+      // However, usually v1 stay v1 until actually "sent".
+      // Let's just use what's in the DB for now.
+    }
+
+    // Refresh report object with new IDs
+    report.safetyReportId = safetyReportId;
+    report.reportVersion = reportVersion;
 
     // 2. Generate XML
-    const xml = generateE2BR3(report, { senderId, receiverId });
+    const xml = generateE2BR3(report, { senderId, receiverId, reportType });
     console.log('XML Generated');
 
     // 3. Validate XML
@@ -67,6 +96,21 @@ export async function processE2BWorkflow(reportId: string) {
         updatedAt: new Date(),
       })
       .where(eq(tableToUpdate.id, reportId));
+
+    // 6. Audit Logging
+    try {
+      await db.insert(auditLogs).values({
+        entity: 'report_export',
+        entityId: report.safetyReportId || reportId,
+        reportId: reportId,
+        changedBy: 'SYSTEM', // Context-aware user would be better
+        action: 'XML_EXPORT',
+        newValue: { xmlPath, isValid: validation.valid, version: reportVersion }
+      });
+    } catch (auditError) {
+      console.error('Audit Log failed:', auditError);
+      // Don't fail the whole workflow if audit log fails
+    }
 
     return {
       success: true,

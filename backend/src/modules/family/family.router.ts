@@ -19,7 +19,10 @@ export const familyRouter = router({
         .values({
           referenceId: `REP-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
           products: input.products ?? [],
-          symptoms: input.symptoms ?? [],
+          symptoms: (input.symptoms ?? []).map((s: any, idx: number) => ({
+            ...s,
+            reactionId: s.reactionId || `REAC-${Date.now()}-${idx}`
+          })),
           patientDetails: input.patientDetails ?? {},
           hcpDetails: input.hcpDetails ?? {},
           takingOtherMeds: input.takingOtherMeds,
@@ -34,6 +37,7 @@ export const familyRouter = router({
           status: input.status ?? "new",
           severity: determineNotificationData(input, "Family", "TEMP").type as any,
           meddraVersion: (await db.select().from(systemSettings).where(eq(systemSettings.id, 1)))[0]?.clinicalConfig?.meddraVersion || "29.1",
+          countryCode: input.countryCode,
         })
         .returning();
 

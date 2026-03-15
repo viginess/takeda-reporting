@@ -26,6 +26,12 @@ const productSchema = z.object({
 const symptomSchema = z.object({
   name: z.string().min(1, "Symptom name is required"),
   meddraCode: z.string().optional(),
+  lltCode: z.string().optional(),
+  lltName: z.string().optional(),
+  ptCode: z.string().optional(),
+  ptName: z.string().optional(),
+  meddraTerm: z.string().optional(),
+  reactionId: z.string().optional(),
   eventStartDate: z.string().optional().or(z.literal("")),
   eventEndDate: z.string().optional().or(z.literal("")),
   symptomTreated: z.string().optional(),
@@ -66,8 +72,9 @@ const patientDetailsSchema = z.object({
       if (low === "male") return "M";
       if (low === "female") return "F";
       if (low === "other") return "O";
+      if (low === "" || low === "unknown") return "Unknown";
     }
-    return val;
+    return val || "Unknown";
   }, z.enum(["M", "F", "O", "Unknown"]).optional().default("Unknown")),
   initials: z.string().optional(),
   dob: z.string().optional().or(z.literal("")),
@@ -129,6 +136,7 @@ export const createFamilySchema = z.object({
     message: "You must agree to the terms",
   }),
   status: z.enum(["new", "under_review", "closed"]).optional(),
+  countryCode: z.string().optional(),
 });
 
 export const updateFamilySchema = createFamilySchema.partial();

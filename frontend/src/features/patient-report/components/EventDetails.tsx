@@ -13,7 +13,6 @@ import {
   Text,
 } from '@chakra-ui/react';
 import { useFormContext } from 'react-hook-form';
-import { HiPlus } from 'react-icons/hi2';
 import { useTranslation } from 'react-i18next';
 import { MedDRASymptomAutocomplete } from './MedDRASymptomAutocomplete.js';
 
@@ -22,7 +21,7 @@ interface EventDetailsProps {
   symptomTreated: string;
   setSymptomTreated: (val: string) => void;
   index?: number;
-  onAddSymptom?: () => void;
+  symptomNumber?: number;
 }
 
 export function EventDetails({
@@ -30,7 +29,7 @@ export function EventDetails({
   symptomTreated,
   setSymptomTreated,
   index = 0,
-  onAddSymptom,
+  symptomNumber = 1,
 }: EventDetailsProps) {
   const { t } = useTranslation();
   const { setValue, register, watch } = useFormContext();
@@ -47,8 +46,8 @@ export function EventDetails({
 
   return (
     <>
-      <Heading as="h2" size="lg" mb={2} color="gray.800" fontWeight="600">
-        {t('forms.patient.eventDetails.title')}
+      <Heading as="h2" size="lg" mb={6} color="#CE0037" fontWeight="600">
+        {t('forms.patient.eventDetails.title')} {symptomNumber > 1 ? `#${symptomNumber}` : ''}
       </Heading>
 
       <FormControl mb={6} isRequired>
@@ -57,10 +56,16 @@ export function EventDetails({
         </FormLabel>
         <MedDRASymptomAutocomplete
           value={watch(`${prefix}.name`) || ''}
-          onChange={(val, code) => {
-            setValue(`${prefix}.name`, val);
+          onChange={(val, code, extra) => {
+            setValue(`${prefix}.name`, val, { shouldDirty: true });
             if (code) {
-              setValue(`${prefix}.meddraCode`, code); // Hidden field
+              setValue(`${prefix}.meddraCode`, code, { shouldDirty: true });
+            }
+            if (extra) {
+              setValue(`${prefix}.lltCode`, extra.lltCode, { shouldDirty: true });
+              setValue(`${prefix}.lltName`, extra.lltName, { shouldDirty: true });
+              setValue(`${prefix}.ptCode`, extra.ptCode, { shouldDirty: true });
+              setValue(`${prefix}.ptName`, extra.ptName, { shouldDirty: true });
             }
           }}
           inputStyles={inputStyles}
@@ -77,7 +82,7 @@ export function EventDetails({
           <Input
             key={watch(`${prefix}.eventStartDate`) === 'Unknown' ? 'untouchable' : 'selectable'}
             type={watch(`${prefix}.eventStartDate`) === 'Unknown' ? 'text' : 'date'}
-            value={watch(`${prefix}.eventStartDate`) === 'Unknown' ? t('forms.patient.common.unknown') : watch(`${prefix}.eventStartDate`)}
+            value={watch(`${prefix}.eventStartDate`) === 'Unknown' ? t('forms.patient.common.unknown') : (watch(`${prefix}.eventStartDate`) || '')}
             placeholder={t('forms.patient.productDetails.startDatePlaceholder')}
             flex="1"
             minW="140px"
@@ -97,7 +102,7 @@ export function EventDetails({
           <Input
             key={['Unknown', 'Ongoing'].includes(watch(`${prefix}.eventEndDate`)) ? 'untouchable' : 'selectable'}
             type={['Unknown', 'Ongoing'].includes(watch(`${prefix}.eventEndDate`)) ? 'text' : 'date'}
-            value={watch(`${prefix}.eventEndDate`) === 'Unknown' ? t('forms.patient.common.unknown') : watch(`${prefix}.eventEndDate`) === 'Ongoing' ? t('forms.patient.common.ongoing') : watch(`${prefix}.eventEndDate`)}
+            value={watch(`${prefix}.eventEndDate`) === 'Unknown' ? t('forms.patient.common.unknown') : watch(`${prefix}.eventEndDate`) === 'Ongoing' ? t('forms.patient.common.ongoing') : (watch(`${prefix}.eventEndDate`) || '')}
             placeholder={t('forms.patient.productDetails.endDatePlaceholder')}
             flex="1"
             minW="140px"
@@ -208,22 +213,7 @@ export function EventDetails({
         </RadioGroup>
       </FormControl>
 
-      {onAddSymptom && (
-        <Button
-          mb={4}
-          width="full"
-          bg="#CE0037"
-          color="white"
-          fontWeight={600}
-          borderRadius="lg"
-          size="lg"
-          _hover={{ bg: '#E31C5F' }}
-          leftIcon={<HiPlus />}
-          onClick={onAddSymptom}
-        >
-          {t('forms.patient.eventDetails.addAnother')}
-        </Button>
-      )}
+
     </>
   );
 }

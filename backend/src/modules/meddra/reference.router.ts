@@ -128,7 +128,13 @@ export const referenceRouter = router({
         return aTerm.length - bTerm.length;
       });
 
-      return uniqueResults.slice(0, input.limit);
+      return uniqueResults.slice(0, input.limit).map(t => ({
+        ...t,
+        lltCode: t.code,
+        lltName: t.term,
+        ptCode: t.code, // Fallback PT = LLT
+        ptName: t.term, // Fallback PT = LLT
+      }));
     }),
 
   /**
@@ -138,6 +144,14 @@ export const referenceRouter = router({
     .input(z.object({ code: z.string() }))
     .query(({ input }) => {
       const terms = getMedDRATerms();
-      return terms.find(t => t.code === input.code) || null;
+      const term = terms.find(t => t.code === input.code);
+      if (!term) return null;
+      return {
+        ...term,
+        lltCode: term.code,
+        lltName: term.term,
+        ptCode: term.code,
+        ptName: term.term,
+      };
     }),
 });

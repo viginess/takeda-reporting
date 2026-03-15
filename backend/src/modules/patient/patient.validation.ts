@@ -20,7 +20,6 @@ const batchSchema = z.object({
 const productSchema = z.object({
   productName: z.string().min(1, "Product name is required"),
   conditions: z.array(conditionSchema).optional(),
-  condition: z.string().optional(),
   batches: z.array(batchSchema).min(1, "At least one batch is required"),
   dosage: z.string().optional(),
   actionTaken: z.string().optional(),
@@ -34,6 +33,12 @@ const productSchema = z.object({
 const symptomSchema = z.object({
   name: z.string().min(1, "Symptom name is required"),
   meddraCode: z.string().optional(),
+  lltCode: z.string().optional(),
+  lltName: z.string().optional(),
+  ptCode: z.string().optional(),
+  ptName: z.string().optional(),
+  meddraTerm: z.string().optional(),
+  reactionId: z.string().optional(),
   eventStartDate: z.string().optional().or(z.literal("")),
   eventEndDate: z.string().optional().or(z.literal("")),
   symptomTreated: z.string().optional(),
@@ -54,8 +59,9 @@ export const patientDetailsSchema = z.object({
       if (low === "male") return "M";
       if (low === "female") return "F";
       if (low === "other") return "O";
+      if (low === "" || low === "unknown") return "Unknown";
     }
-    return val;
+    return val || "Unknown";
   }, z.enum(["M", "F", "O", "Unknown"]).optional().default("Unknown")),
   initials: z.string().optional(),
   dob: z.string().optional().or(z.literal("")),
@@ -145,6 +151,7 @@ export const createPatientSchema = z.object({
   }),
   reporterType: z.enum(["patient", "hcp", "family"]).optional(),
   status: z.enum(["new", "under_review", "closed"]).optional(),
+  countryCode: z.string().optional(),
 });
 
 export type CreatePatientInput = z.infer<typeof createPatientSchema>;

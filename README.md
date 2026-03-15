@@ -1,20 +1,27 @@
 # Clin Solutions L.L.C. Reporting Project
 
-A comprehensive clinical reporting system for Clin Solutions L.L.C. Pharmaceuticals, built with a modern TypeScript stack. This project allows Patients, Health Care Professionals (HCPs), and Family members to submit various clinical and adverse event reports.
-
-## Project Structure
+A comprehensive clinical reporting system for Clin Solutions L.L.C. Pharmaceuticals, built with a modern TypeScript stack. This project allows Patients, Health Care Professionals (HCPs), and Family members to submit verified clinical and adverse event reports compliant with E2B R3 standards.
 
 - **`backend/`**: Node.js + tRPC backend.
   - ORM: [Drizzle ORM](https://orm.drizzle.team/).
   - Database: PostgreSQL (Supabase).
+  - Compliance: E2B R3 (HL7 v3) XML generation & ICH validation.
   - Translation: Azure Translator API + Supabase Caching.
   - Validation: Zod.
 - **`frontend/`**: React + Vite + TypeScript frontend.
   - UI Library: [Saas UI](https://saas-ui.dev/) (built on Chakra UI).
   - Internationalization: [react-i18next](https://react.i18next.com/) supporting 137+ languages.
-  - RTL Support: Dynamic Right-to-Left layout for languages like Arabic and Tamil.
+  - RTL Support: Dynamic Right-to-Left layout for languages like Arabic and Persian.
   - State Management: React Query.
   - API Client: tRPC.
+
+## Key Features
+
+- **E2B R3 Standards**: Automatic generation of US-CLINSOLUTION compliant safety reports in XML format.
+- **MedDRA Integration**: Smart autocomplete and mapping to full PT (Preferred Term) and LLT (Lowest Level Term) hierarchies.
+- **Improved Symptoms UX**: Dynamic, multi-block symptom entry with clear numbering and visual separation.
+- **Audit Logging**: Robust server-side tracking of all safety data exports and modifications.
+- **137+ Languages**: Real-time translation with intelligent backend-side caching.
 
 ## Quick Start
 
@@ -73,16 +80,18 @@ clinsol-reporting/
 └── README.md               # Root Documentation Documentation
 ```
 
-## Database Sync
+## Database Synchronization
 
-To push your local schema changes to the Supabase database:
+To synchronize your schema changes with the database during development:
 
 ```bash
 cd backend
-npm run db:generate  # Generate migrations
-npm run db:migrate   # Apply migrations to the database
-# Or use push for prototyping:
-npx drizzle-kit push:pg
+# 1. Modify your schema in src/db/*.schema.ts
+# 2. Push changes directly to Supabase (Recommended for Dev)
+npm run db:push
+
+# 3. Or generate a migration file for tracking history
+npm run db:generate
 ```
 
 ## Security & Globalization
