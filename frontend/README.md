@@ -32,9 +32,9 @@ This React application provides the user interface for Clin Solutions L.L.C.'s c
 
 ## Development Features
 
-- **Standardized Forms**: Components for Patient, HCP, and Family reports.
+- **Improved Symptoms UX**: High-fidelity, multi-block symptom entry with dynamic PT/LLT MedDRA mapping.
 - **Globalization**: Automated translation of 137 languages via centralized i18n architecture.
-- **Dynamic RTL Layout**: Automatic directionality switching and text expansion handling (e.g., Arabic, Tamil).
+- **Dynamic RTL Layout**: Automatic directionality switching and text expansion handling (e.g., Arabic, Persian).
 - **Multi-step Progress**: Saas UI StepForm for a professional, multi-step reporting flow.
 - **Type Safety**: Automatic type sharing with the backend via tRPC.
 

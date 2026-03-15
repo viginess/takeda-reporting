@@ -90,14 +90,14 @@ export function HcpPatientDetails({
         {ageType === 'age' && (
           <Flex gap={3} mt={3} align="center">
             <Input
-              key={watch('patientDetails.age') === 'Unknown' ? 'untouchable' : 'selectable'}
+              key={watch('patientDetails.ageValue') === 'Unknown' ? 'untouchable' : 'selectable'}
               placeholder={t('forms.patient.personalDetails.ageValuePlaceholder', '32')}
-              type={watch('patientDetails.age') === 'Unknown' ? 'text' : 'number'}
-              value={watch('patientDetails.age') === 'Unknown' ? t('forms.patient.common.unknown') : watch('patientDetails.age')}
+              type={watch('patientDetails.ageValue') === 'Unknown' ? 'text' : 'number'}
+              value={watch('patientDetails.ageValue') === 'Unknown' ? t('forms.patient.common.unknown') : watch('patientDetails.ageValue')}
               flex="1"
               maxW="120px"
               {...inputStyles}
-              {...register('patientDetails.age', { valueAsNumber: watch('patientDetails.age') !== 'Unknown' })}
+              {...register('patientDetails.ageValue', { valueAsNumber: watch('patientDetails.ageValue') !== 'Unknown' })}
             />
             <Text color="gray.600">{t('forms.patient.personalDetails.years')}</Text>
           </Flex>

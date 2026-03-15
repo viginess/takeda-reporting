@@ -355,7 +355,7 @@ export default function AdminDashboard() {
             {areaLoading || isMounting ? (
               <Skeleton h="240px" borderRadius="xl" />
             ) : (
-              <ResponsiveContainer width="100%" height={240}>
+              <ResponsiveContainer width="100%" height={240} minWidth={0}>
                 <AreaChart data={monthlyVolume} margin={{ top: 5, right: 16, left: -20, bottom: 0 }}>
                   <defs>
                     {Object.entries(AREA_COLORS).map(([key, color]) => (
@@ -398,7 +398,7 @@ export default function AdminDashboard() {
               {pieLoading || isMounting ? (
                 <Skeleton h="160px" w="160px" borderRadius="full" m="auto" />
               ) : (
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                   <PieChart>
                     <Pie data={statusDistribution} dataKey="value" nameKey="name" outerRadius={80} innerRadius={46} paddingAngle={3} cx="50%" cy="50%">
                       {statusDistribution.map((_: any, i: number) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} stroke="none" />)}

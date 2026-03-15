@@ -24,7 +24,10 @@ export const patientRouter = router({
           products: input.products ?? [],
 
           // ── Step 2: Event ──────────────────────────────
-          symptoms: input.symptoms ?? [],
+          symptoms: (input.symptoms ?? []).map((s: any, idx: number) => ({
+            ...s,
+            reactionId: s.reactionId || `REAC-${Date.now()}-${idx}`
+          })),
 
           // ── Step 3: Personal & HCP (store as JSONB) ───
           patientDetails: input.patientDetails ?? {},
@@ -49,6 +52,7 @@ export const patientRouter = router({
           status: input.status ?? "new",
           severity: determineNotificationData(input, "Patient", "TEMP").type as any,
           meddraVersion: (await db.select().from(systemSettings).where(eq(systemSettings.id, 1)))[0]?.clinicalConfig?.meddraVersion || "29.1",
+          countryCode: input.countryCode,
         })
         .returning();
 

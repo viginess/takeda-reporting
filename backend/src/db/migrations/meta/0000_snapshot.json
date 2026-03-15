@@ -1,6 +1,6 @@
 {
-  "id": "94b2bedb-bb1f-4444-ab6e-237c366a04b4",
-  "prevId": "0634a261-9dbe-4329-ad64-402839d0b4e7",
+  "id": "0634a261-9dbe-4329-ad64-402839d0b4e7",
+  "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -525,12 +525,6 @@
           "primaryKey": false,
           "notNull": false
         },
-        "country_code": {
-          "name": "country_code",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
         "report_version": {
           "name": "report_version",
           "type": "integer",
@@ -755,12 +749,6 @@
         },
         "safety_report_id": {
           "name": "safety_report_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "country_code": {
-          "name": "country_code",
           "type": "text",
           "primaryKey": false,
           "notNull": false
@@ -1063,12 +1051,6 @@
         },
         "safety_report_id": {
           "name": "safety_report_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "country_code": {
-          "name": "country_code",
           "type": "text",
           "primaryKey": false,
           "notNull": false

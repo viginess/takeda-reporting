@@ -66,6 +66,17 @@ export function HcpReporterDetails({
             {watch('reporterDetails.lastName') === '' ? t('forms.shared.reporterDetails.lastNameRequired') : ''}
           </Text>
         </FormControl>
+
+        <FormControl isRequired minW="150px">
+          <FormLabel fontWeight="500" color="gray.700">
+            {t('forms.hcp.reporterDetails.countryLabel')}
+          </FormLabel>
+          <Input 
+            placeholder={t('forms.hcp.reporterDetails.countryPlaceholder', 'Country')} 
+            {...inputStyles} 
+            {...register('reporterDetails.country', { required: t('forms.shared.reporterDetails.countryRequired', 'Country is required') })}
+          />
+        </FormControl>
       </Flex>
 
       <FormControl mb={6} isRequired>
@@ -184,16 +195,7 @@ export function HcpReporterDetails({
             <Input placeholder={t('forms.hcp.reporterDetails.zipLabel')} {...inputStyles} {...register('reporterDetails.zipCode')} />
           </FormControl>
 
-          <FormControl mb={8} isRequired>
-            <FormLabel fontWeight="500" color="gray.700">
-              {t('forms.hcp.reporterDetails.countryLabel')}
-            </FormLabel>
-            <Input 
-              placeholder={t('forms.hcp.reporterDetails.countryPlaceholder', 'Type Country')} 
-              {...inputStyles} 
-              {...register('reporterDetails.country', { required: t('forms.shared.reporterDetails.countryRequired', 'Country is required') })}
-            />
-          </FormControl>
+
         </>
       )}
     </>

@@ -14,7 +14,7 @@ import { trpc } from '../../../utils/trpc';
 
 interface MedDRASymptomAutocompleteProps {
   value: string;
-  onChange: (value: string, code?: string) => void;
+  onChange: (value: string, code?: string, extra?: any) => void;
   inputStyles: any;
 }
 
@@ -42,9 +42,9 @@ export function MedDRASymptomAutocomplete({
     setQuery(value);
   }, [value]);
 
-  const handleSelect = (term: string, code: string) => {
-    setQuery(term);
-    onChange(term, code);
+  const handleSelect = (item: any) => {
+    setQuery(item.term);
+    onChange(item.term, item.code, item);
     setIsOpen(false);
   };
 
@@ -59,7 +59,7 @@ export function MedDRASymptomAutocomplete({
         }}
         onFocus={() => setIsOpen(true)}
         placeholder={t('forms.patient.eventDetails.symptomPlaceholder', 'Type symptom (e.g. Headache, Nausea)...')}
-        autocomplete="off"
+        autoComplete="off"
         {...inputStyles}
       />
       {isOpen && (query.length >= 2 || isLoading) && (
@@ -84,13 +84,13 @@ export function MedDRASymptomAutocomplete({
               <Spinner size="sm" color="red.500" />
             </ListItem>
           ) : suggestions && suggestions.length > 0 ? (
-            suggestions.map((item: any) => (
+            suggestions.map((item: any, idx: number) => (
               <ListItem
-                key={item.code}
+                key={item.code || `suggestion-${idx}`}
                 p={3}
                 cursor="pointer"
                 _hover={{ bg: 'red.50', color: 'red.700' }}
-                onClick={() => handleSelect(item.term, item.code)}
+                onClick={() => handleSelect(item)}
                 borderBottom="1px solid"
                 borderColor="gray.50"
               >

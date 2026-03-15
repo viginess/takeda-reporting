@@ -8,6 +8,7 @@ import {
   Spacer,
   ButtonGroup,
   Button,
+  useToast,
 } from "@chakra-ui/react";
 import {
   FormLayout,
@@ -28,10 +29,10 @@ import { ReviewConfirm } from "./components/ReviewConfirm";
 import { SuccessStep } from "../../shared/components/SuccessStep";
 import { useState } from "react";
 import { useFieldArray, useFormContext } from "react-hook-form";
-import { useToast } from "@chakra-ui/react";
+
 import { trpc } from "../../utils/trpc";
 import { useTranslation } from "react-i18next";
-
+import { HiPlus } from "react-icons/hi2";
 const inputStyles = {
   size: "lg" as const,
   focusBorderColor: "#CE0037",
@@ -55,6 +56,7 @@ const primaryButtonStyles = {
 
 type PatientFormProps = {
   onBack?: () => void;
+  countryCode?: string;
 };
 
 // Wrapper component to provide field array functionality for products
@@ -116,7 +118,7 @@ function EventStep({
   return (
     <Box mt={12}>
       {fields.map((field, index) => (
-        <Box key={field.id} mb={10} position="relative">
+        <Box key={field.id} mb={10} position="relative" p={6} border="1px solid" borderColor="gray.100" borderRadius="xl" bg="white" shadow="sm">
           {index > 0 && (
             <Flex justify="flex-end" mb={2}>
               <Button
@@ -132,15 +134,26 @@ function EventStep({
           <EventDetails
             inputStyles={inputStyles}
             index={index}
+            symptomNumber={index + 1}
             symptomTreated={symptomTreated}
             setSymptomTreated={setSymptomTreated}
-            onAddSymptom={() => append({ name: "" })}
           />
-          {index < fields.length - 1 && (
-            <Box borderBottom="1px solid" borderColor="gray.100" my={10} />
-          )}
         </Box>
       ))}
+      <Button
+        mb={8}
+        width="full"
+        bg="#CE0037"
+        color="white"
+        fontWeight={600}
+        borderRadius="lg"
+        size="lg"
+        _hover={{ bg: '#E31C5F' }}
+        leftIcon={<HiPlus />}
+        onClick={() => append({ name: '', seriousness: [], outcome: '' })}
+      >
+        {t('forms.patient.eventDetails.addAnother')}
+      </Button>
     </Box>
   );
 }
@@ -184,7 +197,7 @@ function FormNavigation({ primaryButtonStyles }: { primaryButtonStyles: any }) {
   );
 }
 
-function PatientForm({ onBack }: PatientFormProps) {
+function PatientForm({ onBack, countryCode }: PatientFormProps) {
   const { t } = useTranslation();
   const [additionalDetails, setAdditionalDetails] = useState("");
   const [agreedToTerms, setAgreedToTerms] = useState(false);
@@ -283,6 +296,7 @@ function PatientForm({ onBack }: PatientFormProps) {
       // ── Step 5: Confirm ──────────────────────────────
       agreedToTerms: params.agreedToTerms,
       reporterType: "patient",
+      countryCode: countryCode,
       status: "new",
     });
     // Store the real report UUID returned from Supabase

@@ -44,15 +44,15 @@ function WelcomePage() {
   };
 
   if (step === 'patient') {
-    return <PatientForm onBack={() => setStep('audience')} />;
+    return <PatientForm countryCode={country} onBack={() => setStep('audience')} />;
   }
 
   if (step === 'family') {
-    return <FamilyForm onBack={() => setStep('audience')} />;
+    return <FamilyForm countryCode={country} onBack={() => setStep('audience')} />;
   }
 
   if (step === 'hcp') {
-    return <HcpForm onBack={() => setStep('audience')} />;
+    return <HcpForm countryCode={country} onBack={() => setStep('audience')} />;
   }
 
   return (

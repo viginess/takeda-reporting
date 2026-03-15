@@ -34,6 +34,7 @@ export const hcpRouter = router({
           status: input.status ?? "new",
           severity: determineNotificationData(input, "HCP", "TEMP").type as any,
           meddraVersion: (await db.select().from(systemSettings).where(eq(systemSettings.id, 1)))[0]?.clinicalConfig?.meddraVersion || "29.1",
+          countryCode: input.countryCode,
         })
         .returning();
 
