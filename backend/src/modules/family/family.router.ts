@@ -7,13 +7,13 @@ import { familyReports, notifications } from "../../db/schema.js";
 import { systemSettings } from "../../db/admin/settings.schema.js";
 import { createFamilySchema, updateFamilySchema } from "./family.validation.js";
 import { determineNotificationData, shouldCreateNotification } from "../../utils/notification-helper.js";
-import { assertNoMaintenance } from "../../utils/config-helper.js";
+
 
 export const familyRouter = router({
   create: rateLimitedProcedure
     .input(createFamilySchema)
     .mutation(async ({ input }) => {
-      await assertNoMaintenance();
+
       const [row] = await db
         .insert(familyReports)
         .values({

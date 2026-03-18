@@ -31,7 +31,7 @@ export const systemSettings = pgTable("system_settings", {
     adminEmail: string;
     timezone: string;
     retention: string;
-    maintenanceMode: boolean;
+
     twoFA: boolean;
     sessionTimeout: string;
     maxLoginAttempts: string;
@@ -44,7 +44,7 @@ export const systemSettings = pgTable("system_settings", {
     adminEmail: "admin@pharma.com",
     timezone: "UTC+05:30 (IST)",
     retention: "24 months",
-    maintenanceMode: false,
+
     twoFA: false,
     sessionTimeout: "60 min",
     maxLoginAttempts: "5",

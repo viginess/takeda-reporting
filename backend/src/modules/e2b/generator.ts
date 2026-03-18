@@ -432,7 +432,7 @@ export function generateE2BR3(report: SafetyReport, options: { senderId: string,
 
     // G.k.9.i: Drug-reaction Causality Matrix
     const reactions = (p.reactions as any[]) || [];
-    reactions.forEach((r, rIdx) => {
+    reactions.forEach((r) => {
       substAdmin.ele('outboundRelationship2', { typeCode: 'PERT' })
         .ele('observation', { classCode: 'OBS', moodCode: 'EVN' })
           .ele('code', { code: '39', codeSystem: OID.CAUSALITY }).up()
