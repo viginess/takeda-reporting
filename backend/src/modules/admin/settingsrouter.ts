@@ -43,7 +43,7 @@ export const updateSystemSettings = superAdminProcedure
           adminEmail: z.string().email(),
           timezone: z.string(),
           retention: z.string(),
-          maintenanceMode: z.boolean(),
+
           twoFA: z.boolean(),
           sessionTimeout: z.string(),
           maxLoginAttempts: z.string(),

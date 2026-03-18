@@ -7,13 +7,13 @@ import { hcpReports, notifications } from "../../db/schema.js";
 import { systemSettings } from "../../db/admin/settings.schema.js";
 import { createHcpSchema, updateHcpSchema } from "./hcp.validation.js";
 import { determineNotificationData, shouldCreateNotification } from "../../utils/notification-helper.js";
-import { assertNoMaintenance } from "../../utils/config-helper.js";
+
 
 export const hcpRouter = router({
   create: rateLimitedProcedure
     .input(createHcpSchema)
     .mutation(async ({ input }) => {
-      await assertNoMaintenance();
+
       const [row] = await db
         .insert(hcpReports)
         .values({

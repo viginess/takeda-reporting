@@ -7,7 +7,7 @@ import { patientReports, notifications } from "../../db/schema.js";
 import { createPatientSchema, updatePatientSchema } from "./patient.validation.js";
 import { determineNotificationData, shouldCreateNotification } from "../../utils/notification-helper.js";
 
-import { assertNoMaintenance } from "../../utils/config-helper.js";
+
 import { systemSettings } from "../../db/admin/settings.schema.js";
 
 export const patientRouter = router({
@@ -15,7 +15,7 @@ export const patientRouter = router({
   create: rateLimitedProcedure
     .input(createPatientSchema)
     .mutation(async ({ input }) => {
-      await assertNoMaintenance();
+
       const [row] = await db
         .insert(patientReports)
         .values({
