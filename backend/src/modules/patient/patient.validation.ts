@@ -152,6 +152,8 @@ export const createPatientSchema = z.object({
   reporterType: z.enum(["patient", "hcp", "family"]).optional(),
   status: z.enum(["new", "under_review", "closed"]).optional(),
   countryCode: z.string().optional(),
+  submissionLanguage: z.string().optional().default("en"),
+  severity: z.string().optional(),
 });
 
 export type CreatePatientInput = z.infer<typeof createPatientSchema>;

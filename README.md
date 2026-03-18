@@ -60,6 +60,34 @@ graph TD
     end
 ```
 
+## E2B(R3) & PDF Generation Pipeline
+
+The core regulatory requirement of this system strictly maps dynamic JSON frontend forms into compliant ICH E2B(R3) XML structures and printable PDF reports. 
+
+```mermaid
+graph TD
+    classDef ui fill:#0ea5e9,stroke:#0284c7,stroke-width:2px,color:white;
+    classDef api fill:#8b5cf6,stroke:#7c3aed,stroke-width:2px,color:white;
+    classDef xml fill:#f43f5e,stroke:#e11d48,stroke-width:2px,color:white;
+    classDef pdf fill:#f59e0b,stroke:#d97706,stroke-width:2px,color:white;
+
+    F["Frontend Forms\nPatient / HCP / Family"]:::ui -->|"tRPC Validation (Zod)"| B["Node.js Backend"]
+    B -->|"Save Raw JSON"| DB[("Supabase Postgres")]:::api
+
+    DB --> G{Generator Services}:::api
+    
+    G -->|generator.ts| XML["ICH E2B R3 XML\nHL7 v3 Format"]:::xml
+    G -->|pdf-generator.ts| PDF["Safety Report PDF\nVisual & Rendered"]:::pdf
+
+    subgraph "Mapping Engine (generator.ts)"
+        M1["Reporter Details"] -.->|C.2.r| XML
+        M2["Patient History & Labs"] -.->|D.7.1 & F.r| XML
+        M3["Adverse Reactions"] -.->|E.i Section| XML
+        M4["Suspect & Concomitant Drugs"] -.->|G.k Section| XML
+        M5["Narratives & Media"] -.->|H.5.r & C.1.6| XML
+    end
+```
+
 ## File Structure
 
 ```text

@@ -31,6 +31,7 @@ import { useState } from "react";
 import { useFieldArray, useFormContext } from "react-hook-form";
 
 import { trpc } from "../../utils/trpc";
+import { calculateSeverity } from "../../utils/severity";
 import { useTranslation } from "react-i18next";
 import { HiPlus } from "react-icons/hi2";
 const inputStyles = {
@@ -57,6 +58,7 @@ const primaryButtonStyles = {
 type PatientFormProps = {
   onBack?: () => void;
   countryCode?: string;
+  languageCode?: string;
 };
 
 // Wrapper component to provide field array functionality for products
@@ -197,7 +199,7 @@ function FormNavigation({ primaryButtonStyles }: { primaryButtonStyles: any }) {
   );
 }
 
-function PatientForm({ onBack, countryCode }: PatientFormProps) {
+function PatientForm({ onBack, countryCode, languageCode }: PatientFormProps) {
   const { t } = useTranslation();
   const [additionalDetails, setAdditionalDetails] = useState("");
   const [agreedToTerms, setAgreedToTerms] = useState(false);
@@ -253,8 +255,10 @@ function PatientForm({ onBack, countryCode }: PatientFormProps) {
       });
       throw new Error("Validation failed");
     }
-
+    
     const result = await createPatient.mutateAsync({
+      severity: calculateSeverity(params.symptoms),
+      // ── Step 1: Product ──────────────────────────────
       // ── Step 1: Product ──────────────────────────────
       products: params.products ?? [],
 
@@ -297,6 +301,7 @@ function PatientForm({ onBack, countryCode }: PatientFormProps) {
       agreedToTerms: params.agreedToTerms,
       reporterType: "patient",
       countryCode: countryCode,
+      submissionLanguage: languageCode || "en",
       status: "new",
     });
     // Store the real report UUID returned from Supabase

@@ -33,7 +33,7 @@ function WelcomePage() {
   const { loadLanguage, isLoading } = useLanguageLoader();
   const [step, setStep] = useState<Step>('select');
   const [country, setCountry] = useState('');
-  const [language, setLanguage] = useState('');
+  const [language, setLanguage] = useState('en');
 
   const isRTLValue = i18n.dir() === 'rtl';
 
@@ -44,15 +44,15 @@ function WelcomePage() {
   };
 
   if (step === 'patient') {
-    return <PatientForm countryCode={country} onBack={() => setStep('audience')} />;
+    return <PatientForm countryCode={country} languageCode={language} onBack={() => setStep('audience')} />;
   }
 
   if (step === 'family') {
-    return <FamilyForm countryCode={country} onBack={() => setStep('audience')} />;
+    return <FamilyForm countryCode={country} languageCode={language} onBack={() => setStep('audience')} />;
   }
 
   if (step === 'hcp') {
-    return <HcpForm countryCode={country} onBack={() => setStep('audience')} />;
+    return <HcpForm countryCode={country} languageCode={language} onBack={() => setStep('audience')} />;
   }
 
   return (

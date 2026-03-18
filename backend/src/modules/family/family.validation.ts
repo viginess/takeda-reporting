@@ -137,6 +137,8 @@ export const createFamilySchema = z.object({
   }),
   status: z.enum(["new", "under_review", "closed"]).optional(),
   countryCode: z.string().optional(),
+  submissionLanguage: z.string().optional().default("en"),
+  severity: z.string().optional(),
 });
 
 export const updateFamilySchema = createFamilySchema.partial();

@@ -51,6 +51,7 @@ export const hcpReports = pgTable("hcp_reports", {
   meddraVersion: text("meddra_version"),
   safetyReportId: text("safety_report_id"),
   countryCode: text("country_code"),
+  submissionLanguage: text("submission_language").default("en"),
   reportVersion: integer("report_version").default(1),
   lastUpdatedAt: timestamp("last_updated_at"),
   // Meta

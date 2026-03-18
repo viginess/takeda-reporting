@@ -32,7 +32,7 @@ export const hcpRouter = router({
           attachments: input.attachments ?? [],
           agreedToTerms: input.agreedToTerms,
           status: input.status ?? "new",
-          severity: determineNotificationData(input, "HCP", "TEMP").type as any,
+          severity: input.severity || determineNotificationData(input, "HCP", "TEMP").type,
           meddraVersion: (await db.select().from(systemSettings).where(eq(systemSettings.id, 1)))[0]?.clinicalConfig?.meddraVersion || "29.1",
           countryCode: input.countryCode,
         })
