@@ -1,4 +1,4 @@
-import { Flex, Input, Switch, Button } from "@chakra-ui/react";
+import { Flex, Input, Button } from "@chakra-ui/react";
 import { Database, RotateCcw, UserCircle } from "lucide-react";
 import { RowItem } from "./Settingsrow";
 import { SettingsCard } from "./SettingsCard";
@@ -11,8 +11,7 @@ interface GeneralSectionProps {
   setLastName: (v: string) => void;
   retention: string;
   setRetention: (v: string) => void;
-  maintenanceMode: boolean;
-  setMaintenanceMode: (v: boolean) => void;
+
   track: (fn: () => void) => void;
   userRole?: string;
   onRunArchiving: () => void;
@@ -30,7 +29,7 @@ export function GeneralSection({
   firstName, setFirstName,
   lastName, setLastName,
   retention, setRetention,
-  maintenanceMode, setMaintenanceMode,
+
   track,
   userRole,
   onRunArchiving,
@@ -92,9 +91,7 @@ export function GeneralSection({
               </Button>
             </Flex>
           </RowItem>
-          <RowItem label="Maintenance Mode" desc="Temporarily disables submissions from all reporters" sensitive>
-            <Switch colorScheme="red" isChecked={maintenanceMode} onChange={(e) => track(() => setMaintenanceMode(e.target.checked))} />
-          </RowItem>
+
         </SettingsCard>
       )}
     </>
