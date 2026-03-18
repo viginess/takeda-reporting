@@ -75,7 +75,6 @@ export default function SystemSettings() {
   const [language, setLanguage] = useState("");
   const [timezone, setTimezone] = useState("");
   const [retention, setRetention] = useState("");
-  const [maintenanceMode, setMaintenanceMode] = useState(false);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [userId, setUserId] = useState<string | null>(null);
@@ -103,7 +102,7 @@ export default function SystemSettings() {
       setAdminEmail(clinical.adminEmail || "admin@pharma.com");
       setTimezone(clinical.timezone || "UTC+05:30 (IST)");
       setRetention(clinical.retention || "24 months");
-      setMaintenanceMode(!!clinical.maintenanceMode);
+
       setTwoFA(clinical.twoFA !== false);
       setSessionTimeout(clinical.sessionTimeout || "60 min");
       setMaxLoginAttempts(clinical.maxLoginAttempts || "5");
@@ -144,7 +143,7 @@ export default function SystemSettings() {
           digestFrequency: data?.notificationThresholds.digestFrequency || "Daily",
           smsAlerts: data?.notificationThresholds.smsAlerts || false,
         },
-        clinicalConfig: { adminEmail, timezone, retention, maintenanceMode, twoFA, sessionTimeout, maxLoginAttempts, passwordExpiry, meddraVersion, lockoutCooldown, senderId, receiverId }
+        clinicalConfig: { adminEmail, timezone, retention, twoFA, sessionTimeout, maxLoginAttempts, passwordExpiry, meddraVersion, lockoutCooldown, senderId, receiverId }
       });
     }
     if (userId) await updateAdminProfile.mutateAsync({ firstName, lastName });
@@ -166,7 +165,7 @@ export default function SystemSettings() {
       setAdminEmail(clinical.adminEmail || "admin@pharma.com");
       setTimezone(clinical.timezone || "UTC+05:30 (IST)");
       setRetention(clinical.retention || "24 months");
-      setMaintenanceMode(!!clinical.maintenanceMode);
+
       setTwoFA(clinical.twoFA !== false);
       setSessionTimeout(clinical.sessionTimeout || "60 min");
       setMaxLoginAttempts(clinical.maxLoginAttempts || "5");
@@ -294,7 +293,7 @@ export default function SystemSettings() {
               firstName={firstName} setFirstName={setFirstName}
               lastName={lastName} setLastName={setLastName}
               retention={retention} setRetention={setRetention}
-              maintenanceMode={maintenanceMode} setMaintenanceMode={setMaintenanceMode}
+
               track={track}
               userRole={user?.role ?? undefined}
               onRunArchiving={() => runArchivingManual.mutate()}
