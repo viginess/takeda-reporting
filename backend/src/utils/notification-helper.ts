@@ -11,16 +11,25 @@ export function determineNotificationData(
 
   const seriousnessMap: Record<string, string> = {
     "death": "urgent",
+    "fatal": "urgent",
     "life-threatening": "urgent",
     "hospitalization": "urgent",
     "disability": "warning",
+    "disabling": "warning",
+    "serious": "warning",
     "congenital": "warning",
     "medical-intervention": "warning",
     "medically-significant": "warning",
   };
 
-  let highestSeverity = "info";
-  let reason = "New report submitted";
+  let highestSeverity = (data?.severity || "info").toLowerCase();
+  // If the data already has a mapped level (urgent/warning/info), trust it
+  if (severityRank[highestSeverity] === undefined) {
+    // If it's a medical value (fatal, serious), map it
+    highestSeverity = seriousnessMap[highestSeverity] || "info";
+  }
+
+  let reason = data?.severity ? `Reported as ${data.severity}` : "New report submitted";
 
   const symptoms = Array.isArray(data?.symptoms) ? data.symptoms : [];
 

@@ -33,6 +33,7 @@ import { useState } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 import { HiPlus } from 'react-icons/hi2';
 import { trpc } from '../../utils/trpc';
+import { calculateSeverity } from '../../utils/severity';
 
 const inputStyles = {
   size: 'lg' as const,
@@ -58,6 +59,7 @@ const primaryButtonStyles = {
 type HcpFormProps = {
   onBack?: () => void;
   countryCode?: string;
+  languageCode?: string;
 };
 
 // Wrapper component to provide field array functionality for products
@@ -185,7 +187,7 @@ function FormNavigationHcp({ primaryButtonStyles }: { primaryButtonStyles: any }
   );
 }
 
-function HcpForm({ onBack, countryCode }: HcpFormProps) {
+function HcpForm({ onBack, countryCode, languageCode }: HcpFormProps) {
   const { t } = useTranslation();
   const [additionalDetails, setAdditionalDetails] = useState('');
   const [agreedToTerms, setAgreedToTerms] = useState(false);
@@ -235,9 +237,10 @@ function HcpForm({ onBack, countryCode }: HcpFormProps) {
         });
         throw new Error('Validation failed');
       }
-
+      
       const payload = {
         ...params,
+        severity: calculateSeverity(params.symptoms),
         symptoms: params.symptoms?.map((s: any) => ({
           ...s,
           seriousness: Array.isArray(s.seriousness) ? s.seriousness.join(', ') : s.seriousness,
@@ -260,7 +263,9 @@ function HcpForm({ onBack, countryCode }: HcpFormProps) {
         labTestsPerformed: labTestsPerformed || undefined,
         additionalDetails: additionalDetails || undefined,
         agreedToTerms: params.agreedToTerms,
+        reporterType: "hcp",
         countryCode: countryCode,
+        submissionLanguage: languageCode || "en",
         status: 'new',
       };
 

@@ -33,6 +33,7 @@ import { useState } from 'react';
 import { useFormContext, useFieldArray } from 'react-hook-form';
 import { trpc } from '../../utils/trpc';
 import { HiPlus } from 'react-icons/hi2';
+import { calculateSeverity } from '../../utils/severity';
 
 const inputStyles = {
   size: 'lg' as const,
@@ -58,6 +59,7 @@ const primaryButtonStyles = {
 type FamilyFormProps = {
   onBack?: () => void;
   countryCode?: string;
+  languageCode?: string;
 };
 
 // Wrapper component to provide field array functionality for products
@@ -206,7 +208,7 @@ function FormNavigationFamily({ primaryButtonStyles }: { primaryButtonStyles: an
   );
 }
 
-function FamilyForm({ onBack, countryCode }: FamilyFormProps) {
+function FamilyForm({ onBack, countryCode, languageCode }: FamilyFormProps) {
   const { t } = useTranslation();
   const [additionalDetails, setAdditionalDetails] = useState('');
   const [agreedToTerms, setAgreedToTerms] = useState(false);
@@ -280,7 +282,10 @@ function FamilyForm({ onBack, countryCode }: FamilyFormProps) {
         additionalDetails: additionalDetails || undefined,
         agreedToTerms: params.agreedToTerms,
         countryCode: countryCode,
+        reporterType: "family",
+        submissionLanguage: languageCode || "en",
         status: 'new',
+        severity: calculateSeverity(params.symptoms),
       };
 
       const result = await createFamilyReport.mutateAsync(payload);

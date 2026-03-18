@@ -50,7 +50,7 @@ export const patientRouter = router({
           agreedToTerms: input.agreedToTerms,
           reporterType: input.reporterType,
           status: input.status ?? "new",
-          severity: determineNotificationData(input, "Patient", "TEMP").type as any,
+          severity: input.severity || determineNotificationData(input, "Patient", "TEMP").type,
           meddraVersion: (await db.select().from(systemSettings).where(eq(systemSettings.id, 1)))[0]?.clinicalConfig?.meddraVersion || "29.1",
           countryCode: input.countryCode,
         })
