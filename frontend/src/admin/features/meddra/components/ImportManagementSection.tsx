@@ -2,8 +2,9 @@ import {
   Box 
 } from "@chakra-ui/react";
 import { trpc } from "../../../../utils/trpc";
-import { ImportMeddraModal } from "./ImportMeddraModal";
 import { ImportHistoryTable } from "./ImportHistoryTable";
+import { ImportMeddraModal } from "./ImportMeddraModal";
+
 
 interface ImportManagementSectionProps {
   isOpen: boolean;
