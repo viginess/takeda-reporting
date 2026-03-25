@@ -8,19 +8,21 @@ import { systemSettings } from "../../db/admin/settings.schema.js";
 import { createFamilySchema, updateFamilySchema } from "./family.validation.js";
 import { determineNotificationData, shouldCreateNotification } from "../../utils/notification-helper.js";
 
-import { assertNoMaintenance } from "../../utils/config-helper.js";
 
 export const familyRouter = router({
   create: rateLimitedProcedure
     .input(createFamilySchema)
     .mutation(async ({ input }) => {
-      await assertNoMaintenance();
+
       const [row] = await db
         .insert(familyReports)
         .values({
           referenceId: `REP-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
           products: input.products ?? [],
-          symptoms: input.symptoms ?? [],
+          symptoms: (input.symptoms ?? []).map((s: any, idx: number) => ({
+            ...s,
+            reactionId: s.reactionId || `REAC-${Date.now()}-${idx}`
+          })),
           patientDetails: input.patientDetails ?? {},
           hcpDetails: input.hcpDetails ?? {},
           takingOtherMeds: input.takingOtherMeds,
@@ -33,13 +35,18 @@ export const familyRouter = router({
           attachments: input.attachments ?? [],
           agreedToTerms: input.agreedToTerms,
           status: input.status ?? "new",
-          severity: determineNotificationData(input, "Family", "TEMP").type as any,
+          severity: input.severity || determineNotificationData(input, "Family", "TEMP").type,
+          meddraVersion: (await db.select().from(systemSettings).where(eq(systemSettings.id, 1)))[0]?.clinicalConfig?.meddraVersion || "29.1",
+          countryCode: input.countryCode,
         })
         .returning();
 
       const notifData = determineNotificationData(input, "Family", row.referenceId || row.id);
       
-      const [settings] = await db.select().from(systemSettings).where(eq(systemSettings.id, 1));
+      let [settings] = await db.select().from(systemSettings).where(eq(systemSettings.id, 1));
+      if (!settings) {
+        settings = { id: 1, notificationThresholds: { urgentAlerts: true, alertThreshold: "All Severities", notifyOnApproval: true, emailDigest: false, digestFrequency: "Daily", smsAlerts: false } } as any;
+      }
       
       if (shouldCreateNotification(settings, notifData)) {
         await db.insert(notifications).values({
@@ -51,6 +58,21 @@ export const familyRouter = router({
           reportId: notifData.reportId,
           classificationReason: notifData.classificationReason,
         });
+      }
+
+      // Trigger E2B XML & PDF Workflow
+      try {
+        const { processE2BWorkflow } = await import("../e2b/index.js");
+        await processE2BWorkflow(row.id);
+
+        const { generateSafetyPDF } = await import("../pdf/pdf-generator.js");
+        const { storeSafetyPDF } = await import("../pdf/storage.js");
+        
+        const buffer = await generateSafetyPDF(row);
+        const pdfPath = await storeSafetyPDF(row.referenceId || row.id, buffer);
+        await db.update(familyReports).set({ pdfUrl: pdfPath }).where(eq(familyReports.id, row.id));
+      } catch (workflowErr) {
+        console.error("Workflow failure for Family report:", workflowErr);
       }
 
       return { success: true, data: row };

@@ -86,9 +86,7 @@ export function ProductDetails({ inputStyles, index = 0, onAddProduct }: Product
           {conditionFields.map((field, cIdx) => (
             <Flex key={field.id} gap={3} flexWrap="wrap">
               <Input
-                placeholder={t('forms.patient.productDetails.conditionPlaceholder')}
-                flex="1"
-                minW="200px"
+                placeholder={t('forms.patient.productDetails.conditionPlaceholder', 'e.g. Headache, Back pain')}
                 {...inputStyles}
                 {...register(`${prefix}.conditions.${cIdx}.name`)}
               />
@@ -96,12 +94,12 @@ export function ProductDetails({ inputStyles, index = 0, onAddProduct }: Product
                 variant="outline"
                 size="lg"
                 borderColor="gray.300"
-                onClick={() => setValue(`${prefix}.conditions.${cIdx}.name`, t('forms.patient.common.unknown'))}
+                onClick={() => setValue(`${prefix}.conditions.${cIdx}.name`, 'Unknown')}
               >
                 {t('forms.patient.common.unknown')}
               </Button>
               {cIdx > 0 && (
-                <Button variant="ghost" colorScheme="red" size="lg" onClick={() => removeCondition(cIdx)}>
+                <Button variant="ghost" colorScheme="blue" size="lg" onClick={() => removeCondition(cIdx)}>
                   {t('common.remove')}
                 </Button>
               )}
@@ -196,7 +194,7 @@ export function ProductDetails({ inputStyles, index = 0, onAddProduct }: Product
                 variant="outline"
                 size="lg"
                 borderColor="gray.300"
-                onClick={() => setValue(`${prefix}.batches.${bIdx}.batchNumber`, t('forms.patient.common.unknown'))}
+                onClick={() => setValue(`${prefix}.batches.${bIdx}.batchNumber`, 'Unknown')}
               >
                 {t('forms.patient.common.unknown')}
               </Button>
@@ -212,8 +210,9 @@ export function ProductDetails({ inputStyles, index = 0, onAddProduct }: Product
             </FormLabel>
             <Flex gap={3} flexWrap="wrap">
               <Input
-                key={watch(`${prefix}.batches.${bIdx}.expiryDate`) === t('forms.patient.common.unknown') ? 'untouchable' : 'selectable'}
-                type={watch(`${prefix}.batches.${bIdx}.expiryDate`) === t('forms.patient.common.unknown') ? 'text' : 'date'}
+                key={watch(`${prefix}.batches.${bIdx}.expiryDate`) === 'Unknown' ? 'untouchable' : 'selectable'}
+                type={watch(`${prefix}.batches.${bIdx}.expiryDate`) === 'Unknown' ? 'text' : 'date'}
+                value={watch(`${prefix}.batches.${bIdx}.expiryDate`) === 'Unknown' ? t('forms.patient.common.unknown') : watch(`${prefix}.batches.${bIdx}.expiryDate`)}
                 placeholder={t('forms.patient.productDetails.expiryPlaceholder')}
                 flex="1"
                 minW="200px"
@@ -224,7 +223,7 @@ export function ProductDetails({ inputStyles, index = 0, onAddProduct }: Product
                 variant="outline"
                 size="lg"
                 borderColor="gray.300"
-                onClick={() => setValue(`${prefix}.batches.${bIdx}.expiryDate`, t('forms.patient.common.unknown'))}
+                onClick={() => setValue(`${prefix}.batches.${bIdx}.expiryDate`, 'Unknown')}
               >
                 {t('forms.patient.common.unknown')}
               </Button>
@@ -237,8 +236,9 @@ export function ProductDetails({ inputStyles, index = 0, onAddProduct }: Product
             </FormLabel>
             <Flex gap={3} flexWrap="wrap" align="center" mb={2}>
               <Input
-                key={watch(`${prefix}.batches.${bIdx}.startDate`) === t('forms.patient.common.unknown') ? 'untouchable' : 'selectable'}
-                type={watch(`${prefix}.batches.${bIdx}.startDate`) === t('forms.patient.common.unknown') ? 'text' : 'date'}
+                key={watch(`${prefix}.batches.${bIdx}.startDate`) === 'Unknown' ? 'untouchable' : 'selectable'}
+                type={watch(`${prefix}.batches.${bIdx}.startDate`) === 'Unknown' ? 'text' : 'date'}
+                value={watch(`${prefix}.batches.${bIdx}.startDate`) === 'Unknown' ? t('forms.patient.common.unknown') : watch(`${prefix}.batches.${bIdx}.startDate`)}
                 placeholder={t('forms.patient.productDetails.startDatePlaceholder')}
                 flex="1"
                 minW="140px"
@@ -249,15 +249,16 @@ export function ProductDetails({ inputStyles, index = 0, onAddProduct }: Product
                 variant="outline"
                 size="lg"
                 borderColor="gray.300"
-                onClick={() => setValue(`${prefix}.batches.${bIdx}.startDate`, t('forms.patient.common.unknown'))}
+                onClick={() => setValue(`${prefix}.batches.${bIdx}.startDate`, 'Unknown')}
               >
                 {t('forms.patient.common.unknown')}
               </Button>
             </Flex>
             <Flex gap={3} flexWrap="wrap" align="center">
               <Input
-                key={[t('forms.patient.common.unknown'), t('forms.patient.common.ongoing')].includes(watch(`${prefix}.batches.${bIdx}.endDate`)) ? 'untouchable' : 'selectable'}
-                type={[t('forms.patient.common.unknown'), t('forms.patient.common.ongoing')].includes(watch(`${prefix}.batches.${bIdx}.endDate`)) ? 'text' : 'date'}
+                key={['Unknown', 'Ongoing'].includes(watch(`${prefix}.batches.${bIdx}.endDate`)) ? 'untouchable' : 'selectable'}
+                type={['Unknown', 'Ongoing'].includes(watch(`${prefix}.batches.${bIdx}.endDate`)) ? 'text' : 'date'}
+                value={watch(`${prefix}.batches.${bIdx}.endDate`) === 'Unknown' ? t('forms.patient.common.unknown') : watch(`${prefix}.batches.${bIdx}.endDate`) === 'Ongoing' ? t('forms.patient.common.ongoing') : watch(`${prefix}.batches.${bIdx}.endDate`)}
                 placeholder={t('forms.patient.productDetails.endDatePlaceholder')}
                 flex="1"
                 minW="140px"
@@ -268,7 +269,7 @@ export function ProductDetails({ inputStyles, index = 0, onAddProduct }: Product
                 variant="outline"
                 size="lg"
                 borderColor="gray.300"
-                onClick={() => setValue(`${prefix}.batches.${bIdx}.endDate`, t('forms.patient.common.unknown'))}
+                onClick={() => setValue(`${prefix}.batches.${bIdx}.endDate`, 'Unknown')}
               >
                 {t('forms.patient.common.unknown')}
               </Button>
@@ -276,7 +277,7 @@ export function ProductDetails({ inputStyles, index = 0, onAddProduct }: Product
                 variant="outline"
                 size="lg"
                 borderColor="gray.300"
-                onClick={() => setValue(`${prefix}.batches.${bIdx}.endDate`, t('forms.patient.common.ongoing'))}
+                onClick={() => setValue(`${prefix}.batches.${bIdx}.endDate`, 'Ongoing')}
               >
                 {t('forms.patient.common.ongoing')}
               </Button>

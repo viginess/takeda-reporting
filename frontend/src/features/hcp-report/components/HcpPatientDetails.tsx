@@ -29,7 +29,7 @@ export function HcpPatientDetails({
   const { setValue, register, watch } = useFormContext();
 
   const setUnknown = (fieldName: string) => {
-    setValue(fieldName, t('forms.patient.common.unknown'));
+    setValue(fieldName, 'Unknown');
   };
 
   return (
@@ -50,13 +50,13 @@ export function HcpPatientDetails({
           placeholder={t('forms.shared.patientDetails.nameInitialsPlaceholder')}
           {...inputStyles}
           mb={2}
-          {...register('patientInitials')}
+          {...register('patientDetails.initials')}
         />
         <Button
           variant="ghost"
           size="sm"
           color="gray.600"
-          onClick={() => setUnknown('patientInitials')}
+          onClick={() => setUnknown('patientDetails.initials')}
         >
           {t('forms.patient.common.unknown')}
         </Button>
@@ -78,24 +78,26 @@ export function HcpPatientDetails({
         </RadioGroup>
         {ageType === 'dob' && (
           <Input
-            key={watch('patientDob') === t('forms.patient.common.unknown') ? 'untouchable' : 'selectable'}
-            type={watch('patientDob') === t('forms.patient.common.unknown') ? 'text' : 'date'}
+            key={watch('patientDetails.dob') === 'Unknown' ? 'untouchable' : 'selectable'}
+            type={watch('patientDetails.dob') === 'Unknown' ? 'text' : 'date'}
+            value={watch('patientDetails.dob') === 'Unknown' ? t('forms.patient.common.unknown') : watch('patientDetails.dob')}
             placeholder={t('forms.patient.personalDetails.dobPlaceholder')}
             mt={3}
             {...inputStyles}
-            {...register('patientDob')}
+            {...register('patientDetails.dob')}
           />
         )}
         {ageType === 'age' && (
           <Flex gap={3} mt={3} align="center">
             <Input
-              key={watch('patientAge') === t('forms.patient.common.unknown') ? 'untouchable' : 'selectable'}
-              placeholder="32"
-              type={watch('patientAge') === t('forms.patient.common.unknown') ? 'text' : 'number'}
+              key={watch('patientDetails.ageValue') === 'Unknown' ? 'untouchable' : 'selectable'}
+              placeholder={t('forms.patient.personalDetails.ageValuePlaceholder', '32')}
+              type={watch('patientDetails.ageValue') === 'Unknown' ? 'text' : 'number'}
+              value={watch('patientDetails.ageValue') === 'Unknown' ? t('forms.patient.common.unknown') : watch('patientDetails.ageValue')}
               flex="1"
               maxW="120px"
               {...inputStyles}
-              {...register('patientAge')}
+              {...register('patientDetails.ageValue', { valueAsNumber: watch('patientDetails.ageValue') !== 'Unknown' })}
             />
             <Text color="gray.600">{t('forms.patient.personalDetails.years')}</Text>
           </Flex>
@@ -107,8 +109,8 @@ export function HcpPatientDetails({
           {t('forms.patient.personalDetails.sexLabel')}
         </FormLabel>
         <RadioGroup 
-          value={watch('patientGender') || ''} 
-          onChange={(val) => setValue('patientGender', val)}
+          value={watch('patientDetails.gender') || ''} 
+          onChange={(val) => setValue('patientDetails.gender', val)}
         >
           <Stack direction="row" spacing={6}>
             <Radio value="male" colorScheme="red">
@@ -116,6 +118,12 @@ export function HcpPatientDetails({
             </Radio>
             <Radio value="female" colorScheme="red">
               {t('forms.patient.personalDetails.female')}
+            </Radio>
+            <Radio value="other" colorScheme="red">
+              {t('forms.patient.personalDetails.sexOptions.other')}
+            </Radio>
+            <Radio value="unknown" colorScheme="red">
+              {t('forms.patient.personalDetails.sexOptions.unknown')}
             </Radio>
           </Stack>
         </RadioGroup>
@@ -128,7 +136,7 @@ export function HcpPatientDetails({
         <Input
           placeholder={t('forms.hcp.patientDetails.referencePlaceholder')}
           {...inputStyles}
-          {...register('patientReference')}
+          {...register('patientDetails.reference')}
         />
       </FormControl>
 
@@ -146,7 +154,7 @@ export function HcpPatientDetails({
         <Input
           placeholder={t('forms.hcp.patientDetails.heightPlaceholder')}
           {...inputStyles}
-          {...register('patientHeight')}
+          {...register('patientDetails.height')}
         />
       </FormControl>
 
@@ -157,7 +165,7 @@ export function HcpPatientDetails({
         <Input
           placeholder={t('forms.hcp.patientDetails.weightPlaceholder')}
           {...inputStyles}
-          {...register('patientWeight')}
+          {...register('patientDetails.weight')}
         />
       </FormControl>
     </>

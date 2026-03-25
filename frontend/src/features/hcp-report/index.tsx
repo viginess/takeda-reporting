@@ -17,7 +17,9 @@ import {
   StepsCompleted,
   useStepperContext,
 } from '@saas-ui/react';
-import { StepForm } from '@saas-ui/forms';
+import { StepForm, SubmitButton, NextButton } from '@saas-ui/forms';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { createHcpSchema } from '../../../../backend/src/modules/hcp/hcp.validation';
 
 import logo from '../../assets/logo.jpg';
 import { HcpProductDetails } from './components/HcpProductDetails';
@@ -29,7 +31,9 @@ import { HcpReviewConfirm } from './components/HcpReviewConfirm';
 import { SuccessStep } from '../../shared/components/SuccessStep';
 import { useState } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
+import { HiPlus } from 'react-icons/hi2';
 import { trpc } from '../../utils/trpc';
+import { calculateSeverity } from '../../utils/severity';
 
 const inputStyles = {
   size: 'lg' as const,
@@ -54,6 +58,8 @@ const primaryButtonStyles = {
 
 type HcpFormProps = {
   onBack?: () => void;
+  countryCode?: string;
+  languageCode?: string;
 };
 
 // Wrapper component to provide field array functionality for products
@@ -97,6 +103,7 @@ function EventStep({
   symptomTreated: string;
   setSymptomTreated: (val: string) => void;
 }) {
+  const { t } = useTranslation();
   const { control } = useFormContext();
   const { fields, append, remove } = useFieldArray({
     control,
@@ -106,7 +113,7 @@ function EventStep({
   return (
     <Box mt={12}>
       {fields.map((field, index) => (
-        <Box key={field.id} mb={10} position="relative">
+        <Box key={field.id} mb={10} position="relative" p={6} border="1px solid" borderColor="gray.100" borderRadius="xl" bg="white" shadow="sm">
           {index > 0 && (
             <Flex justify="flex-end" mb={2}>
               <Button size="sm" variant="ghost" colorScheme="red" onClick={() => remove(index)}>
@@ -117,13 +124,26 @@ function EventStep({
           <HcpEventDetails
             inputStyles={inputStyles}
             index={index}
+            symptomNumber={index + 1}
             symptomTreated={symptomTreated}
             setSymptomTreated={setSymptomTreated}
-            onAddSymptom={() => append({ name: '' })}
           />
-          {index < fields.length - 1 && <Box borderBottom="1px solid" borderColor="gray.100" my={10} />}
         </Box>
       ))}
+      <Button
+        mb={8}
+        width="full"
+        bg="#CE0037"
+        color="white"
+        fontWeight={600}
+        borderRadius="lg"
+        size="lg"
+        _hover={{ bg: '#E31C5F' }}
+        leftIcon={<HiPlus />}
+        onClick={() => append({ name: '', seriousness: [], outcome: '' })}
+      >
+        {t('forms.patient.eventDetails.addAnother')}
+      </Button>
     </Box>
   );
 }
@@ -141,16 +161,14 @@ function PrevButtonTranslatedHcp() {
 
 function NextButtonTranslatedHcp(props: any) {
   const { t } = useTranslation();
-  const { nextStep } = useStepperContext();
   return (
-    <Button size="lg" borderRadius="lg" onClick={nextStep} {...props}>
-      {t('common.continue', 'Next')}
-    </Button>
+    <NextButton size="lg" borderRadius="lg" label={t('common.continue', 'Next')} {...props} />
   );
 }
 
 function FormNavigationHcp({ primaryButtonStyles }: { primaryButtonStyles: any }) {
-  const { isCompleted } = useStepperContext();
+  const { t } = useTranslation();
+  const { isCompleted, isLastStep } = useStepperContext();
 
   if (isCompleted) return null;
 
@@ -158,12 +176,18 @@ function FormNavigationHcp({ primaryButtonStyles }: { primaryButtonStyles: any }
     <ButtonGroup w="full" mt={8}>
       <PrevButtonTranslatedHcp />
       <Spacer />
-      <NextButtonTranslatedHcp {...primaryButtonStyles} />
+      {isLastStep ? (
+        <SubmitButton {...primaryButtonStyles} size="lg" borderRadius="lg">
+          {t('forms.hcp.submit', 'Submit')}
+        </SubmitButton>
+      ) : (
+        <NextButtonTranslatedHcp {...primaryButtonStyles} />
+      )}
     </ButtonGroup>
   );
 }
 
-function HcpForm({ onBack }: HcpFormProps) {
+function HcpForm({ onBack, countryCode, languageCode }: HcpFormProps) {
   const { t } = useTranslation();
   const [additionalDetails, setAdditionalDetails] = useState('');
   const [agreedToTerms, setAgreedToTerms] = useState(false);
@@ -181,10 +205,19 @@ function HcpForm({ onBack }: HcpFormProps) {
   const toast = useToast();
 
   const createHcpReport = trpc.hcp.create.useMutation({
+    onSuccess() {
+      toast({
+        title: t("success.title", "Report Submitted Successfully"),
+        description: t("success.description", "Your report has been successfully submitted."),
+        status: 'success',
+        duration: 5000,
+        isClosable: true,
+      });
+    },
     onError(err) {
       toast({
-        title: 'Submission failed',
-        description: err.message,
+        title: t("common.error"),
+        description: err.message || t("errors.submissionFailed", "Submission failed. Please try again."),
         status: 'error',
         duration: 5000,
         isClosable: true,
@@ -196,17 +229,18 @@ function HcpForm({ onBack }: HcpFormProps) {
     try {
       if (!params.captchaChecked || !params.agreedToTerms) {
         toast({
-          title: 'Validation Error',
-          description: 'Please confirm you are not a robot and agree to the terms to submit.',
+          title: t("common.error", 'Validation Error'),
+          description: t("forms.hcp.reviewConfirm.bothRequired", 'Please confirm you are not a robot and agree to the terms to submit.'),
           status: 'error',
           duration: 3000,
           isClosable: true,
         });
         throw new Error('Validation failed');
       }
-
+      
       const payload = {
         ...params,
+        severity: calculateSeverity(params.symptoms),
         symptoms: params.symptoms?.map((s: any) => ({
           ...s,
           seriousness: Array.isArray(s.seriousness) ? s.seriousness.join(', ') : s.seriousness,
@@ -221,23 +255,17 @@ function HcpForm({ onBack }: HcpFormProps) {
           weight: params.patientWeight,
         },
         reporterDetails: {
-          firstName: params.firstName,
-          lastName: params.lastName,
-          email: params.email,
-          phone: params.phone,
-          institution: params.institution,
-          address: params.address,
-          city: params.city,
-          state: params.state,
-          zipCode: params.zipCode,
-          country: params.country,
-          contactPermission: contactPermission || params.contactPermission,
+          ...params.reporterDetails,
+          contactPermission: contactPermission || params.reporterDetails?.contactPermission,
         },
         takingOtherMeds: takingOtherMeds || undefined,
         hasRelevantHistory: hasRelevantHistory || undefined,
         labTestsPerformed: labTestsPerformed || undefined,
         additionalDetails: additionalDetails || undefined,
         agreedToTerms: params.agreedToTerms,
+        reporterType: "hcp",
+        countryCode: countryCode,
+        submissionLanguage: languageCode || "en",
         status: 'new',
       };
 
@@ -290,6 +318,7 @@ function HcpForm({ onBack }: HcpFormProps) {
       <Flex flex="1" justify="center" px={{ base: 2, md: 4 }} py={{ base: 4, md: 8 }}>
         <Box maxW="800px" w="full" bg="white" borderRadius="xl" boxShadow="md" p={{ base: 4, sm: 6, md: 10 }}>
           <StepForm
+            resolver={zodResolver(createHcpSchema) as any}
             onSubmit={onSubmit}
             onError={(err) => console.error('Form validation failed:', err)}
             defaultValues={{

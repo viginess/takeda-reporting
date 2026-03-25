@@ -19,6 +19,12 @@ import {
   determineUpdateNotification,
   shouldCreateNotification,
 } from "../../utils/notification-helper.js";
+import { generateSafetyPDF } from "../pdf/pdf-generator.js";
+import { storeSafetyPDF, getSignedPDFUrl } from "../pdf/storage.js";
+import AdmZip from "adm-zip";
+import { getSupabaseAdmin } from "../../utils/supabase.js";
+import { generateE2BR3 } from "../e2b/generator.js";
+import { validateE2BR3 } from "../e2b/validator.js";
 
 export const getAllReports = viewerProcedure.query(async () => {
   const res = await db.execute(sql`
@@ -42,7 +48,9 @@ export const getAllReports = viewerProcedure.query(async () => {
         attachments,
         taking_other_meds as "takingOtherMeds",
         has_relevant_history as "hasRelevantHistory",
-        lab_tests_performed as "labTestsPerformed"
+        lab_tests_performed as "labTestsPerformed",
+        xml_url as "xmlUrl",
+        pdf_url as "pdfUrl"
       FROM patient_reports
       UNION ALL
       SELECT 
@@ -65,7 +73,9 @@ export const getAllReports = viewerProcedure.query(async () => {
         attachments,
         taking_other_meds as "takingOtherMeds",
         has_relevant_history as "hasRelevantHistory",
-        lab_tests_performed as "labTestsPerformed"
+        lab_tests_performed as "labTestsPerformed",
+        xml_url as "xmlUrl",
+        pdf_url as "pdfUrl"
       FROM hcp_reports
       UNION ALL
       SELECT 
@@ -88,7 +98,9 @@ export const getAllReports = viewerProcedure.query(async () => {
         attachments,
         taking_other_meds as "takingOtherMeds",
         has_relevant_history as "hasRelevantHistory",
-        lab_tests_performed as "labTestsPerformed"
+        lab_tests_performed as "labTestsPerformed",
+        xml_url as "xmlUrl",
+        pdf_url as "pdfUrl"
       FROM family_reports
       ORDER BY "createdAt" DESC
     `);
@@ -243,6 +255,8 @@ export const getAllReports = viewerProcedure.query(async () => {
         },
         attachments: row.attachments || null,
         additionalDetails: row.additionalDetails || null,
+        xmlUrl: row.xmlUrl || null,
+        pdfUrl: row.pdfUrl || null,
       },
     };
   });
@@ -261,6 +275,7 @@ export const updateReport = adminProcedure
           .optional(),
         severity: z.enum(["info", "warning", "urgent"]).optional(),
         adminNotes: z.string().optional(),
+        symptoms: z.any().optional(), // Allow medical coding updates
       }),
     }),
   )
@@ -292,6 +307,11 @@ export const updateReport = adminProcedure
 
     if (!oldRecord) throw new Error("Report not found");
 
+    const [sysSettings] = await db
+      .select()
+      .from(systemSettings)
+      .where(eq(systemSettings.id, 1));
+
     const userRole = ctx.user?.role || "admin";
     if (userRole === "admin") {
       if (oldRecord.status === "closed") {
@@ -308,17 +328,31 @@ export const updateReport = adminProcedure
       }
     }
 
-    const [settings] = await db
-      .select()
-      .from(systemSettings)
-      .where(eq(systemSettings.id, 1));
+    // Strict XSD Validation for Approval
+    if (updates.status === "approved") {
+      const senderId = sysSettings?.clinicalConfig?.senderId || 'CLINSOLUTION-DEFAULT';
+      const receiverId = sysSettings?.clinicalConfig?.receiverId || 'EVHUMAN';
+      
+      const meddraVersion = sysSettings?.clinicalConfig?.meddraVersion || "29.0";
+      const xml = generateE2BR3(oldRecord as any, { senderId, receiverId, meddraVersion });
+      const validation = await validateE2BR3(xml);
+      
+      if (!validation.valid) {
+        const errorList = validation.errors.map((e: any) => e.message || e.rawMessage).join("; ");
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message: `Cannot approve report: E2B XML validation failed. Errors: ${errorList}`,
+        });
+      }
+    }
 
     const [newRecord] = (await db
       .update(tableToUpdate)
       .set({
-        ...(updates as any),
+        ...(({ symptoms, ...rest } = updates as any) => rest)(),
+        ...(updates.symptoms ? { symptoms: updates.symptoms } : {}),
         lastUpdatedAt: new Date(),
-      })
+      } as any)
       .where(eq(tableToUpdate.id, reportId))
       .returning()) as any[];
 
@@ -344,7 +378,7 @@ export const updateReport = adminProcedure
       newRecord.referenceId || newRecord.id,
     );
 
-    if (updateNotif && shouldCreateNotification(settings, updateNotif)) {
+    if (updateNotif && shouldCreateNotification(sysSettings, updateNotif)) {
       await db.insert(notifications).values({
         type: updateNotif.type,
         title: updateNotif.title,
@@ -513,3 +547,142 @@ export const getMonthlyVolume = viewerProcedure.query(async () => {
   }));
 });
 
+export const getReportPDF = adminProcedure
+  .input(z.object({ 
+    reportId: z.string().uuid(),
+    reporterType: z.enum(["Patient", "HCP", "Family"])
+  }))
+  .mutation(async ({ input }) => {
+    const { reportId, reporterType } = input;
+    
+    let table: any;
+    if (reporterType === "Patient") table = patientReports;
+    else if (reporterType === "HCP") table = hcpReports;
+    else if (reporterType === "Family") table = familyReports;
+    else throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid reporter type" });
+
+    const [report] = await db.select().from(table).where(eq(table.id, reportId));
+    if (!report) throw new TRPCError({ code: "NOT_FOUND", message: "Report not found" });
+
+    // If PDF already exists, return its signed URL
+    if (report.pdfUrl) {
+      try {
+        const url = await getSignedPDFUrl(report.pdfUrl);
+        return { success: true, url };
+      } catch (e) {
+        console.warn("Failed to get signed URL for existing PDF, regenerating...");
+      }
+    }
+
+    // Otherwise, generate it now
+    const buffer = await generateSafetyPDF(report as any);
+    const filePath = await storeSafetyPDF(report.referenceId || report.id, buffer);
+
+    // Save path to DB
+    await db.update(table).set({ pdfUrl: filePath }).where(eq(table.id, reportId));
+
+    const signedUrl = await getSignedPDFUrl(filePath);
+    return { success: true, url: signedUrl };
+  });
+
+export const getReportXML = adminProcedure
+  .input(z.object({ 
+    reportId: z.string().uuid(),
+    reporterType: z.enum(["Patient", "HCP", "Family"])
+  }))
+  .mutation(async ({ input }) => {
+    // Similar logic for XML if needed, but we often already have it from the submission trigger
+    const { reportId, reporterType } = input;
+    let table: any;
+    if (reporterType === "Patient") table = patientReports;
+    else if (reporterType === "HCP") table = hcpReports;
+    else if (reporterType === "Family") table = familyReports;
+    else throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid reporter type" });
+
+    const [report] = await db.select().from(table).where(eq(table.id, reportId));
+    if (!report || !report.xmlUrl) throw new TRPCError({ code: "NOT_FOUND", message: "XML not found" });
+
+    const { getSignedE2BUrl } = await import("../e2b/storage.js");
+    const url = await getSignedE2BUrl(report.xmlUrl);
+    return { success: true, url };
+  });
+
+export const getBulkReports = adminProcedure
+  .input(z.object({
+    reports: z.array(z.object({
+      reportId: z.string().uuid(),
+      reporterType: z.enum(["Patient", "HCP", "Family"])
+    }))
+  }))
+  .mutation(async ({ input }) => {
+    const { reports } = input;
+    if (reports.length === 0) throw new TRPCError({ code: "BAD_REQUEST", message: "No reports selected" });
+
+    const zip = new AdmZip();
+    const supabase = getSupabaseAdmin();
+    const bucketName = 'reports-xml';
+
+    console.log(`[BulkExport] Starting for ${reports.length} reports...`);
+
+    for (const item of reports) {
+      // ... same loop logic ...
+      console.log(`[BulkExport] Processing ${item.reportId} (${item.reporterType})`);
+      let table: any;
+      if (item.reporterType === "Patient") table = patientReports;
+      else if (item.reporterType === "HCP") table = hcpReports;
+      else if (item.reporterType === "Family") table = familyReports;
+      else continue;
+
+      const [report] = await db.select().from(table).where(eq(table.id, item.reportId));
+      if (!report) continue;
+
+      const refId = report.referenceId || report.id;
+
+      // 1. Handle PDF
+      let pdfBuffer: Buffer | null = null;
+      if (report.pdfUrl) {
+        const { data, error } = await supabase.storage.from(bucketName).download(report.pdfUrl);
+        if (!error && data) pdfBuffer = Buffer.from(await data.arrayBuffer());
+      }
+      
+      if (!pdfBuffer) {
+        pdfBuffer = await generateSafetyPDF(report as any);
+        const filePath = await storeSafetyPDF(refId, pdfBuffer);
+        await db.update(table).set({ pdfUrl: filePath }).where(eq(table.id, item.reportId));
+      }
+      zip.addFile(`${refId}/${refId}.pdf`, pdfBuffer);
+
+      // 2. Handle XML
+      if (report.xmlUrl) {
+        const { data, error } = await supabase.storage.from(bucketName).download(report.xmlUrl);
+        if (!error && data) {
+          const xmlBuffer = Buffer.from(await data.arrayBuffer());
+          zip.addFile(`${refId}/${refId}.xml`, xmlBuffer);
+        }
+      }
+    }
+
+    const zipBuffer = zip.toBuffer();
+    const zipName = `bulk_export_${Date.now()}.zip`;
+    const zipPath = `exports/${zipName}`;
+
+    console.log(`[BulkExport] ZIP created, size: ${zipBuffer.length} bytes. Uploading to ${zipPath}...`);
+
+    const { error: uploadError } = await supabase.storage
+      .from(bucketName)
+      .upload(zipPath, zipBuffer, {
+        contentType: 'application/zip',
+        upsert: true
+      });
+
+    if (uploadError) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to upload ZIP" });
+
+    const { data: signedData, error: urlError } = await supabase.storage
+      .from(bucketName)
+      .createSignedUrl(zipPath, 3600);
+
+    if (urlError || !signedData) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to sign ZIP URL" });
+
+    console.log(`[BulkExport] Success. Signed URL generated.`);
+    return { success: true, url: signedData.signedUrl };
+  });

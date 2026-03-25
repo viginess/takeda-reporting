@@ -7,13 +7,13 @@ import { hcpReports, notifications } from "../../db/schema.js";
 import { systemSettings } from "../../db/admin/settings.schema.js";
 import { createHcpSchema, updateHcpSchema } from "./hcp.validation.js";
 import { determineNotificationData, shouldCreateNotification } from "../../utils/notification-helper.js";
-import { assertNoMaintenance } from "../../utils/config-helper.js";
+
 
 export const hcpRouter = router({
   create: rateLimitedProcedure
     .input(createHcpSchema)
     .mutation(async ({ input }) => {
-      await assertNoMaintenance();
+
       const [row] = await db
         .insert(hcpReports)
         .values({
@@ -32,13 +32,18 @@ export const hcpRouter = router({
           attachments: input.attachments ?? [],
           agreedToTerms: input.agreedToTerms,
           status: input.status ?? "new",
-          severity: determineNotificationData(input, "HCP", "TEMP").type as any,
+          severity: input.severity || determineNotificationData(input, "HCP", "TEMP").type,
+          meddraVersion: (await db.select().from(systemSettings).where(eq(systemSettings.id, 1)))[0]?.clinicalConfig?.meddraVersion || "29.1",
+          countryCode: input.countryCode,
         })
         .returning();
 
       const notifData = determineNotificationData(input, "HCP", row.referenceId || row.id);
       
-      const [settings] = await db.select().from(systemSettings).where(eq(systemSettings.id, 1));
+      let [settings] = await db.select().from(systemSettings).where(eq(systemSettings.id, 1));
+      if (!settings) {
+        settings = { id: 1, notificationThresholds: { urgentAlerts: true, alertThreshold: "All Severities", notifyOnApproval: true, emailDigest: false, digestFrequency: "Daily", smsAlerts: false } } as any;
+      }
       
       if (shouldCreateNotification(settings, notifData)) {
         await db.insert(notifications).values({
@@ -50,6 +55,21 @@ export const hcpRouter = router({
           reportId: notifData.reportId,
           classificationReason: notifData.classificationReason,
         });
+      }
+
+      // Trigger E2B XML & PDF Workflow
+      try {
+        const { processE2BWorkflow } = await import("../e2b/index.js");
+        await processE2BWorkflow(row.id);
+
+        const { generateSafetyPDF } = await import("../pdf/pdf-generator.js");
+        const { storeSafetyPDF } = await import("../pdf/storage.js");
+        
+        const buffer = await generateSafetyPDF(row);
+        const pdfPath = await storeSafetyPDF(row.referenceId || row.id, buffer);
+        await db.update(hcpReports).set({ pdfUrl: pdfPath }).where(eq(hcpReports.id, row.id));
+      } catch (workflowErr) {
+        console.error("Workflow failure for HCP report:", workflowErr);
       }
 
       return { success: true, data: row };

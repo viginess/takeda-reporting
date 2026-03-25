@@ -7,6 +7,7 @@ import {
   getMe,
   updateAdminRole,
   inviteAdmin,
+  toggleTwoFactor,
 } from "./profile.router.js";
 import {
   getAllReports,
@@ -15,6 +16,9 @@ import {
   getUrgentReports,
   getStatusDistribution,
   getMonthlyVolume,
+  getReportPDF,
+  getReportXML,
+  getBulkReports,
 } from "./reportsrouter.js";
 import {
   getSystemSettings,
@@ -41,4 +45,8 @@ export const adminRouter = router({
   updateAdminRole,
   inviteAdmin,
   runManualArchiving,
+  getReportPDF,
+  getReportXML,
+  getBulkReports,
+  toggleTwoFactor,
 });

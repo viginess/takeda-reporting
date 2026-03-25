@@ -33,6 +33,7 @@ export const syncProfile = protectedProcedure
           email: input.email,
           role: isFirstUser ? "super_admin" : "admin",
           lastLoginAt: new Date(),
+          lastActiveAt: new Date(),
           failedLoginAttempts: 0,
           lockedAt: null,
         })
@@ -40,6 +41,7 @@ export const syncProfile = protectedProcedure
           target: admins.id,
           set: {
             lastLoginAt: new Date(),
+            lastActiveAt: new Date(),
             failedLoginAttempts: 0,
             lockedAt: null,
             updatedAt: new Date(),
@@ -263,4 +265,50 @@ export const inviteAdmin = superAdminProcedure
         message: "User was invited but failed to create admin profile record.",
       });
     }
+  });
+
+export const unlockAdmin = superAdminProcedure
+  .input(z.object({ adminId: z.string().uuid() }))
+  .mutation(async ({ input }) => {
+    const [updated] = await db
+      .update(admins)
+      .set({
+        failedLoginAttempts: 0,
+        lockedAt: null,
+        updatedAt: new Date(),
+      })
+      .where(eq(admins.id, input.adminId))
+      .returning();
+
+    if (!updated) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Admin user not found.",
+      });
+    }
+
+    return { success: true, data: updated };
+  });
+
+export const toggleTwoFactor = viewerProcedure
+  .input(z.object({ enabled: z.boolean() }))
+  .mutation(async ({ input, ctx }) => {
+    const adminId = ctx.user.id;
+    const [updated] = await db
+      .update(admins)
+      .set({
+        twoFactorEnabled: input.enabled,
+        updatedAt: new Date(),
+      })
+      .where(eq(admins.id, adminId))
+      .returning();
+
+    if (!updated) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Admin user not found.",
+      });
+    }
+
+    return { success: true, data: updated };
   });

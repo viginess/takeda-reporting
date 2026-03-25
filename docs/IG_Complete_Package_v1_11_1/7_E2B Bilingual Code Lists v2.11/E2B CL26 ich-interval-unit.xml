@@ -1,0 +1,195 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="ICH_M2_Codelist.xsl"?>
+<gc:CodeList xmlns:gc="http://docs.oasis-open.org/codelist/ns/genericode/1.0/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:html="http://www.w3.org/1999/xhtml" xsi:schemaLocation="http://docs.oasis-open.org/codelist/ns/genericode/1.0/ genericode.xsd">
+	<Annotation>
+		<Description>
+			<html:p>This file is an ICH M2 ESTRI maintained code list.  It is encoded using OASIS genericode.More information on ICH technical standards is available via the M2 ESTRI webpages at www.ich.org.</html:p>
+		</Description>
+		<Description>
+			<html:p>Change History: v2.0 (November 11 2014) - Add "current flag" to the code list</html:p>
+			<html:p>Change History: v2.1 (November 12 2014) - Add "decade" to the list</html:p>
+			<html:p>Change History: v2.2 (May 29 2017) - Change "decade" from 10a to 10.a</html:p>
+		</Description>
+		<AppInfo>
+			<html:p>Authored July 2011 by R. Kupiec / EFPIA on behalf of the ICH M2 ESTRI Expert Working Group. -- Updated September 2012
+			Updated November 11 2014 by TJ Chen / FDA on behalf of ICH E2B IWG -- add "current flag"
+			Updated November 11 2014 by TJ Chen / FDA on behalf of ICH E2B IWG -- add "current flag"
+			Updated May 29 2017 by TJ Chen / FDA on behalf of ICH E2B IWG -- add "decade"</html:p>
+		</AppInfo>
+	</Annotation>
+	<Identification>
+		<ShortName>ich-interval-unit</ShortName>
+		<LongName>Time Interval Unit</LongName>
+		<Version>2.2</Version>
+		<CanonicalUri>2.16.840.1.113883.3.989.2.1.1.26</CanonicalUri>
+		<CanonicalVersionUri>2.16.840.1.113883.3.989.2.1.1.26.3</CanonicalVersionUri>
+		<Agency>
+			<ShortName>E2B</ShortName>
+			<LongName>Transmission of Individual Case Safety Reports</LongName>
+		</Agency>
+	</Identification>
+	<ColumnSet>
+		<Column Use="required" Id="code">
+			<ShortName>UCUM-code</ShortName>
+			<Data Type="string"/>
+		</Column>
+		<Column Use="optional" Id="en">
+			<ShortName>english-label</ShortName>
+			<Data Type="string" Lang="en"/>
+		</Column>
+		<Column Use="optional" Id="ja">
+			<ShortName>japanese-label</ShortName>
+			<Data Type="string" Lang="ja"/>
+		</Column>
+	<Column Use="optional" Id="cf">
+		<ShortName>current flag</ShortName>
+		<Data Type="string" Lang="en"/>
+	</Column>
+	</ColumnSet>
+	<SimpleCodeList>
+		<Row>
+			<Value ColumnRef="code">
+				<SimpleValue>s</SimpleValue>
+			</Value>
+			<Value ColumnRef="en">
+				<SimpleValue>second</SimpleValue>
+			</Value>
+			<Value ColumnRef="ja">
+				<SimpleValue>秒</SimpleValue>
+			</Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code">
+				<SimpleValue>min</SimpleValue>
+			</Value>
+			<Value ColumnRef="en">
+				<SimpleValue>minute</SimpleValue>
+			</Value>
+			<Value ColumnRef="ja">
+				<SimpleValue>分</SimpleValue>
+			</Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code">
+				<SimpleValue>h</SimpleValue>
+			</Value>
+			<Value ColumnRef="en">
+				<SimpleValue>hour</SimpleValue>
+			</Value>
+			<Value ColumnRef="ja">
+				<SimpleValue>時間</SimpleValue>
+			</Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code">
+				<SimpleValue>d</SimpleValue>
+			</Value>
+			<Value ColumnRef="en">
+				<SimpleValue>day</SimpleValue>
+			</Value>
+			<Value ColumnRef="ja">
+				<SimpleValue>日</SimpleValue>
+			</Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code">
+				<SimpleValue>wk</SimpleValue>
+			</Value>
+			<Value ColumnRef="en">
+				<SimpleValue>week</SimpleValue>
+			</Value>
+			<Value ColumnRef="ja">
+				<SimpleValue>週</SimpleValue>
+			</Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code">
+				<SimpleValue>mo</SimpleValue>
+			</Value>
+			<Value ColumnRef="en">
+				<SimpleValue>month</SimpleValue>
+			</Value>
+			<Value ColumnRef="ja">
+				<SimpleValue>月</SimpleValue>
+			</Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code">
+				<SimpleValue>a</SimpleValue>
+			</Value>
+			<Value ColumnRef="en">
+				<SimpleValue>year</SimpleValue>
+			</Value>
+			<Value ColumnRef="ja">
+				<SimpleValue>年</SimpleValue>
+			</Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code">
+				<SimpleValue>10.a</SimpleValue>
+			</Value>
+			<Value ColumnRef="en">
+				<SimpleValue>decade</SimpleValue>
+			</Value>
+			<Value ColumnRef="ja">
+				<SimpleValue>10年</SimpleValue>
+			</Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code">
+				<SimpleValue>{trimester}</SimpleValue>
+			</Value>
+			<Value ColumnRef="en">
+				<SimpleValue>trimester</SimpleValue>
+			</Value>
+			<Value ColumnRef="ja">
+				<SimpleValue>トライメスター</SimpleValue>
+			</Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code">
+				<SimpleValue>{cyclical}</SimpleValue>
+			</Value>
+			<Value ColumnRef="en">
+				<SimpleValue>cyclical</SimpleValue>
+			</Value>
+			<Value ColumnRef="ja">
+				<SimpleValue>周期的</SimpleValue>
+			</Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code">
+				<SimpleValue>{asnecessary}</SimpleValue>
+			</Value>
+			<Value ColumnRef="en">
+				<SimpleValue>as necessary</SimpleValue>
+			</Value>
+			<Value ColumnRef="ja">
+				<SimpleValue>頓用</SimpleValue>
+			</Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code">
+				<SimpleValue>{total}</SimpleValue>
+			</Value>
+			<Value ColumnRef="en">
+				<SimpleValue>total</SimpleValue>
+			</Value>
+			<Value ColumnRef="ja">
+				<SimpleValue>合計</SimpleValue>
+			</Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+	</SimpleCodeList>
+</gc:CodeList>

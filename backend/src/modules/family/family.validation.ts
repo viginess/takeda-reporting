@@ -2,45 +2,55 @@ import { z } from "zod";
 
 // ─── Shared sub-schemas (identical to patient) ───────────────────────────────
 
-const conditionSchema = z.object({ name: z.string().optional() });
+const conditionSchema = z.object({ 
+  name: z.string().optional(),
+  meddraCode: z.string().optional(),
+});
 
 const batchSchema = z.object({
-  batchNumber: z.string().optional(),
-  expiryDate: z.string().optional(),
-  startDate: z.string().optional(),
-  endDate: z.string().optional(),
+  batchNumber: z.string().min(1, "Batch number is required"),
+  expiryDate: z.string().optional().or(z.literal("")),
+  startDate: z.string().optional().or(z.literal("")),
+  endDate: z.string().optional().or(z.literal("")),
   dosage: z.string().optional(),
 });
 
 const productSchema = z.object({
-  productName: z.string().optional(),
+  productName: z.string().min(1, "Product name is required"),
   conditions: z.array(conditionSchema).optional(),
-  batches: z.array(batchSchema).optional(),
+  batches: z.array(batchSchema).min(1, "At least one batch is required"),
   doseForm: z.string().optional(),
   route: z.string().optional(),
 });
 
 const symptomSchema = z.object({
-  name: z.string().optional(),
-  eventStartDate: z.string().optional(),
-  eventEndDate: z.string().optional(),
+  name: z.string().min(1, "Symptom name is required"),
+  meddraCode: z.string().optional(),
+  lltCode: z.string().optional(),
+  lltName: z.string().optional(),
+  ptCode: z.string().optional(),
+  ptName: z.string().optional(),
+  meddraTerm: z.string().optional(),
+  reactionId: z.string().optional(),
+  eventStartDate: z.string().optional().or(z.literal("")),
+  eventEndDate: z.string().optional().or(z.literal("")),
   symptomTreated: z.string().optional(),
   treatment: z.string().optional(),
-  seriousness: z.string().optional(),
+  seriousness: z.union([z.string(), z.array(z.string())]).optional(),
   outcome: z.string().optional(),
 });
 
 const otherMedicationSchema = z.object({
   product: z.string().optional(),
   condition: z.string().optional(),
-  startDate: z.string().optional(),
-  endDate: z.string().optional(),
+  startDate: z.string().optional().or(z.literal("")),
+  endDate: z.string().optional().or(z.literal("")),
 });
 
 const medicalHistorySchema = z.object({
   conditionName: z.string().optional(),
-  startDate: z.string().optional(),
-  endDate: z.string().optional(),
+  startDate: z.string().optional().or(z.literal("")),
+  endDate: z.string().optional().or(z.literal("")),
   info: z.string().optional(),
 });
 
@@ -56,12 +66,21 @@ const labTestSchema = z.object({
 
 const patientDetailsSchema = z.object({
   name: z.string().optional(),
-  gender: z.string().optional(),
+  gender: z.preprocess((val) => {
+    if (typeof val === "string") {
+      const low = val.toLowerCase();
+      if (low === "male") return "M";
+      if (low === "female") return "F";
+      if (low === "other") return "O";
+      if (low === "" || low === "unknown") return "Unknown";
+    }
+    return val || "Unknown";
+  }, z.enum(["M", "F", "O", "Unknown"]).optional().default("Unknown")),
   initials: z.string().optional(),
-  dob: z.string().optional(),
-  ageValue: z.union([z.number(), z.string()]).optional(),
+  dob: z.string().optional().or(z.literal("")),
+  ageValue: z.preprocess((val) => (typeof val === "string" ? parseInt(val, 10) : val), z.number({ invalid_type_error: "Age must be a number" }).optional()),
   contactPermission: z.string().optional(),
-  email: z.string().optional(),
+  email: z.string().email("Invalid email").optional().or(z.literal("")),
 });
 
 // ─── Step 3: HCP details (same shape as patient) ─────────────────────────────
@@ -90,10 +109,10 @@ const hcpDetailsSchema = z.object({
 
 export const createFamilySchema = z.object({
   // Step 1: Product
-  products: z.array(productSchema).optional(),
+  products: z.array(productSchema).min(1, "At least one product is required"),
 
   // Step 2: Event
-  symptoms: z.array(symptomSchema).optional(),
+  symptoms: z.array(symptomSchema).min(1, "At least one symptom is required"),
 
   // Step 3: Personal & HCP (family form reuses patient-report PersonalDetails)
   patientDetails: patientDetailsSchema.optional(),
@@ -117,6 +136,9 @@ export const createFamilySchema = z.object({
     message: "You must agree to the terms",
   }),
   status: z.enum(["new", "under_review", "closed"]).optional(),
+  countryCode: z.string().optional(),
+  submissionLanguage: z.string().optional().default("en"),
+  severity: z.string().optional(),
 });
 
 export const updateFamilySchema = createFamilySchema.partial();

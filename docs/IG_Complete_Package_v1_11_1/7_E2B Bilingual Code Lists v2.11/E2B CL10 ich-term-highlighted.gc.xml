@@ -1,0 +1,71 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="ICH_M2_Codelist.xsl"?>
+<gc:CodeList xmlns:gc="http://docs.oasis-open.org/codelist/ns/genericode/1.0/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://docs.oasis-open.org/codelist/ns/genericode/1.0/ genericode.xsd" xmlns:html='http://www.w3.org/1999/xhtml'>
+	<Annotation>
+		<Description>
+			<html:p>This file is an ICH M2 ESTRI maintained code list.  It is encoded using OASIS genericode.More information on ICH technical standards is available via the M2 ESTRI webpages at www.ich.org.</html:p>
+		</Description>
+		<Description>
+			<html:p>Change History: v2.0 (November 11 2014) - Add "current flag" to the code list</html:p>
+		</Description>
+		<AppInfo>
+			<html:p>Authored July 2011 by R. Kupiec / EFPIA on behalf of the ICH M2 ESTRI Expert Working Group. -- Updated September 2012
+			Updated November 11 2014 by TJ Chen / FDA on behalf of ICH E2B IWG -- add "current flag"</html:p>
+		</AppInfo>
+	</Annotation>
+	<Identification>
+		<ShortName>ich-term-highlighted</ShortName>
+		<LongName>Term Highlighted by the Reporter</LongName>
+		<Version>2.0</Version>
+		<CanonicalUri>2.16.840.1.113883.3.989.2.1.1.10</CanonicalUri>
+		<CanonicalVersionUri>2.16.840.1.113883.3.989.2.1.1.10.2</CanonicalVersionUri>
+		<Agency>
+			<ShortName>E2B</ShortName>
+			<LongName>Transmission of Individual Case Safety Reports</LongName>
+		</Agency>
+	</Identification>
+	<ColumnSet>
+	<Column Use="required" Id="code">
+		<ShortName>numeric-code</ShortName>
+		<Data Type="unsignedShort"></Data>
+	</Column>
+	<Column Use="optional" Id="en">
+		<ShortName>english-label</ShortName>
+		<Data Type="string" Lang="en"></Data>
+	</Column>
+	<Column Use="optional" Id="ja">
+		<ShortName>japanese-label</ShortName>
+		<Data Type="string" Lang="ja"/>
+	</Column>
+	<Column Use="optional" Id="cf">
+		<ShortName>current flag</ShortName>
+		<Data Type="string" Lang="en"/>
+	</Column>
+	</ColumnSet>
+	<SimpleCodeList>
+	<Row>
+		<Value ColumnRef="code"><SimpleValue>1</SimpleValue></Value>
+		<Value ColumnRef="en"><SimpleValue>Yes, highlighted by the Reporter, NOT serious</SimpleValue></Value>
+		<Value ColumnRef="ja"><SimpleValue>報告者により重要とされたが、非重篤</SimpleValue></Value>
+		<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+	</Row>
+	<Row>
+		<Value ColumnRef="code"><SimpleValue>2</SimpleValue></Value>
+		<Value ColumnRef="en"><SimpleValue>No, not highlighted by the Reporter, NOT serious</SimpleValue></Value>
+		<Value ColumnRef="ja"><SimpleValue>報告者により重要とされず、非重篤</SimpleValue></Value>
+		<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+	</Row>
+	<Row>
+		<Value ColumnRef="code"><SimpleValue>3</SimpleValue></Value>
+		<Value ColumnRef="en"><SimpleValue>Yes, highlighted by the Reporter, SERIOUS</SimpleValue></Value>
+		<Value ColumnRef="ja"><SimpleValue>報告者により重要とされ、重篤</SimpleValue></Value>
+		<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+	</Row>
+	<Row>
+		<Value ColumnRef="code"><SimpleValue>4</SimpleValue></Value>
+		<Value ColumnRef="en"><SimpleValue>No, not highlighted by the Reporter,  SERIOUS</SimpleValue></Value>
+		<Value ColumnRef="ja"><SimpleValue>報告者により重要とされなかったが、重篤</SimpleValue></Value>
+		<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+	</Row>
+	</SimpleCodeList>
+</gc:CodeList>

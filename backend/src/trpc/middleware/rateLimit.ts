@@ -25,16 +25,17 @@ export function checkRateLimit(key: string, limit: number, windowMs: number): bo
 }
 
 /**
- * A procedure that limits submissions to 50 per hour per client fingerprint.
+ * A procedure that limits submissions to 100 per minute per client fingerprint.
  */
 export const rateLimitedProcedure = t.procedure.use(async (opts) => {
   const { ip, userAgent, clientId } = opts.ctx;
   const fingerprint = `${ip}:${userAgent}:${clientId}`;
   
-  if (!checkRateLimit(fingerprint, 50, 3600000)) {
+  // 100 requests per 1 minute (60,000 ms)
+  if (!checkRateLimit(fingerprint, 100, 60000)) {
     throw new TRPCError({
       code: "TOO_MANY_REQUESTS",
-      message: "Submission limit reached. Please try again later.",
+      message: "Too many requests. Please try again in a minute.",
     });
   }
 

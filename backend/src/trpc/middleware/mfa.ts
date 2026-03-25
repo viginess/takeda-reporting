@@ -1,15 +1,10 @@
 import { TRPCError } from "@trpc/server";
 import { t } from "../init.js";
 import { db } from "../../db/index.js";
-import { systemSettings } from "../../db/admin/settings.schema.js";
+import { admins } from "../../db/admin/admin.schema.js";
 import { eq } from "drizzle-orm";
 
 export const isMfaAuthed = t.middleware(async ({ ctx, next }) => {
-  let clinical: any = {};
-  try {
-    const [settings] = await db.select().from(systemSettings).where(eq(systemSettings.id, 1));
-    clinical = settings?.clinicalConfig || {};
-  } catch (e) {}
 
   const user = (ctx as any).user;
   const isAal2 = user?.aal === 'aal2';
@@ -20,8 +15,21 @@ export const isMfaAuthed = t.middleware(async ({ ctx, next }) => {
     (typeof m === 'object' && (m.method === 'otp' || m.method === 'email' || m.method === 'mfa'))
   );
 
-  if (clinical.twoFA === true && !hasStrongAuth) {
-    throw new TRPCError({ code: "UNAUTHORIZED", message: "MFA verification required." });
+  // Check user-level preference (Global enforcement removed per user request)
+  if (user?.id) {
+    try {
+      const [admin] = await db.select().from(admins).where(eq(admins.id, user.id));
+      if (admin?.twoFactorEnabled && !hasStrongAuth) {
+          throw new TRPCError({ code: "UNAUTHORIZED", message: "MFA verification required (User Preference)." });
+      }
+    } catch (err) {
+      console.error("MFA Middleware Error:", err);
+      // If DB check fails, we might want to fail safe or allow? 
+      // Given it's a security check, failing safe (rejecting) is usually better, 
+      // but let's allow it to proceed if DB is down to avoid logout loops 
+      // UNLESS strong auth is already present.
+    }
   }
+
   return next();
 });

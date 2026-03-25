@@ -16,6 +16,7 @@
     "@chakra-ui/react": "^2.10.9",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
+    "@hookform/resolvers": "^5.2.2",
     "@saas-ui/file-upload": "^0.6.1",
     "@saas-ui/forms": "^2.11.0",
     "@saas-ui/react": "^2.11.4",
@@ -29,6 +30,8 @@
     "@types/node-cron": "^3.0.11",
     "@types/pg": "^8.10.9",
     "@types/react-google-recaptcha": "^2.1.9",
+    "axios": "^1.13.6",
+    "dotenv": "^17.3.1",
     "drizzle-orm": "^0.45.1",
     "framer-motion": "^6.5.1",
     "i18next": "^25.8.13",
@@ -43,22 +46,26 @@
     "react-icons": "^5.5.0",
     "react-router-dom": "^7.13.0",
     "recharts": "^3.7.0",
-    "zod": "^3.25.76",
-    "axios": "^1.13.6",
-    "dotenv": "^17.3.1"
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
+    "@types/adm-zip": "^0.5.7",
+    "@types/pdfkit": "^0.17.5",
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.1",
+    "adm-zip": "^0.5.16",
     "eslint": "^9.39.1",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.5.0",
+    "pdfkit": "^0.17.2",
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.46.4",
-    "vite": "^7.2.4"
+    "vite": "^7.2.4",
+    "xmlbuilder2": "^4.0.3",
+    "xmllint-wasm": "^5.1.0"
   }
 }

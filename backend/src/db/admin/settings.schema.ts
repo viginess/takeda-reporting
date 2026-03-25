@@ -20,7 +20,7 @@ export const systemSettings = pgTable("system_settings", {
     smsAlerts: boolean;
   }>().notNull().default({
     urgentAlerts: true,
-    alertThreshold: "Critical & High",
+    alertThreshold: "All Severities",
     notifyOnApproval: true,
     emailDigest: true,
     digestFrequency: "Daily",
@@ -31,20 +31,28 @@ export const systemSettings = pgTable("system_settings", {
     adminEmail: string;
     timezone: string;
     retention: string;
-    maintenanceMode: boolean;
-    twoFA: boolean;
+
+    twoFA?: boolean;
     sessionTimeout: string;
     maxLoginAttempts: string;
     passwordExpiry: string;
+    senderId: string;
+    receiverId: string;
+    meddraVersion: string;
+    lockoutCooldown: string;
   }>().notNull().default({
     adminEmail: "admin@pharma.com",
     timezone: "UTC+05:30 (IST)",
     retention: "24 months",
-    maintenanceMode: false,
+
     twoFA: false,
     sessionTimeout: "60 min",
     maxLoginAttempts: "5",
     passwordExpiry: "90 days",
+    senderId: "CLINSOLUTION-DEFAULT",
+    receiverId: "EVHUMAN",
+    meddraVersion: "29.0",
+    lockoutCooldown: "30 min",
   }),
   updatedAt: timestamp("updated_at").defaultNow(),
   updatedBy: text("updated_by"),
