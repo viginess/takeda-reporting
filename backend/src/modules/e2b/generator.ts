@@ -35,7 +35,7 @@ const OID = {
  * Generates an E2B R3 (HL7 v3) XML from a Safety Report.
  * Mapping rules based on July 2025 ICSR Implementation Guide.
  */
-export function generateE2BR3(report: SafetyReport, options: { senderId: string, receiverId: string, reportType?: 'Patient' | 'HCP' | 'Family' }): string {
+export function generateE2BR3(report: SafetyReport, options: { senderId: string, receiverId: string, reportType?: 'Patient' | 'HCP' | 'Family', meddraVersion?: string }): string {
   const now = new Date();
 
   // N.2.r.1: Message Identifier ({COUNTRY}-CLINSOLUTION-YYYYMMDDHHmmss-ID)
@@ -229,6 +229,8 @@ export function generateE2BR3(report: SafetyReport, options: { senderId: string,
       const lltCode = s.lltCode || s.meddraCode;
       const ptCode = s.ptCode || lltCode; 
 
+      const medVersion = report.meddraVersion || options.meddraVersion || "29.0";
+
       reactionObs.ele('id', { root: '2.16.840.1.113883.3.989.2.1.3.2', extension: s.reactionId || `REAC-${Date.now()}-${idx}` }).up()
         .ele('code', { code: 'ASSERTION', codeSystem: '2.16.840.1.113883.5.4' }).up();
 
@@ -239,6 +241,9 @@ export function generateE2BR3(report: SafetyReport, options: { senderId: string,
           displayName: s.lltName || s.name || s.meddraTerm 
         });
       
+      // E.i.2.1a: MedDRA Version
+      valueNode.ele('qualifier', { code: medVersion, codeSystem: '2.16.840.1.113883.3.989.2.1.1.9' }).up();
+
       valueNode.ele('originalText').txt(s.name || 'Unknown Symptom').up();
       
       if (ptCode && ptCode !== lltCode) {
@@ -328,11 +333,14 @@ export function generateE2BR3(report: SafetyReport, options: { senderId: string,
     testOrganizer.ele('id', { root: '2.16.840.1.113883.3.989.2.1.3.2', extension: `TEST-${idx}` }).up();
 
     // F.r.2.2b: Test Name (MedDRA)
+    const medVersion = report.meddraVersion || options.meddraVersion || "29.0";
     testOrganizer.ele('code', { 
       code: t.meddraCode || '10000000', 
       codeSystem: OID.MEDDRA, 
       displayName: t.testName || t.name 
-    }).ele('originalText').txt(t.testName || t.name).up().up();
+    })
+    .ele('qualifier', { code: medVersion, codeSystem: '2.16.840.1.113883.3.989.2.1.1.9' }).up()
+    .ele('originalText').txt(t.testName || t.name).up().up();
 
     // F.r.3.2: Test Result Value
     const val = t.testValue || t.result || t.resultValue;

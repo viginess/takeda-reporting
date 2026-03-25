@@ -10,7 +10,9 @@
     "start": "node dist/server.js",
     "db:generate": "tsx --env-file=.env node_modules/drizzle-kit/bin.cjs generate",
     "db:migrate": "tsx --env-file=.env node_modules/drizzle-kit/bin.cjs migrate",
-    "db:push": "tsx --env-file=.env node_modules/drizzle-kit/bin.cjs push"
+    "db:push": "tsx --env-file=.env node_modules/drizzle-kit/bin.cjs push",
+    "db:import-meddra": "tsx --env-file=.env src/scripts/import-meddra.ts",
+    "db:generate-mock-meddra": "tsx --env-file=.env src/scripts/generate-mock-meddra.ts"
   },
   "engines": {
     "node": ">=20"

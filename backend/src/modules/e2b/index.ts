@@ -73,7 +73,10 @@ export async function processE2BWorkflow(reportId: string) {
     report.reportVersion = reportVersion;
 
     // 2. Generate XML
-    const xml = generateE2BR3(report, { senderId, receiverId, reportType });
+    const sysSettings = (await db.select().from(systemSettings).where(eq(systemSettings.id, 1)).limit(1))[0];
+    const meddraVersion = sysSettings?.clinicalConfig?.meddraVersion || "29.0";
+    
+    const xml = generateE2BR3(report, { senderId, receiverId, reportType, meddraVersion });
     console.log('XML Generated');
 
     // 3. Validate XML

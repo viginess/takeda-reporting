@@ -289,3 +289,26 @@ export const unlockAdmin = superAdminProcedure
 
     return { success: true, data: updated };
   });
+
+export const toggleTwoFactor = viewerProcedure
+  .input(z.object({ enabled: z.boolean() }))
+  .mutation(async ({ input, ctx }) => {
+    const adminId = ctx.user.id;
+    const [updated] = await db
+      .update(admins)
+      .set({
+        twoFactorEnabled: input.enabled,
+        updatedAt: new Date(),
+      })
+      .where(eq(admins.id, adminId))
+      .returning();
+
+    if (!updated) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Admin user not found.",
+      });
+    }
+
+    return { success: true, data: updated };
+  });

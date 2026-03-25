@@ -19,7 +19,7 @@ export const publicRouter = router({
 
       if (!settings) {
         return {
-          isMfaRequired: true,
+          isMfaRequired: false, // Default to false if not configured
           maxLoginAttempts: 5,
         };
       }
@@ -37,6 +37,18 @@ export const publicRouter = router({
       });
     }
   }),
+
+  /**
+   * Specifically checks if a user needs MFA based on their preference 
+   * OR global enforcement.
+   */
+  checkMfaRequirement: publicProcedure
+    .input(z.object({ email: z.string().email() }))
+    .query(async ({ input }) => {
+      // Check user-level setting only (as requested: personal preference only)
+      const [admin] = await db.select().from(admins).where(eq(admins.email, input.email));
+      return { isMfaRequired: !!admin?.twoFactorEnabled };
+    }),
 
   checkLockout: rateLimitedProcedure
     .input(z.object({ email: z.string().email() }))

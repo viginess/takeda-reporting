@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
-import { supabase } from '../../utils/supabaseClient';
-import { trpc } from '../../utils/trpc';
+import { supabase } from '../../../utils/supabaseClient';
+import { trpc } from '../../../utils/trpc';
+
 import Sidebar from './Sidebar';
 import { Flex, Box, IconButton } from '@chakra-ui/react';
 import { FiMenu } from 'react-icons/fi';

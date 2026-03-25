@@ -19,7 +19,8 @@ import {
    Image, Modal, ModalOverlay, ModalContent, ModalBody, ModalCloseButton, useDisclosure,
    Checkbox, Skeleton
 } from "@chakra-ui/react";
-import { trpc } from "../../utils/trpc";
+import { trpc } from "../../../utils/trpc";
+
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 type Status = "Submitted" | "In Review" | "Approved" | "Closed" | "Urgent";
@@ -80,11 +81,18 @@ const severityOptions: Severity[] = ["Critical", "High", "Medium", "Low"];
 
 // ── MedDRA Types ──────────────────────────────────────────────────────────────
 interface MedDRATerm {
-  term: string;
-  code: string | null;
+  term?: string;
+  code?: string | null;
   description?: string;
   type?: string;
+  socCode?: string;
+  socName?: string;
+  ptCode?: string;
+  ptName?: string;
+  lltCode?: string;
+  lltName?: string;
 }
+
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function formatKey(key: string) {
@@ -1298,7 +1306,7 @@ export default function ReportManagementPage() {
               
               {meddraResults?.map((term: MedDRATerm) => (
                 <Box 
-                  key={term.code}
+                  key={term.code || "uncoded"}
                   p={3}
                   borderRadius="xl"
                   border="1px solid"
@@ -1312,8 +1320,8 @@ export default function ReportManagementPage() {
                     const updatedSymptoms = [...selectedReport.fullDetails.symptoms];
                     updatedSymptoms[codingSymptomIndex] = {
                       ...updatedSymptoms[codingSymptomIndex],
-                      meddraCode: term.code,
-                      meddraTerm: term.term
+                      meddraCode: term.code || null,
+                      meddraTerm: term.term || "Unknown"
                     };
 
                     try {
@@ -1346,7 +1354,7 @@ export default function ReportManagementPage() {
                 >
                   <Flex justify="space-between" align="center">
                     <Box>
-                      <Text fontWeight="bold" fontSize="sm" color="#1e293b">{term.term}</Text>
+                      <Text fontWeight="bold" fontSize="sm" color="#1e293b">{term.term || "Unknown Term"}</Text>
                       <Text fontSize="xs" color="#64748b">{term.description || "No description"}</Text>
                     </Box>
                     {term.code ? (

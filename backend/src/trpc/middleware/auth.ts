@@ -84,7 +84,13 @@ export const isAuthed = t.middleware(async ({ ctx, next }) => {
 
     return next({
       ctx: {
-        user: { id: userId, role: admin?.role ?? "user", aal: payload.aal || "aal1", amr: payload.amr || [] },
+        user: { 
+          id: userId, 
+          email: admin?.email,
+          role: admin?.role ?? "user", 
+          aal: payload.aal || "aal1", 
+          amr: payload.amr || [] 
+        },
       },
     });
   } catch (err) {

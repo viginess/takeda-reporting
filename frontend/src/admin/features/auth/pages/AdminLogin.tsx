@@ -31,9 +31,9 @@ import {
   Activity,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { supabase } from "../../utils/supabaseClient";
-import { trpc } from "../../utils/trpc";
-import logo from "../../assets/logo.jpg";
+import { supabase } from "../../../../utils/supabaseClient";
+import { trpc } from "../../../../utils/trpc";
+import logo from "../../../../assets/logo.jpg";
 
 // Motion components
 const MotionBox = motion(Box);
@@ -182,7 +182,8 @@ export default function AdminLogin() {
 
       if (authError) throw authError;
 
-      const isMfaRequired = authPolicy?.isMfaRequired !== false;
+      const mfaCheck = await utils.public.checkMfaRequirement.fetch({ email });
+      const isMfaRequired = mfaCheck.isMfaRequired;
 
       if (!isMfaRequired) {
         const { data: { user } } = await supabase.auth.getUser();

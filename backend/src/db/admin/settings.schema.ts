@@ -32,7 +32,7 @@ export const systemSettings = pgTable("system_settings", {
     timezone: string;
     retention: string;
 
-    twoFA: boolean;
+    twoFA?: boolean;
     sessionTimeout: string;
     maxLoginAttempts: string;
     passwordExpiry: string;
@@ -51,7 +51,7 @@ export const systemSettings = pgTable("system_settings", {
     passwordExpiry: "90 days",
     senderId: "CLINSOLUTION-DEFAULT",
     receiverId: "EVHUMAN",
-    meddraVersion: "29.1",
+    meddraVersion: "29.0",
     lockoutCooldown: "30 min",
   }),
   updatedAt: timestamp("updated_at").defaultNow(),

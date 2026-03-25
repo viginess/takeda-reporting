@@ -1,11 +1,9 @@
-import { Flex, Box, Text, Switch, Select } from "@chakra-ui/react";
+import { Flex, Box, Text, Select } from "@chakra-ui/react";
 import { Shield, Key } from "lucide-react";
 import { RowItem } from "./Settingsrow";
 import { SettingsCard } from "./SettingsCard";
 
 interface SecurityTabProps {
-  twoFA: boolean;
-  setTwoFA: (v: boolean) => void;
   sessionTimeout: string;
   setSessionTimeout: (v: string) => void;
   maxLoginAttempts: string;
@@ -18,7 +16,6 @@ interface SecurityTabProps {
 }
 
 export function SecurityTab({
-  twoFA, setTwoFA,
   sessionTimeout, setSessionTimeout,
   maxLoginAttempts, setMaxLoginAttempts,
   passwordExpiry, setPasswordExpiry,
@@ -35,10 +32,7 @@ export function SecurityTab({
         </Box>
       </Flex>
 
-      <SettingsCard title="Authentication" icon={Key}>
-        <RowItem label="Two-Factor Authentication" desc="Require 2FA for all admin accounts" sensitive>
-          <Switch colorScheme="red" isChecked={twoFA} onChange={(e) => track(() => setTwoFA(e.target.checked))} />
-        </RowItem>
+      <SettingsCard title="Authentication Policy" icon={Key}>
         <RowItem label="Session Timeout" desc="Automatically log out inactive users after this period">
           <select aria-label="Session timeout" value={sessionTimeout} onChange={(e) => track(() => setSessionTimeout(e.target.value))}>
             {["15 min", "30 min", "60 min", "2 hours", "8 hours"].map(o => <option key={o} value={o}>{o}</option>)}

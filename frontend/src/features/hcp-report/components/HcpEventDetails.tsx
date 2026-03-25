@@ -14,7 +14,7 @@ import {
 import { useFormContext } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 
-import { MedDRASymptomAutocomplete } from "../../patient-report/components/MedDRASymptomAutocomplete.js";
+import { MedDRASymptomAutocomplete } from "../../../shared/components/MedDRASymptomAutocomplete.js";
 
 interface HcpEventDetailsProps {
   inputStyles: any;
