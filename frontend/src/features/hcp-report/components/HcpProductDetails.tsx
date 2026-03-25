@@ -53,15 +53,6 @@ export function HcpProductDetails({ inputStyles, index = 0, onAddProduct }: HcpP
     appendBatch({ batchNumber: '', expiryDate: '', startDate: '', endDate: '', dosage: '' });
   }
 
-  // Initialize field arrays if empty
-  if (conditionFields.length === 0) {
-    // This is a bit risky in render, but react-hook-form handles it
-    // Actually better to use useEffect or defaultValues in HcpForm
-  }
-
-
-
-
   const prefix = `products.${index}`;
 
   return (
@@ -89,9 +80,7 @@ export function HcpProductDetails({ inputStyles, index = 0, onAddProduct }: HcpP
           {conditionFields.map((field, cIdx) => (
             <Flex key={field.id} gap={3} flexWrap="wrap">
               <Input
-                placeholder={t('forms.patient.productDetails.conditionPlaceholder')}
-                flex="1"
-                minW="200px"
+                placeholder={t('forms.patient.productDetails.conditionPlaceholder', 'e.g. Headache, Back pain')}
                 {...inputStyles}
                 {...register(`${prefix}.conditions.${cIdx}.name`)}
               />

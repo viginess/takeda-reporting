@@ -10,6 +10,8 @@ Backend service for Clin Solutions L.L.C. project.js server powered by tRPC and 
 - **Translation Services**: Integrated Azure Translator API supporting 137+ languages.
 - **Translation Caching**: Intelligent Supabase-backed caching to minimize API usage and improve latency.
 - **Validation**: Strict input validation with Zod.
+- **Compliance**: E2B R3 (HL7 v3) XML generation and ICH-compliant safety reporting.
+- **Logging**: Server-side audit logging for all exports.
 
 ## Getting Started
 
@@ -27,11 +29,14 @@ Backend service for Clin Solutions L.L.C. project.js server powered by tRPC and 
    PORT=3000
    ```
 
-3. **Database Migration**:
+3. **Database Synchronization**:
 
    ```bash
-   npm run db:generate  # Generate migration files
-   npm run db:migrate   # Run migrations in database
+   # Sync schema directly to Supabase (Recommended for Dev)
+   npm run db:push
+
+   # Or generate a migration file for history
+   npm run db:generate
    ```
 
 4. **Run Development Server**:

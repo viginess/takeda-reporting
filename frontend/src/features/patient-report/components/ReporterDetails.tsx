@@ -101,14 +101,14 @@ export function ReporterDetails({
               {t('forms.patient.personalDetails.emailLabel')}
             </FormLabel>
             <Input 
-              placeholder="client@gmail.com" 
+              placeholder={t('forms.patient.personalDetails.emailPlaceholder')} 
               type="email" 
               {...inputStyles} 
               {...register('hcpDetails.email', { 
-                required: 'Email is required',
+                required: t('forms.patient.personalDetails.emailRequired'),
                 pattern: {
                   value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                  message: 'Invalid email address'
+                  message: t('forms.patient.personalDetails.invalidEmail')
                 }
               })} 
             />
@@ -121,10 +121,10 @@ export function ReporterDetails({
               placeholder={t('forms.patient.personalDetails.phonePlaceholder')} 
               {...inputStyles} 
               {...register('hcpDetails.phone', { 
-                required: 'Phone number is required',
+                required: t('forms.patient.personalDetails.phoneRequired'),
                 pattern: {
                   value: /^\d{10}$/,
-                  message: 'Phone number must be exactly 10 digits'
+                  message: t('forms.patient.personalDetails.phoneDigits')
                 }
               })} 
             />
@@ -163,13 +163,13 @@ export function ReporterDetails({
             <FormLabel fontWeight="500" color="gray.700">
               {t('forms.patient.personalDetails.firstNameLabel')}
             </FormLabel>
-            <Input placeholder="Enter first name" {...inputStyles} {...register('hcpDetails.hcpFirstName')} />
+            <Input placeholder={t('forms.patient.personalDetails.firstNamePlaceholder')} {...inputStyles} {...register('hcpDetails.hcpFirstName')} />
           </FormControl>
           <FormControl mb={4}>
             <FormLabel fontWeight="500" color="gray.700">
               {t('forms.patient.personalDetails.lastNameLabel')}
             </FormLabel>
-            <Input placeholder="Enter last name" {...inputStyles} {...register('hcpDetails.hcpLastName')} />
+            <Input placeholder={t('forms.patient.personalDetails.lastNamePlaceholder')} {...inputStyles} {...register('hcpDetails.hcpLastName')} />
           </FormControl>
           <Text fontWeight="600" mb={3} color="gray.700" fontSize="sm">
             {t('forms.patient.personalDetails.hcpContactMethodSubtitle')}
@@ -178,13 +178,13 @@ export function ReporterDetails({
             <FormLabel fontWeight="500" color="gray.700">
               {t('forms.patient.personalDetails.emailLabel')}
             </FormLabel>
-            <Input placeholder="Enter email address" type="email" {...inputStyles} {...register('hcpDetails.hcpEmail')} />
+            <Input placeholder={t('forms.patient.personalDetails.emailPlaceholder')} type="email" {...inputStyles} {...register('hcpDetails.hcpEmail')} />
           </FormControl>
           <FormControl mb={4}>
             <FormLabel fontWeight="500" color="gray.700">
               {t('forms.patient.personalDetails.phoneLabel')}
             </FormLabel>
-            <Input placeholder="Enter number including area code" type="tel" {...inputStyles} {...register('hcpDetails.hcpPhone')} />
+            <Input placeholder={t('forms.patient.personalDetails.phonePlaceholder')} type="tel" {...inputStyles} {...register('hcpDetails.hcpPhone')} />
           </FormControl>
         </Box>
       )}

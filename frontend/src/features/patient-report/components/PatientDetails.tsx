@@ -29,7 +29,7 @@ export function PatientDetails({
   const { register, setValue, watch } = useFormContext();
 
   const setUnknown = (fieldName: string) => {
-    setValue(fieldName, t('forms.patient.common.unknown'));
+    setValue(fieldName, 'Unknown');
   };
 
   return (
@@ -68,9 +68,10 @@ export function PatientDetails({
         </RadioGroup>
         {ageType === 'dob' && (
           <Input
-            key={watch('patientDetails.dob') === t('forms.patient.common.unknown') ? 'untouchable' : 'selectable'}
+            key={watch('patientDetails.dob') === 'Unknown' ? 'untouchable' : 'selectable'}
             placeholder={t('forms.patient.personalDetails.dobPlaceholder')}
-            type={watch('patientDetails.dob') === t('forms.patient.common.unknown') ? 'text' : 'date'}
+            type={watch('patientDetails.dob') === 'Unknown' ? 'text' : 'date'}
+            value={watch('patientDetails.dob') === 'Unknown' ? t('forms.patient.common.unknown') : watch('patientDetails.dob')}
             mt={3}
             {...inputStyles}
             {...register('patientDetails.dob')}
@@ -79,9 +80,10 @@ export function PatientDetails({
         {ageType === 'age' && (
           <Flex gap={3} mt={3} align="center">
             <Input
-              key={watch('patientDetails.ageValue') === t('forms.patient.common.unknown') ? 'untouchable' : 'selectable'}
-              placeholder="32"
-              type={watch('patientDetails.ageValue') === t('forms.patient.common.unknown') ? 'text' : 'number'}
+              key={watch('patientDetails.ageValue') === 'Unknown' ? 'untouchable' : 'selectable'}
+              placeholder={t('forms.patient.personalDetails.ageValuePlaceholder', '32')}
+              type={watch('patientDetails.ageValue') === 'Unknown' ? 'text' : 'number'}
+              value={watch('patientDetails.ageValue') === 'Unknown' ? t('forms.patient.common.unknown') : watch('patientDetails.ageValue')}
               flex="1"
               maxW="120px"
               {...inputStyles}

@@ -9,3 +9,4 @@ export * from "./shared/enums.schema.js";
 export * from "./audit/audit.schema.js";
 export * from "./admin/settings.schema.js";
 export * from "./archive/archive.schema.js";
+export * from "./meddra/meddra.schema.js";

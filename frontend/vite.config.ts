@@ -18,6 +18,7 @@ export default defineConfig({
         __dirname,
         'node_modules/@trpc/server/dist/shared.mjs'
       ),
+      'zod': path.resolve(__dirname, 'node_modules/zod'),
     },
   },
   optimizeDeps: {

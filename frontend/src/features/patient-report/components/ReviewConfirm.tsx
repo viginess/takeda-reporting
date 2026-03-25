@@ -100,7 +100,7 @@ export function ReviewConfirm({
               <Text>{t('forms.patient.productDetails.title')}</Text>
               {products.length > 0 && <Badge colorScheme="red" fontSize="xs">{products.length}</Badge>}
             </Flex>
-            <Button size="sm" variant="ghost" leftIcon={<Pencil size={14} />} onClick={(e) => { e.stopPropagation(); setStep('product'); }}>{t('forms.patient.common.edit')}</Button>
+            <Button as="span" size="sm" variant="ghost" leftIcon={<Pencil size={14} />} onClick={(e) => { e.stopPropagation(); setStep('product'); }}>{t('forms.patient.common.edit')}</Button>
           </AccordionButton>
           <AccordionPanel pb={4} bg="white">
             {products.length === 0 && <Text fontSize="sm" color="gray.400">{t('forms.patient.reviewConfirm.noProducts')}</Text>}
@@ -140,7 +140,7 @@ export function ReviewConfirm({
               <Text>{t('forms.patient.eventDetails.title')}</Text>
               {symptoms.length > 0 && <Badge colorScheme="orange" fontSize="xs">{symptoms.length}</Badge>}
             </Flex>
-            <Button size="sm" variant="ghost" leftIcon={<Pencil size={14} />} onClick={(e) => { e.stopPropagation(); setStep('event'); }}>{t('forms.patient.common.edit')}</Button>
+            <Button as="span" size="sm" variant="ghost" leftIcon={<Pencil size={14} />} onClick={(e) => { e.stopPropagation(); setStep('event'); }}>{t('forms.patient.common.edit')}</Button>
           </AccordionButton>
           <AccordionPanel pb={4} bg="white">
             {symptoms.length === 0 && <Text fontSize="sm" color="gray.400">{t('forms.patient.reviewConfirm.noSymptoms')}</Text>}
@@ -164,7 +164,7 @@ export function ReviewConfirm({
         <AccordionItem>
           <AccordionButton fontWeight="600" color="gray.800" _expanded={{ bg: 'gray.50' }} justifyContent="space-between">
             <Text>{t('forms.patient.personalDetails.title')}</Text>
-            <Button size="sm" variant="ghost" leftIcon={<Pencil size={14} />} onClick={(e) => { e.stopPropagation(); setStep('patient'); }}>{t('forms.patient.common.edit')}</Button>
+            <Button as="span" size="sm" variant="ghost" leftIcon={<Pencil size={14} />} onClick={(e) => { e.stopPropagation(); setStep('patient'); }}>{t('forms.patient.common.edit')}</Button>
           </AccordionButton>
           <AccordionPanel pb={4} bg="white">
             <SectionTitle>{t('forms.patient.reviewConfirm.patientReviewTitle')}</SectionTitle>

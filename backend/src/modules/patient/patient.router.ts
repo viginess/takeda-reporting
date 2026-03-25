@@ -7,7 +7,7 @@ import { patientReports, notifications } from "../../db/schema.js";
 import { createPatientSchema, updatePatientSchema } from "./patient.validation.js";
 import { determineNotificationData, shouldCreateNotification } from "../../utils/notification-helper.js";
 
-import { assertNoMaintenance } from "../../utils/config-helper.js";
+
 import { systemSettings } from "../../db/admin/settings.schema.js";
 
 export const patientRouter = router({
@@ -15,7 +15,7 @@ export const patientRouter = router({
   create: rateLimitedProcedure
     .input(createPatientSchema)
     .mutation(async ({ input }) => {
-      await assertNoMaintenance();
+
       const [row] = await db
         .insert(patientReports)
         .values({
@@ -24,7 +24,10 @@ export const patientRouter = router({
           products: input.products ?? [],
 
           // ── Step 2: Event ──────────────────────────────
-          symptoms: input.symptoms ?? [],
+          symptoms: (input.symptoms ?? []).map((s: any, idx: number) => ({
+            ...s,
+            reactionId: s.reactionId || `REAC-${Date.now()}-${idx}`
+          })),
 
           // ── Step 3: Personal & HCP (store as JSONB) ───
           patientDetails: input.patientDetails ?? {},
@@ -47,13 +50,18 @@ export const patientRouter = router({
           agreedToTerms: input.agreedToTerms,
           reporterType: input.reporterType,
           status: input.status ?? "new",
-          severity: determineNotificationData(input, "Patient", "TEMP").type as any,
+          severity: input.severity || determineNotificationData(input, "Patient", "TEMP").type,
+          meddraVersion: (await db.select().from(systemSettings).where(eq(systemSettings.id, 1)))[0]?.clinicalConfig?.meddraVersion || "29.1",
+          countryCode: input.countryCode,
         })
         .returning();
 
       const notifData = determineNotificationData(input, "Patient", row.referenceId || row.id);
       
-      const [settings] = await db.select().from(systemSettings).where(eq(systemSettings.id, 1));
+      let [settings] = await db.select().from(systemSettings).where(eq(systemSettings.id, 1));
+      if (!settings) {
+        settings = { id: 1, notificationThresholds: { urgentAlerts: true, alertThreshold: "All Severities", notifyOnApproval: true, emailDigest: false, digestFrequency: "Daily", smsAlerts: false } } as any;
+      }
       
       if (shouldCreateNotification(settings, notifData)) {
         await db.insert(notifications).values({
@@ -65,6 +73,21 @@ export const patientRouter = router({
           reportId: notifData.reportId,
           classificationReason: notifData.classificationReason,
         });
+      }
+
+      // ── Trigger E2B XML & PDF Workflow ────────────────────────────
+      try {
+        const { processE2BWorkflow } = await import("../e2b/index.js");
+        await processE2BWorkflow(row.id);
+
+        const { generateSafetyPDF } = await import("../pdf/pdf-generator.js");
+        const { storeSafetyPDF } = await import("../pdf/storage.js");
+        
+        const buffer = await generateSafetyPDF(row);
+        const pdfPath = await storeSafetyPDF(row.referenceId || row.id, buffer);
+        await db.update(patientReports).set({ pdfUrl: pdfPath }).where(eq(patientReports.id, row.id));
+      } catch (workflowErr) {
+        console.error("Workflow non-blocking failure:", workflowErr);
       }
 
       return { success: true, data: row };

@@ -6,8 +6,8 @@ import {
   timestamp,
   jsonb,
   index,
+  integer,
 } from "drizzle-orm/pg-core";
-import { severityEnum, statusEnum } from "../shared/enums.schema.js";
 
 export const patientReports = pgTable("patient_reports", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -41,9 +41,16 @@ export const patientReports = pgTable("patient_reports", {
   // Step 5: Confirm
   agreedToTerms: boolean("agreed_to_terms").notNull(),
   reporterType: text("reporter_type"),
-  status: statusEnum("status").default("new"),
-  severity: severityEnum("severity").default("info"),
+  status: text("status").default("new"),
+  severity: text("severity").default("info"),
   adminNotes: text("admin_notes"),
+  xmlUrl: text("xml_url"),
+  pdfUrl: text("pdf_url"),
+  meddraVersion: text("meddra_version"),
+  safetyReportId: text("safety_report_id"),
+  countryCode: text("country_code"),
+  submissionLanguage: text("submission_language").default("en"),
+  reportVersion: integer("report_version").default(1),
   lastUpdatedAt: timestamp("last_updated_at"),
 
   // Meta

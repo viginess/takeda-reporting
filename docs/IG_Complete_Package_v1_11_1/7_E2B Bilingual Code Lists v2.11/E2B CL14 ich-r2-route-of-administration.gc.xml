@@ -1,0 +1,450 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="ICH_M2_Codelist.xsl"?>
+<gc:CodeList xmlns:gc="http://docs.oasis-open.org/codelist/ns/genericode/1.0/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://docs.oasis-open.org/codelist/ns/genericode/1.0/ genericode.xsd" xmlns:html='http://www.w3.org/1999/xhtml'>
+	<Annotation>
+		<Description>
+			<html:p>This file is an ICH M2 ESTRI maintained code list.  It is encoded using OASIS genericode.More information on ICH technical standards is available via the M2 ESTRI webpages at www.ich.org.</html:p>
+			<html:p>Change History: v2.0 (November 11 2014) - Add "current flag" to the code list</html:p>
+			<html:p>Change History: v2.1 (January 16 2015) - Add leading 0s to make each code 3 digits</html:p>
+			<html:p>Change History: v2.2 (November 15 2017) - Deprecate term 046 and correct term 057</html:p>
+		</Description>
+		<AppInfo>
+			<html:p>Authored July 2011 by R. Kupiec / EFPIA on behalf of the ICH M2 ESTRI Expert Working Group. -- Updated September 2012
+			Updated November 11 2014 by TJ Chen / FDA on behalf of ICH E2B IWG -- add "current flag"
+			Updated November 14 2017 by TJ Chen / FDA on behalf of ICH E2B IWG -- deprecate term 046 and correct term 057</html:p>
+		</AppInfo>
+	</Annotation>
+	<Identification>
+		<ShortName>ich-r2-route-of-administration</ShortName>
+		<LongName>Route of Administration TermID (E2B R2)</LongName>
+		<Version>2.2</Version>
+		<CanonicalUri>2.16.840.1.113883.3.989.2.1.1.14</CanonicalUri>
+		<CanonicalVersionUri>2.16.840.1.113883.3.989.2.1.1.14.2</CanonicalVersionUri>
+		<Agency>
+			<ShortName>E2B</ShortName>
+			<LongName>Transmission of Individual Case Safety Reports</LongName>
+		</Agency>
+	</Identification>
+	<ColumnSet>
+		<Column Use="required" Id="code">
+			<ShortName>numeric-code</ShortName>
+			<Data Type="unsignedShort"/>
+		</Column>
+		<Column Use="optional" Id="en">
+			<ShortName>english-label</ShortName>
+			<Data Type="string" Lang="en"/>
+		</Column>
+		<Column Use="optional" Id="ja">
+			<ShortName>japanese-label</ShortName>
+			<Data Type="string" Lang="ja"/>
+		</Column>
+	<Column Use="optional" Id="cf">
+		<ShortName>current flag</ShortName>
+		<Data Type="string" Lang="en"/>
+	</Column>
+	</ColumnSet>
+	<SimpleCodeList>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>001</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Auricular (otic)</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>耳介</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>002</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Buccal</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>頬側</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>003</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Cutaneous</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>皮膚</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>004</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Dental</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>歯</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>005</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Endocervical</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>頸管内</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>006</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Endosinusial</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>洞内</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>007</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Endotracheal</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>気管内</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>008</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Epidural</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>硬膜外</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>009</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Extra-amniotic</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>羊膜外</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>010</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Hemodialysis	</SimpleValue>	</Value>
+			<Value ColumnRef="ja"><SimpleValue>血液透析</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>011</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Intra corpus cavernosum</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>海綿体内</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>012</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Intra-amniotic</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>羊膜内</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>013</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>	Intra-arterial</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>動脈内</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>014</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Intra-articular</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>関節内</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>015</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Intra-uterine</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>子宮内</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>016</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Intracardiac</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>心臓内</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>017</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Intracavernous</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>空洞内</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>018</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Intracerebral</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>大脳内</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>019</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Intracervical</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>頸内</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>020</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Intracisternal</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>槽内</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>021</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Intracorneal</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>角膜内</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>022</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Intracoronary</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>冠動脈内</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>023</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Intradermal</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>皮内</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>024</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Intradiscal (intraspinal)</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>脊髄内</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>025</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Intrahepatic</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>肝臓内</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>026</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>	Intralesional</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>病巣内</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>027</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>	Intralymphatic</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>リンパ腺内</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>028</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>	Intramedullar (bone marrow)</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>骨髄内</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>029</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Intrameningeal</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>髄膜内</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>030</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>	Intramuscular</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>筋肉内</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>031</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Intraocular</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>眼内</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>032</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Intrapericardial</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>心膜内</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>033</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>	Intraperitoneal</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>腹腔内</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>034</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Intrapleural</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>胸膜腔内</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>035</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Intrasynovial</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>滑膜内</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>036</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Intratumor</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>腫瘍内</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>037</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Intrathecal</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>包膜内</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>038</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Intrathoracic</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>胸腔内</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>039</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Intratracheal</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>気管内</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>040</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Intravenous bolus</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>静脈内急速</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>041</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Intravenous drip</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>静脈内点滴</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>042</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Intravenous (not otherwise specified) </SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>静脈内(明記されていない場合)</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>043</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Intravesical</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>膀胱内</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>044</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Iontophoresis</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>イオン浸透法</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>045</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Nasal</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>鼻</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>046</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Occlusive dressing technique</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>閉鎖包帯法</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>n</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>047</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Ophthalmic</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>眼</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>048</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Oral</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>経口</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>049</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Oropharingeal</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>口腔咽頭</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>050</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Other</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>その他</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>051</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Parenteral</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>非経口</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>052</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Periarticular</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>関節周囲</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>053</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Perineural</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>神経周囲</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>054</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Rectal</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>直腸</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>055</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Respiratory (inhalation)</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>吸入</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>056</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Retrobulbar</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>眼球後</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>057</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Subconjunctival</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>結膜下</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>058</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Subcutaneous</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>皮下</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>059</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Subdermal</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>真皮下</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>060</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Sublingual</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>舌下</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>061</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Topical</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>局所</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>062</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Transdermal</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>経皮</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>063</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Transmammary</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>経乳</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>064</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Transplacental</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>経胎盤</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>065</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Unknown</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>不明</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>066</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Urethral</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>尿道</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+		<Row>
+			<Value ColumnRef="code"><SimpleValue>067</SimpleValue></Value>
+			<Value ColumnRef="en"><SimpleValue>Vaginal</SimpleValue></Value>
+			<Value ColumnRef="ja"><SimpleValue>膣</SimpleValue></Value>
+			<Value ColumnRef="cf"><SimpleValue>y</SimpleValue></Value>
+		</Row>
+	</SimpleCodeList>
+</gc:CodeList>

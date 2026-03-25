@@ -17,7 +17,9 @@ import {
   StepsCompleted,
   useStepperContext,
 } from '@saas-ui/react';
-import { StepForm } from '@saas-ui/forms';
+import { StepForm, SubmitButton, NextButton } from '@saas-ui/forms';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { createFamilySchema } from '../../../../backend/src/modules/family/family.validation';
 
 import logo from '../../assets/logo.jpg';
 import { ProductDetails } from '../patient-report/components/ProductDetails';
@@ -30,6 +32,8 @@ import { SuccessStep } from '../../shared/components/SuccessStep';
 import { useState } from 'react';
 import { useFormContext, useFieldArray } from 'react-hook-form';
 import { trpc } from '../../utils/trpc';
+import { HiPlus } from 'react-icons/hi2';
+import { calculateSeverity } from '../../utils/severity';
 
 const inputStyles = {
   size: 'lg' as const,
@@ -54,6 +58,8 @@ const primaryButtonStyles = {
 
 type FamilyFormProps = {
   onBack?: () => void;
+  countryCode?: string;
+  languageCode?: string;
 };
 
 // Wrapper component to provide field array functionality for products
@@ -68,22 +74,40 @@ function ProductStep({ inputStyles }: { inputStyles: any }) {
   return (
     <Box mt={12}>
       {fields.map((field, index) => (
-        <Box key={field.id} mb={10} position="relative">
-          {index > 0 && (
-            <Flex justify="flex-end" mb={2}>
+        <Box key={field.id} mb={10} position="relative" p={6} border="1px solid" borderColor="gray.100" borderRadius="xl" bg="white" shadow="sm">
+          <Flex justify="space-between" align="center" mb={6}>
+            <Heading as="h3" size="md" color="gray.700">
+              {t('forms.patient.productDetails.productLabel')} #{index + 1}
+            </Heading>
+            {index > 0 && (
               <Button size="sm" variant="ghost" colorScheme="red" onClick={() => remove(index)}>
                 {t('forms.patient.common.removeProduct')}
               </Button>
-            </Flex>
-          )}
+            )}
+          </Flex>
           <ProductDetails
             inputStyles={inputStyles}
             index={index}
-            onAddProduct={() => append({ productName: '', condition: '' })}
           />
-          {index < fields.length - 1 && <Box borderBottom="1px solid" borderColor="gray.100" my={10} />}
         </Box>
       ))}
+      <Button
+        leftIcon={<HiPlus />}
+        onClick={() => append({ 
+          productName: '', 
+          conditions: [{ name: '' }], 
+          batches: [{ batchNumber: '', expiryDate: '', startDate: '', endDate: '', dosage: '' }] 
+        })}
+        variant="outline"
+        colorScheme="red"
+        w="full"
+        py={6}
+        borderStyle="dashed"
+        borderWidth="2px"
+        _hover={{ bg: 'red.50' }}
+      >
+        {t('forms.patient.productDetails.addProduct', 'Add Another Product')}
+      </Button>
     </Box>
   );
 }
@@ -108,24 +132,39 @@ function EventStep({
   return (
     <Box mt={12}>
       {fields.map((field, index) => (
-        <Box key={field.id} mb={10} position="relative">
-          {index > 0 && (
-            <Flex justify="flex-end" mb={2}>
+        <Box key={field.id} mb={10} position="relative" p={6} border="1px solid" borderColor="gray.100" borderRadius="xl" bg="white" shadow="sm">
+          <Flex justify="space-between" align="center" mb={6}>
+            <Heading as="h3" size="md" color="gray.700">
+               {t('forms.patient.eventDetails.symptom', 'Symptom')} #{index + 1}
+            </Heading>
+            {index > 0 && (
               <Button size="sm" variant="ghost" colorScheme="red" onClick={() => remove(index)}>
                 {t('forms.patient.common.removeSymptom')}
               </Button>
-            </Flex>
-          )}
+            )}
+          </Flex>
           <EventDetails
             inputStyles={inputStyles}
             index={index}
+            symptomNumber={index + 1}
             symptomTreated={symptomTreated}
             setSymptomTreated={setSymptomTreated}
-            onAddSymptom={() => append({ name: '' })}
           />
-          {index < fields.length - 1 && <Box borderBottom="1px solid" borderColor="gray.100" my={10} />}
         </Box>
       ))}
+      <Button
+        leftIcon={<HiPlus />}
+        onClick={() => append({ name: '', seriousness: [], outcome: '' })}
+        variant="outline"
+        colorScheme="red"
+        w="full"
+        py={6}
+        borderStyle="dashed"
+        borderWidth="2px"
+        _hover={{ bg: 'red.50' }}
+      >
+        {t('forms.patient.eventDetails.addSymptom', 'Add Another Symptom')}
+      </Button>
     </Box>
   );
 }
@@ -143,16 +182,14 @@ function PrevButtonTranslatedFamily() {
 
 function NextButtonTranslatedFamily(props: any) {
   const { t } = useTranslation();
-  const { nextStep } = useStepperContext();
   return (
-    <Button size="lg" borderRadius="lg" onClick={nextStep} {...props}>
-      {t('common.continue', 'Next')}
-    </Button>
+    <NextButton size="lg" borderRadius="lg" label={t('common.continue', 'Next')} {...props} />
   );
 }
 
 function FormNavigationFamily({ primaryButtonStyles }: { primaryButtonStyles: any }) {
-  const { isCompleted } = useStepperContext();
+  const { t } = useTranslation();
+  const { isCompleted, isLastStep } = useStepperContext();
 
   if (isCompleted) return null;
 
@@ -160,12 +197,18 @@ function FormNavigationFamily({ primaryButtonStyles }: { primaryButtonStyles: an
     <ButtonGroup w="full" mt={8}>
       <PrevButtonTranslatedFamily />
       <Spacer />
-      <NextButtonTranslatedFamily {...primaryButtonStyles} />
+      {isLastStep ? (
+        <SubmitButton {...primaryButtonStyles} size="lg" borderRadius="lg">
+          {t('forms.family.submit', 'Submit')}
+        </SubmitButton>
+      ) : (
+        <NextButtonTranslatedFamily {...primaryButtonStyles} />
+      )}
     </ButtonGroup>
   );
 }
 
-function FamilyForm({ onBack }: FamilyFormProps) {
+function FamilyForm({ onBack, countryCode, languageCode }: FamilyFormProps) {
   const { t } = useTranslation();
   const [additionalDetails, setAdditionalDetails] = useState('');
   const [agreedToTerms, setAgreedToTerms] = useState(false);
@@ -184,10 +227,19 @@ function FamilyForm({ onBack }: FamilyFormProps) {
   const toast = useToast();
 
   const createFamilyReport = trpc.family.create.useMutation({
+    onSuccess() {
+      toast({
+        title: t("success.title", "Report Submitted Successfully"),
+        description: t("success.description", "Your report has been successfully submitted."),
+        status: 'success',
+        duration: 5000,
+        isClosable: true,
+      });
+    },
     onError(err) {
       toast({
-        title: 'Submission failed',
-        description: err.message,
+        title: t("common.error"),
+        description: err.message || t("errors.submissionFailed", "Submission failed. Please try again."),
         status: 'error',
         duration: 5000,
         isClosable: true,
@@ -200,8 +252,8 @@ function FamilyForm({ onBack }: FamilyFormProps) {
     try {
       if (!params.captchaChecked || !params.agreedToTerms) {
         toast({
-          title: 'Validation Error',
-          description: 'Please confirm you are not a robot and agree to the terms to submit.',
+          title: t('common.error', 'Validation Error'),
+          description: t('forms.family.reviewConfirm.bothRequired', 'Please confirm you are not a robot and agree to the terms to submit.'),
           status: 'error',
           duration: 3000,
           isClosable: true,
@@ -229,7 +281,11 @@ function FamilyForm({ onBack }: FamilyFormProps) {
         labTestsPerformed: labTestsPerformed || undefined,
         additionalDetails: additionalDetails || undefined,
         agreedToTerms: params.agreedToTerms,
+        countryCode: countryCode,
+        reporterType: "family",
+        submissionLanguage: languageCode || "en",
         status: 'new',
+        severity: calculateSeverity(params.symptoms),
       };
 
       const result = await createFamilyReport.mutateAsync(payload);
@@ -281,6 +337,7 @@ function FamilyForm({ onBack }: FamilyFormProps) {
       <Flex flex="1" justify="center" px={{ base: 2, md: 4 }} py={{ base: 4, md: 8 }}>
         <Box maxW="800px" w="full" bg="white" borderRadius="xl" boxShadow="md" p={{ base: 4, sm: 6, md: 10 }}>
           <StepForm
+            resolver={zodResolver(createFamilySchema) as any}
             onSubmit={onSubmit}
             onError={(err) => console.error('Form validation failed:', err)}
             defaultValues={{
