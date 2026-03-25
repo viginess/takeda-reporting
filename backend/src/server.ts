@@ -28,17 +28,21 @@ const server = createHTTPServer({
     };
   },
   middleware(req, res, next) {
+    const envAllowedOrigins = process.env.ALLOWED_ORIGINS
+      ? process.env.ALLOWED_ORIGINS.split(",").map(url => url.trim())
+      : [];
+
     const allowedOrigins = [
       process.env.NODE_ENV !== "production" ? "http://localhost:5173" : null,
       process.env.NODE_ENV !== "production" ? "http://localhost:5174" : null,
       process.env.FRONTEND_URL,
+      ...envAllowedOrigins
     ].filter(Boolean) as string[];
 
     const origin = req.headers.origin ?? "";
     const isAllowedOrigin =
       allowedOrigins.includes(origin) ||
-      (process.env.NODE_ENV !== "production") ||
-      (origin.endsWith(".vercel.app") && origin.includes("clinsolution-reporting-frontend"));
+      (process.env.NODE_ENV !== "production");
 
     if (origin && isAllowedOrigin) {
       res.setHeader("Access-Control-Allow-Origin", origin);
