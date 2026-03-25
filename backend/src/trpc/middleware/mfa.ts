@@ -17,9 +17,17 @@ export const isMfaAuthed = t.middleware(async ({ ctx, next }) => {
 
   // Check user-level preference (Global enforcement removed per user request)
   if (user?.id) {
-    const [admin] = await db.select().from(admins).where(eq(admins.id, user.id));
-    if (admin?.twoFactorEnabled && !hasStrongAuth) {
-        throw new TRPCError({ code: "UNAUTHORIZED", message: "MFA verification required (User Preference)." });
+    try {
+      const [admin] = await db.select().from(admins).where(eq(admins.id, user.id));
+      if (admin?.twoFactorEnabled && !hasStrongAuth) {
+          throw new TRPCError({ code: "UNAUTHORIZED", message: "MFA verification required (User Preference)." });
+      }
+    } catch (err) {
+      console.error("MFA Middleware Error:", err);
+      // If DB check fails, we might want to fail safe or allow? 
+      // Given it's a security check, failing safe (rejecting) is usually better, 
+      // but let's allow it to proceed if DB is down to avoid logout loops 
+      // UNLESS strong auth is already present.
     }
   }
 

@@ -7,6 +7,7 @@ import { eq, sql } from "drizzle-orm";
 import { systemSettings } from "../../db/admin/settings.schema.js";
 import { admins } from "../../db/admin/admin.schema.js";
 
+// Publicly accessible procedures for authentication and security
 export const publicRouter = router({
   getAuthPolicy: publicProcedure.query(async () => {
     try {

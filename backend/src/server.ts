@@ -1,5 +1,6 @@
 import { createHTTPServer } from "@trpc/server/adapters/standalone";
 import { appRouter } from "./trpc/index.js";
+import jwt from "jsonwebtoken";
 import cron from "node-cron";
 import { runArchiver } from "./jobs/archiver.js";
 
@@ -7,11 +8,23 @@ const server = createHTTPServer({
   router: appRouter,
   basePath: '/trpc/',
   createContext({ req }) {
+    const token = req.headers.authorization?.split(" ")[1] ?? null;
+    let user = undefined;
+
+    if (token && process.env.SUPABASE_JWT_SECRET) {
+      try {
+        user = jwt.verify(token, process.env.SUPABASE_JWT_SECRET) as any;
+      } catch (err) {
+        // Silently fail, user remains undefined
+      }
+    }
+
     return {
       ip: req.socket.remoteAddress ?? "unknown",
       userAgent: req.headers["user-agent"] ?? "unknown",
       clientId: req.headers["x-client-id"] ?? "unknown",
-      token: req.headers.authorization?.split(" ")[1] ?? null,
+      token,
+      user,
     };
   },
   middleware(req, res, next) {
