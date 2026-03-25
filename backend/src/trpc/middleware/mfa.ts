@@ -1,16 +1,10 @@
 import { TRPCError } from "@trpc/server";
 import { t } from "../init.js";
 import { db } from "../../db/index.js";
-import { systemSettings } from "../../db/admin/settings.schema.js";
 import { admins } from "../../db/admin/admin.schema.js";
 import { eq } from "drizzle-orm";
 
 export const isMfaAuthed = t.middleware(async ({ ctx, next }) => {
-  let clinical: any = {};
-  try {
-    const [settings] = await db.select().from(systemSettings).where(eq(systemSettings.id, 1));
-    clinical = settings?.clinicalConfig || {};
-  } catch (e) {}
 
   const user = (ctx as any).user;
   const isAal2 = user?.aal === 'aal2';
