@@ -28,14 +28,16 @@ const server = createHTTPServer({
     };
   },
   middleware(req, res, next) {
+    const normalizeUrl = (url: string | undefined | null) => url?.trim().replace(/\/$/, "");
+
     const envAllowedOrigins = process.env.ALLOWED_ORIGINS
-      ? process.env.ALLOWED_ORIGINS.split(",").map(url => url.trim())
+      ? process.env.ALLOWED_ORIGINS.split(",").map(normalizeUrl)
       : [];
 
     const allowedOrigins = [
       process.env.NODE_ENV !== "production" ? "http://localhost:5173" : null,
       process.env.NODE_ENV !== "production" ? "http://localhost:5174" : null,
-      process.env.FRONTEND_URL,
+      normalizeUrl(process.env.FRONTEND_URL),
       ...envAllowedOrigins
     ].filter(Boolean) as string[];
 
