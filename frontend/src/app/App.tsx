@@ -6,14 +6,16 @@ import { trpc } from '../utils/trpc';
 import WelcomePage from '../WelcomePage';
 import { supabase } from '../utils/supabaseClient';
 import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
-import AdminLayout from '../admin/components/AdminLayout';
-import DashBoard from '../admin/pages/DashBoard';
-import ReportManagementPage from '../admin/pages/ReportManagementPage';
-import NotificationsPage from '../admin/pages/NotificationsPage';
-import AdminLogin from '../admin/pages/AdminLogin';
-import AdminResetPassword from '../admin/pages/AdminResetPassword';
-import SystemSettings from '../admin/pages/settings/SystemSettings';
-import ProtectedRoute from '../admin/components/ProtectedRoute';
+import AdminLayout from '../admin/features/layout/AdminLayout';
+import DashBoard from '../admin/features/dashboard/DashBoard';
+import ReportManagementPage from '../admin/features/reports/ReportManagementPage';
+import NotificationsPage from '../admin/features/notifications/NotificationsPage';
+import AdminLogin from '../admin/features/auth/pages/AdminLogin';
+import AdminResetPassword from '../admin/features/auth/pages/AdminResetPassword';
+import SystemSettings from '../admin/features/settings/pages/SystemSettings';
+import MeddraManagementPage from '../admin/features/meddra/pages/MeddraManagementPage';
+import ProtectedRoute from '../admin/features/auth/components/ProtectedRoute';
+
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -122,6 +124,7 @@ function App() {
                 <Route index element={<DashBoard />} />
                 <Route path="reports" element={<ReportManagementPage />} />
                 <Route path="notifications" element={<NotificationsPage />} />
+                <Route path="meddra" element={<MeddraManagementPage />} />
                 <Route path="settings" element={<SystemSettings />} />
               </Route>
             </Route>

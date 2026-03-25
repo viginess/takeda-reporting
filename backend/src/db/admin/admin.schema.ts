@@ -4,6 +4,7 @@ import {
   text,
   timestamp,
   integer,
+  boolean,
 } from "drizzle-orm/pg-core";
 
 export const admins = pgTable("admins", {
@@ -17,6 +18,7 @@ export const admins = pgTable("admins", {
   failedLoginAttempts: integer("failed_login_attempts").notNull().default(0),
   lockedAt: timestamp("locked_at"),
   passwordChangedAt: timestamp("password_changed_at").defaultNow().notNull(),
+  twoFactorEnabled: boolean("two_factor_enabled").notNull().default(false),
   lastLoginAt: timestamp("last_login_at"),
   lastActiveAt: timestamp("last_active_at").defaultNow(),
 

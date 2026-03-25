@@ -5,6 +5,13 @@ export interface Context {
   userAgent: string;
   clientId: string | string[];
   token: string | null;
+  user?: {
+    id: string;
+    email?: string | null;
+    role: string;
+    aal?: string;
+    amr?: string[];
+  };
 }
 
 export const t = initTRPC.context<Context>().create();

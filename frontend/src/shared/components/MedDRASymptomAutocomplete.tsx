@@ -10,7 +10,7 @@ import {
   Spinner,
 } from '@chakra-ui/react';
 import { useTranslation } from 'react-i18next';
-import { trpc } from '../../../utils/trpc';
+import { trpc } from '../../utils/trpc';
 
 interface MedDRASymptomAutocompleteProps {
   value: string;
@@ -84,9 +84,9 @@ export function MedDRASymptomAutocomplete({
               <Spinner size="sm" color="red.500" />
             </ListItem>
           ) : suggestions && suggestions.length > 0 ? (
-            suggestions.map((item: any, idx: number) => (
+            suggestions.map((item: any) => (
               <ListItem
-                key={item.code || `suggestion-${idx}`}
+                key={item.lltCode}
                 p={3}
                 cursor="pointer"
                 _hover={{ bg: 'red.50', color: 'red.700' }}
@@ -94,13 +94,15 @@ export function MedDRASymptomAutocomplete({
                 borderBottom="1px solid"
                 borderColor="gray.50"
               >
-                <Text fontWeight="600">{item.term}</Text>
-                {item.description && (
-                  <Text fontSize="xs" color="gray.600" mb={1} fontStyle="italic">
-                    {item.description}
-                  </Text>
-                )}
-                <Text fontSize="2xs" color="gray.400" fontWeight="bold">
+                <Box display="flex" justifyContent="space-between" alignItems="center">
+                  <Text fontWeight="600">{item.term}</Text>
+                  {item.socName && (
+                    <Text fontSize="xs" color="blue.600" fontWeight="medium">
+                      {item.socName}
+                    </Text>
+                  )}
+                </Box>
+                <Text fontSize="2xs" color="gray.400" fontWeight="bold" mt={1}>
                   MedDRA Code: {item.code || 'N/A'}
                 </Text>
               </ListItem>

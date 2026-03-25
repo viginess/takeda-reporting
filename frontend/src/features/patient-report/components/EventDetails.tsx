@@ -14,7 +14,7 @@ import {
 } from '@chakra-ui/react';
 import { useFormContext } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
-import { MedDRASymptomAutocomplete } from './MedDRASymptomAutocomplete.js';
+import { MedDRASymptomAutocomplete } from '../../../shared/components/MedDRASymptomAutocomplete.js';
 
 interface EventDetailsProps {
   inputStyles: any;

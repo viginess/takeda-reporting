@@ -307,7 +307,7 @@ export const updateReport = adminProcedure
 
     if (!oldRecord) throw new Error("Report not found");
 
-    const [settings] = await db
+    const [sysSettings] = await db
       .select()
       .from(systemSettings)
       .where(eq(systemSettings.id, 1));
@@ -330,10 +330,11 @@ export const updateReport = adminProcedure
 
     // Strict XSD Validation for Approval
     if (updates.status === "approved") {
-      const senderId = settings?.clinicalConfig?.senderId || 'CLINSOLUTION-DEFAULT';
-      const receiverId = settings?.clinicalConfig?.receiverId || 'EVHUMAN';
+      const senderId = sysSettings?.clinicalConfig?.senderId || 'CLINSOLUTION-DEFAULT';
+      const receiverId = sysSettings?.clinicalConfig?.receiverId || 'EVHUMAN';
       
-      const xml = generateE2BR3(oldRecord as any, { senderId, receiverId });
+      const meddraVersion = sysSettings?.clinicalConfig?.meddraVersion || "29.0";
+      const xml = generateE2BR3(oldRecord as any, { senderId, receiverId, meddraVersion });
       const validation = await validateE2BR3(xml);
       
       if (!validation.valid) {
@@ -377,7 +378,7 @@ export const updateReport = adminProcedure
       newRecord.referenceId || newRecord.id,
     );
 
-    if (updateNotif && shouldCreateNotification(settings, updateNotif)) {
+    if (updateNotif && shouldCreateNotification(sysSettings, updateNotif)) {
       await db.insert(notifications).values({
         type: updateNotif.type,
         title: updateNotif.title,

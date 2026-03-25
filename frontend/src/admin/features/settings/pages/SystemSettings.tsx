@@ -1,29 +1,32 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Settings, Shield, Bell, Save, RotateCcw, Check, AlertTriangle, AlertCircle, Users } from "lucide-react";
+import { Settings, Shield, Bell, Save, RotateCcw, Check, AlertTriangle, AlertCircle, Users, UserCircle } from "lucide-react";
 import {
   Box, Flex, Text, Heading, Button, Modal, ModalOverlay, ModalContent, ModalHeader,
   ModalBody, ModalFooter, useDisclosure, useToast,Skeleton,
   VStack
 } from "@chakra-ui/react";
-import { trpc } from "../../../utils/trpc";
-import { supabase } from "../../../utils/supabaseClient";
-import { GeneralSection } from "./components/GeneralSection";
-import { SecurityTab } from "./components/SecurityTab";
-import { NotificationsTab } from "./components/NotificationsTab";
-import { SettingsAdmins } from "./components/SettingsAdmins";
+import { trpc } from "../../../../utils/trpc";
+import { supabase } from "../../../../utils/supabaseClient";
+import { GeneralSection } from "../components/GeneralSection";
+import { ProfileSection } from "../components/ProfileSection";
+import { SecurityTab } from "../components/SecurityTab";
+import { NotificationsTab } from "../components/NotificationsTab";
+import { SettingsAdmins } from "../components/SettingsAdmins";
 
-type Section = "general" | "security" | "notifications" | "admins";
+
+type Section = "account" | "general" | "security" | "notifications" | "admins";
 
 const navSections: { id: Section; label: string; icon: any; desc: string }[] = [
-  { id: "general",       label: "General",       icon: Settings, desc: "System preferences & behavior" },
-  { id: "security",      label: "Security",      icon: Shield,   desc: "Manage authentication & security policies" },
-  { id: "notifications", label: "Notifications", icon: Bell,     desc: "Alert rules & delivery settings" },
-  { id: "admins",        label: "Admin Roles",   icon: Users,    desc: "Manage admin accounts and roles" },
+  { id: "account",       label: "My Account",    icon: UserCircle, desc: "Personal profile & security" },
+  { id: "general",       label: "General",       icon: Settings,   desc: "System preferences & behavior" },
+  { id: "security",      label: "Security",      icon: Shield,     desc: "Manage authentication & security policies" },
+  { id: "notifications", label: "Notifications", icon: Bell,       desc: "Alert rules & delivery settings" },
+  { id: "admins",        label: "Admin Roles",   icon: Users,      desc: "Manage admin accounts and roles" },
 ];
 
 export default function SystemSettings() {
-  const [active, setActive] = useState<Section>("general");
+  const [active, setActive] = useState<Section>("account");
   const [unsaved, setUnsaved] = useState(false);
   const [saved, setSaved] = useState(false);
   const [pendingSection, setPendingSection] = useState<Section | null>(null);
@@ -64,8 +67,13 @@ export default function SystemSettings() {
   });
 
   const updateAdminProfile = trpc.admin.updateAdminProfile.useMutation({
-    onSuccess: () => { utils.admin.getAdmins.invalidate(); setUnsaved(false); setSaved(true); setTimeout(() => setSaved(false), 3000); },
+    onSuccess: () => { utils.admin.getAdmins.invalidate(); utils.admin.getMe.invalidate(); setUnsaved(false); setSaved(true); setTimeout(() => setSaved(false), 3000); },
     onError: (error) => { toast({ title: "Error saving profile", description: error.message, status: "error", duration: 5000, isClosable: true }); }
+  });
+
+  const toggleTwoFactor = trpc.admin.toggleTwoFactor.useMutation({
+    onSuccess: () => { utils.admin.getMe.invalidate(); },
+    onError: (err) => { toast({ title: "Failed to update 2FA", description: err.message, status: "error" }); }
   });
 
   // ── State ──
@@ -78,7 +86,6 @@ export default function SystemSettings() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [userId, setUserId] = useState<string | null>(null);
-  const [twoFA, setTwoFA] = useState(false);
   const [sessionTimeout, setSessionTimeout] = useState("");
   const [maxLoginAttempts, setMaxLoginAttempts] = useState("5");
   const [passwordExpiry, setPasswordExpiry] = useState("90 days");
@@ -89,6 +96,7 @@ export default function SystemSettings() {
   const [urgentAlerts, setUrgentAlerts] = useState(false);
   const [alertThreshold, setAlertThreshold] = useState("");
   const [notifyOnApproval, setNotifyOnApproval] = useState(false);
+  const [userTwoFA, setUserTwoFA] = useState(false);
   const [roleChanges, setRoleChanges] = useState<Record<string, "super_admin" | "admin" | "viewer">>({});
 
   useEffect(() => {
@@ -103,7 +111,6 @@ export default function SystemSettings() {
       setTimezone(clinical.timezone || "UTC+05:30 (IST)");
       setRetention(clinical.retention || "24 months");
 
-      setTwoFA(clinical.twoFA !== false);
       setSessionTimeout(clinical.sessionTimeout || "60 min");
       setMaxLoginAttempts(clinical.maxLoginAttempts || "5");
       setPasswordExpiry(clinical.passwordExpiry || "90 days");
@@ -119,10 +126,17 @@ export default function SystemSettings() {
   }, [data]);
 
   useEffect(() => {
-    if (user) { setFirstName(user.firstName || ""); setLastName(user.lastName || ""); }
+    if (user) { 
+      setFirstName(user.firstName || ""); 
+      setLastName(user.lastName || ""); 
+      setUserTwoFA(!!user.twoFactorEnabled);
+    }
   }, [user]);
 
   const track = (fn: () => void) => { fn(); setUnsaved(true); setSaved(false); };
+
+  const { data: meddraVersionsData } = trpc.reference.getMeddraVersions.useQuery();
+  const meddraVersions = meddraVersionsData || [];
 
   const handleNavClick = (id: Section) => {
     if (unsaved && id !== active) { setPendingSection(id); onOpen(); }
@@ -143,10 +157,15 @@ export default function SystemSettings() {
           digestFrequency: data?.notificationThresholds.digestFrequency || "Daily",
           smsAlerts: data?.notificationThresholds.smsAlerts || false,
         },
-        clinicalConfig: { adminEmail, timezone, retention, twoFA, sessionTimeout, maxLoginAttempts, passwordExpiry, meddraVersion, lockoutCooldown, senderId, receiverId }
+        clinicalConfig: { adminEmail, timezone, retention, sessionTimeout, maxLoginAttempts, passwordExpiry, meddraVersion, lockoutCooldown, senderId, receiverId }
       });
     }
-    if (userId) await updateAdminProfile.mutateAsync({ firstName, lastName });
+    if (userId) {
+      await updateAdminProfile.mutateAsync({ firstName, lastName });
+      if (userTwoFA !== !!user?.twoFactorEnabled) {
+          await toggleTwoFactor.mutateAsync({ enabled: userTwoFA });
+      }
+    }
     const roleEntries = Object.entries(roleChanges);
     if (roleEntries.length > 0) {
       for (const [adminId, role] of roleEntries) await updateAdminRole.mutateAsync({ adminId, role });
@@ -166,7 +185,6 @@ export default function SystemSettings() {
       setTimezone(clinical.timezone || "UTC+05:30 (IST)");
       setRetention(clinical.retention || "24 months");
 
-      setTwoFA(clinical.twoFA !== false);
       setSessionTimeout(clinical.sessionTimeout || "60 min");
       setMaxLoginAttempts(clinical.maxLoginAttempts || "5");
       setPasswordExpiry(clinical.passwordExpiry || "90 days");
@@ -208,7 +226,7 @@ export default function SystemSettings() {
   }
 
   const filteredNavSections = navSections.filter(s => {
-    if (user?.role !== "super_admin" && s.id !== "general") return false;
+    if (user?.role !== "super_admin" && (s.id !== "general" && s.id !== "account")) return false;
     return true;
   });
 
@@ -287,13 +305,20 @@ export default function SystemSettings() {
         {/* Main Content */}
         <Box as={motion.div} {...({} as any)} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }} flex={1} minW={0}>
 
-          {active === "general" && (
-            <GeneralSection
+          {active === "account" && (
+            <ProfileSection
               personalEmail={user?.email || ""}
               firstName={firstName} setFirstName={setFirstName}
               lastName={lastName} setLastName={setLastName}
-              retention={retention} setRetention={setRetention}
+              userTwoFA={userTwoFA} setUserTwoFA={setUserTwoFA}
+              track={track}
+            />
+          )}
 
+          {active === "general" && (
+            <GeneralSection
+              adminEmail={adminEmail} setAdminEmail={setAdminEmail}
+              retention={retention} setRetention={setRetention}
               track={track}
               userRole={user?.role ?? undefined}
               onRunArchiving={() => runArchivingManual.mutate()}
@@ -301,12 +326,12 @@ export default function SystemSettings() {
               senderId={senderId} setSenderId={setSenderId}
               receiverId={receiverId} setReceiverId={setReceiverId}
               meddraVersion={meddraVersion} setMeddraVersion={setMeddraVersion}
+              meddraVersions={meddraVersions}
             />
           )}
 
           {active === "security" && (
             <SecurityTab
-              twoFA={twoFA} setTwoFA={setTwoFA}
               sessionTimeout={sessionTimeout} setSessionTimeout={setSessionTimeout}
               maxLoginAttempts={maxLoginAttempts} setMaxLoginAttempts={setMaxLoginAttempts}
               passwordExpiry={passwordExpiry} setPasswordExpiry={setPasswordExpiry}

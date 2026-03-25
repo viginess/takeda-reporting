@@ -30,9 +30,9 @@ import {
   Activity,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { supabase } from "../../utils/supabaseClient";
-import { trpc } from "../../utils/trpc";
-import logo from "../../assets/logo.jpg";
+import { supabase } from "../../../../utils/supabaseClient";
+import { trpc } from "../../../../utils/trpc";
+import logo from "../../../../assets/logo.jpg";
 
 // Motion components
 const MotionBox = motion(Box);

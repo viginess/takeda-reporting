@@ -2,6 +2,7 @@ import { TRPCError } from "@trpc/server";
 import { t } from "../init.js";
 import { db } from "../../db/index.js";
 import { systemSettings } from "../../db/admin/settings.schema.js";
+import { admins } from "../../db/admin/admin.schema.js";
 import { eq } from "drizzle-orm";
 
 export const isMfaAuthed = t.middleware(async ({ ctx, next }) => {
@@ -20,8 +21,13 @@ export const isMfaAuthed = t.middleware(async ({ ctx, next }) => {
     (typeof m === 'object' && (m.method === 'otp' || m.method === 'email' || m.method === 'mfa'))
   );
 
-  if (clinical.twoFA === true && !hasStrongAuth) {
-    throw new TRPCError({ code: "UNAUTHORIZED", message: "MFA verification required." });
+  // Check user-level preference (Global enforcement removed per user request)
+  if (user?.id) {
+    const [admin] = await db.select().from(admins).where(eq(admins.id, user.id));
+    if (admin?.twoFactorEnabled && !hasStrongAuth) {
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "MFA verification required (User Preference)." });
+    }
   }
+
   return next();
 });

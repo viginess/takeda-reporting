@@ -1,14 +1,9 @@
 import { Flex, Input, Button } from "@chakra-ui/react";
-import { Database, RotateCcw, UserCircle } from "lucide-react";
+import { Database, RotateCcw } from "lucide-react";
 import { RowItem } from "./Settingsrow";
 import { SettingsCard } from "./SettingsCard";
 
 interface GeneralSectionProps {
-  personalEmail: string;
-  firstName: string;
-  setFirstName: (v: string) => void;
-  lastName: string;
-  setLastName: (v: string) => void;
   retention: string;
   setRetention: (v: string) => void;
 
@@ -22,14 +17,13 @@ interface GeneralSectionProps {
   setReceiverId: (v: string) => void;
   meddraVersion: string;
   setMeddraVersion: (v: string) => void;
+  meddraVersions: string[];
+  adminEmail: string;
+  setAdminEmail: (v: string) => void;
 }
 
 export function GeneralSection({
-  personalEmail,
-  firstName, setFirstName,
-  lastName, setLastName,
   retention, setRetention,
-
   track,
   userRole,
   onRunArchiving,
@@ -37,20 +31,18 @@ export function GeneralSection({
   senderId, setSenderId,
   receiverId, setReceiverId,
   meddraVersion, setMeddraVersion,
+  meddraVersions,
+  adminEmail, setAdminEmail,
 }: GeneralSectionProps) {
   return (
     <>
-      <SettingsCard title="Your Account Profile" icon={UserCircle}>
-        <RowItem label="Account Email" desc="The email address associated with your login (Read-only)">
-          <Input value={personalEmail} isReadOnly size="sm" w="220px" bg="#f8fafc" border="none" fontWeight="bold" />
-        </RowItem>
-        <RowItem label="First Name" desc="Your first name for professional attribution">
-          <Input value={firstName} onChange={(e) => track(() => setFirstName(e.target.value))} size="sm" w="220px" bg="white" />
-        </RowItem>
-        <RowItem label="Last Name" desc="Your last name for professional attribution">
-          <Input value={lastName} onChange={(e) => track(() => setLastName(e.target.value))} size="sm" w="220px" bg="white" />
-        </RowItem>
-      </SettingsCard>
+      {userRole === "super_admin" && (
+        <SettingsCard title="System Communication" icon={Database}>
+          <RowItem label="Admin Email" desc="The organization's master contact email for system alerts">
+            <Input value={adminEmail} onChange={(e) => track(() => setAdminEmail(e.target.value))} size="sm" w="220px" bg="white" />
+          </RowItem>
+        </SettingsCard>
+      )}
 
       {userRole === "super_admin" && (
         <SettingsCard title="E2B XML Regulatory Info" icon={Database}>
@@ -61,7 +53,19 @@ export function GeneralSection({
             <Input value={receiverId} onChange={(e) => track(() => setReceiverId(e.target.value))} size="sm" w="220px" bg="white" />
           </RowItem>
           <RowItem label="MedDRA Version" desc="Active MedDRA version for clinical report coding">
-            <Input value={meddraVersion} onChange={(e) => track(() => setMeddraVersion(e.target.value))} size="sm" w="220px" bg="white" />
+            <select
+              title="Select MedDRA version"
+              value={meddraVersion}
+              onChange={(e) => track(() => setMeddraVersion(e.target.value))}
+            >
+              {meddraVersions.length > 0 ? (
+                meddraVersions.map(v => (
+                  <option key={v} value={v}>Version {v}</option>
+                ))
+              ) : (
+                <option value={meddraVersion}>{meddraVersion} (Current)</option>
+              )}
+            </select>
           </RowItem>
         </SettingsCard>
       )}
@@ -91,7 +95,6 @@ export function GeneralSection({
               </Button>
             </Flex>
           </RowItem>
-
         </SettingsCard>
       )}
     </>
