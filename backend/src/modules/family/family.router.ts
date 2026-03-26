@@ -38,6 +38,7 @@ export const familyRouter = router({
           severity: input.severity || determineNotificationData(input, "Family", "TEMP").type,
           meddraVersion: (await db.select().from(systemSettings).where(eq(systemSettings.id, 1)))[0]?.clinicalConfig?.meddraVersion || "29.1",
           countryCode: input.countryCode,
+          senderTimezoneOffset: input.senderTimezoneOffset,
         })
         .returning();
 
@@ -63,14 +64,33 @@ export const familyRouter = router({
       // Trigger E2B XML & PDF Workflow
       try {
         const { processE2BWorkflow } = await import("../e2b/index.js");
-        await processE2BWorkflow(row.id);
+        const e2bResult = await processE2BWorkflow(row.id);
 
         const { generateSafetyPDF } = await import("../pdf/pdf-generator.js");
         const { storeSafetyPDF } = await import("../pdf/storage.js");
+        const { sendAdminNotificationEmail } = await import("../../utils/mailer.js");
         
         const buffer = await generateSafetyPDF(row);
         const pdfPath = await storeSafetyPDF(row.referenceId || row.id, buffer);
         await db.update(familyReports).set({ pdfUrl: pdfPath }).where(eq(familyReports.id, row.id));
+
+        // ── Send Email Notification ──────────────────────────────────
+        const recipient = settings?.clinicalConfig?.smtpUser || settings?.clinicalConfig?.smtpFrom || process.env.SMTP_USER;
+        if (recipient) {
+          await sendAdminNotificationEmail({
+            to: recipient,
+            subject: `New Family Safety Report: ${row.referenceId || row.id}`,
+            html: `
+              <p>A new safety report has been submitted by a Family Member/Caregiver.</p>
+              <p><b>Reference ID:</b> ${row.referenceId || row.id}</p>
+              <p>Please find the attached E2B XML and Safety PDF for your review.</p>
+            `,
+            attachments: [
+              { filename: `${row.referenceId || row.id}.pdf`, content: buffer },
+              { filename: `${row.referenceId || row.id}.xml`, content: e2bResult.xmlContent || "" }
+            ]
+          });
+        }
       } catch (workflowErr) {
         console.error("Workflow failure for Family report:", workflowErr);
       }

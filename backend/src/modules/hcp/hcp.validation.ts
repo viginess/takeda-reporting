@@ -144,6 +144,7 @@ export const createHcpSchema = z.object({
   countryCode: z.string().optional(),
   submissionLanguage: z.string().optional().default("en"),
   severity: z.string().optional(),
+  senderTimezoneOffset: z.number().optional(),
 });
 
 export const updateHcpSchema = createHcpSchema.partial();

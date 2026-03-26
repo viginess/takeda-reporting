@@ -300,6 +300,7 @@ function PatientForm({ onBack, countryCode, languageCode }: PatientFormProps) {
       // ── Step 5: Confirm ──────────────────────────────
       agreedToTerms: params.agreedToTerms,
       reporterType: "patient",
+      senderTimezoneOffset: new Date().getTimezoneOffset(),
       countryCode: countryCode,
       submissionLanguage: languageCode || "en",
       status: "new",

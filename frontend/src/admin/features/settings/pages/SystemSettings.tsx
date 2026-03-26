@@ -77,11 +77,8 @@ export default function SystemSettings() {
   });
 
   // ── State ──
-  const [adminEmail, setAdminEmail] = useState("");
   const [senderId, setSenderId] = useState("");
   const [receiverId, setReceiverId] = useState("");
-  const [language, setLanguage] = useState("");
-  const [timezone, setTimezone] = useState("");
   const [retention, setRetention] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -90,7 +87,12 @@ export default function SystemSettings() {
   const [maxLoginAttempts, setMaxLoginAttempts] = useState("5");
   const [passwordExpiry, setPasswordExpiry] = useState("90 days");
   const [meddraVersion, setMeddraVersion] = useState("29.1");
-  const [lockoutCooldown, setLockoutCooldown] = useState("30 min");
+  const [lockoutCooldown, setLockoutCooldown] = useState("30 min"); 
+  const [smtpHost, setSmtpHost] = useState("");
+  const [smtpPort, setSmtpPort] = useState("587");
+  const [smtpUser, setSmtpUser] = useState("");
+  const [smtpPass, setSmtpPass] = useState("");
+  const [smtpFrom, setSmtpFrom] = useState("");
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState<"super_admin" | "admin" | "viewer">("admin");
   const [urgentAlerts, setUrgentAlerts] = useState(false);
@@ -105,10 +107,7 @@ export default function SystemSettings() {
 
   useEffect(() => {
     if (data) {
-      setLanguage(data.defaultLanguage || "English (US)");
       const clinical = data.clinicalConfig || {};
-      setAdminEmail(clinical.adminEmail || "admin@pharma.com");
-      setTimezone(clinical.timezone || "UTC+05:30 (IST)");
       setRetention(clinical.retention || "24 months");
 
       setSessionTimeout(clinical.sessionTimeout || "60 min");
@@ -118,6 +117,13 @@ export default function SystemSettings() {
       setLockoutCooldown(clinical.lockoutCooldown || "30 min");
       setSenderId(clinical.senderId || "CLINSOLUTION-DEFAULT");
       setReceiverId(clinical.receiverId || "EVHUMAN");
+
+      setSmtpHost(clinical.smtpHost || "");
+      setSmtpPort(clinical.smtpPort || "587");
+      setSmtpUser(clinical.smtpUser || "");
+      setSmtpPass(clinical.smtpPass || "");
+      setSmtpFrom(clinical.smtpFrom || "");
+
       const notifs = data.notificationThresholds || {};
       setUrgentAlerts(notifs.urgentAlerts !== false);
       setAlertThreshold(notifs.alertThreshold || "All Severities");
@@ -144,22 +150,17 @@ export default function SystemSettings() {
   };
 
   const handleSave = async () => {
-    if (active === "general" || active === "security" || active === "notifications") {
-      if (!adminEmail.trim()) {
-        toast({ title: "Validation Error", description: "Admin Email is required.", status: "warning", duration: 3000, isClosable: true });
-        return;
+    await updateSettings.mutateAsync({
+      notificationThresholds: {
+        urgentAlerts, alertThreshold, notifyOnApproval,
+        emailDigest: data?.notificationThresholds.emailDigest || false,
+        digestFrequency: data?.notificationThresholds.digestFrequency || "Daily",
+        smsAlerts: data?.notificationThresholds.smsAlerts || false,
+      },
+      clinicalConfig: { retention, sessionTimeout, maxLoginAttempts, passwordExpiry, meddraVersion, lockoutCooldown, senderId, receiverId,
+        smtpHost, smtpPort, smtpUser, smtpPass, smtpFrom
       }
-      await updateSettings.mutateAsync({
-        defaultLanguage: language,
-        notificationThresholds: {
-          urgentAlerts, alertThreshold, notifyOnApproval,
-          emailDigest: data?.notificationThresholds.emailDigest || false,
-          digestFrequency: data?.notificationThresholds.digestFrequency || "Daily",
-          smsAlerts: data?.notificationThresholds.smsAlerts || false,
-        },
-        clinicalConfig: { adminEmail, timezone, retention, sessionTimeout, maxLoginAttempts, passwordExpiry, meddraVersion, lockoutCooldown, senderId, receiverId }
-      });
-    }
+    });
     if (userId) {
       await updateAdminProfile.mutateAsync({ firstName, lastName });
       if (userTwoFA !== !!user?.twoFactorEnabled) {
@@ -179,10 +180,7 @@ export default function SystemSettings() {
 
   const handleDiscard = () => {
     if (data) {
-      setLanguage(data.defaultLanguage || "English (US)");
       const clinical = data.clinicalConfig || {};
-      setAdminEmail(clinical.adminEmail || "admin@pharma.com");
-      setTimezone(clinical.timezone || "UTC+05:30 (IST)");
       setRetention(clinical.retention || "24 months");
 
       setSessionTimeout(clinical.sessionTimeout || "60 min");
@@ -192,6 +190,13 @@ export default function SystemSettings() {
       setLockoutCooldown(clinical.lockoutCooldown || "30 min");
       setSenderId(clinical.senderId || "CLINSOLUTION-DEFAULT");
       setReceiverId(clinical.receiverId || "EVHUMAN");
+
+      setSmtpHost(clinical.smtpHost || "");
+      setSmtpPort(clinical.smtpPort || "587");
+      setSmtpUser(clinical.smtpUser || "");
+      setSmtpPass(clinical.smtpPass || "");
+      setSmtpFrom(clinical.smtpFrom || "");
+
       const notifs = data.notificationThresholds || {};
       setUrgentAlerts(notifs.urgentAlerts !== false);
       setAlertThreshold(notifs.alertThreshold || "All Severities");
@@ -317,8 +322,7 @@ export default function SystemSettings() {
 
           {active === "general" && (
             <GeneralSection
-              adminEmail={adminEmail} setAdminEmail={setAdminEmail}
-              retention={retention} setRetention={setRetention}
+              retention={retention} setRetention={(v) => track(() => setRetention(v))}
               track={track}
               userRole={user?.role ?? undefined}
               onRunArchiving={() => runArchivingManual.mutate()}
@@ -327,6 +331,11 @@ export default function SystemSettings() {
               receiverId={receiverId} setReceiverId={setReceiverId}
               meddraVersion={meddraVersion} setMeddraVersion={setMeddraVersion}
               meddraVersions={meddraVersions}
+              smtpHost={smtpHost} setSmtpHost={setSmtpHost}
+              smtpPort={smtpPort} setSmtpPort={setSmtpPort}
+              smtpUser={smtpUser} setSmtpUser={setSmtpUser}
+              smtpPass={smtpPass} setSmtpPass={setSmtpPass}
+              smtpFrom={smtpFrom} setSmtpFrom={setSmtpFrom}
             />
           )}
 

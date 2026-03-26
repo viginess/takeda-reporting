@@ -18,8 +18,17 @@ interface GeneralSectionProps {
   meddraVersion: string;
   setMeddraVersion: (v: string) => void;
   meddraVersions: string[];
-  adminEmail: string;
-  setAdminEmail: (v: string) => void;
+
+  smtpHost: string;
+  setSmtpHost: (v: string) => void;
+  smtpPort: string;
+  setSmtpPort: (v: string) => void;
+  smtpUser: string;
+  setSmtpUser: (v: string) => void;
+  smtpPass: string;
+  setSmtpPass: (v: string) => void;
+  smtpFrom: string;
+  setSmtpFrom: (v: string) => void;
 }
 
 export function GeneralSection({
@@ -32,18 +41,14 @@ export function GeneralSection({
   receiverId, setReceiverId,
   meddraVersion, setMeddraVersion,
   meddraVersions,
-  adminEmail, setAdminEmail,
+  smtpHost, setSmtpHost,
+  smtpPort, setSmtpPort,
+  smtpUser, setSmtpUser,
+  smtpPass, setSmtpPass,
+  smtpFrom, setSmtpFrom,
 }: GeneralSectionProps) {
   return (
     <>
-      {userRole === "super_admin" && (
-        <SettingsCard title="System Communication" icon={Database}>
-          <RowItem label="Admin Email" desc="The organization's master contact email for system alerts">
-            <Input value={adminEmail} onChange={(e) => track(() => setAdminEmail(e.target.value))} size="sm" w="220px" bg="white" />
-          </RowItem>
-        </SettingsCard>
-      )}
-
       {userRole === "super_admin" && (
         <SettingsCard title="E2B XML Regulatory Info" icon={Database}>
           <RowItem label="Sender ID" desc="Your organization's registered ClinSolution ID">
@@ -94,6 +99,26 @@ export function GeneralSection({
                 Run Cleanup Now
               </Button>
             </Flex>
+          </RowItem>
+        </SettingsCard>
+      )}
+
+      {userRole === "super_admin" && (
+        <SettingsCard title="SMTP Configuration (Notification Email)" icon={Database}>
+          <RowItem label="SMTP Host" desc="The hostname of your email provider (e.g., smtp.gmail.com)">
+            <Input value={smtpHost} onChange={(e) => track(() => setSmtpHost(e.target.value))} size="sm" w="220px" bg="white" placeholder="e.g. smtp.gmail.com" />
+          </RowItem>
+          <RowItem label="SMTP Port" desc="The port used for SMTP (e.g., 587 or 465)">
+            <Input value={smtpPort} onChange={(e) => track(() => setSmtpPort(e.target.value))} size="sm" w="220px" bg="white" placeholder="587" />
+          </RowItem>
+          <RowItem label="SMTP Username" desc="The user account for SMTP authentication">
+            <Input value={smtpUser} onChange={(e) => track(() => setSmtpUser(e.target.value))} size="sm" w="220px" bg="white" placeholder="your-email@gmail.com" />
+          </RowItem>
+          <RowItem label="SMTP Password" desc="The password or App Password for SMTP authentication">
+            <Input type="password" value={smtpPass} onChange={(e) => track(() => setSmtpPass(e.target.value))} size="sm" w="220px" bg="white" />
+          </RowItem>
+          <RowItem label="Sender Email (From)" desc="The email address that will appear in the 'From' field">
+            <Input value={smtpFrom} onChange={(e) => track(() => setSmtpFrom(e.target.value))} size="sm" w="220px" bg="white" placeholder="no-reply@clinsolutions.com" />
           </RowItem>
         </SettingsCard>
       )}

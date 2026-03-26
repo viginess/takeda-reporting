@@ -98,13 +98,14 @@ function ProductStep({ inputStyles }: { inputStyles: any }) {
           conditions: [{ name: '' }], 
           batches: [{ batchNumber: '', expiryDate: '', startDate: '', endDate: '', dosage: '' }] 
         })}
-        variant="outline"
-        colorScheme="red"
-        w="full"
-        py={6}
-        borderStyle="dashed"
-        borderWidth="2px"
-        _hover={{ bg: 'red.50' }}
+        mb={8}
+        width="full"
+        bg="#CE0037"
+        color="white"
+        fontWeight={600}
+        borderRadius="lg"
+        size="lg"
+        _hover={{ bg: '#E31C5F' }}
       >
         {t('forms.patient.productDetails.addProduct', 'Add Another Product')}
       </Button>
@@ -155,13 +156,14 @@ function EventStep({
       <Button
         leftIcon={<HiPlus />}
         onClick={() => append({ name: '', seriousness: [], outcome: '' })}
-        variant="outline"
-        colorScheme="red"
-        w="full"
-        py={6}
-        borderStyle="dashed"
-        borderWidth="2px"
-        _hover={{ bg: 'red.50' }}
+        mb={8}
+        width="full"
+        bg="#CE0037"
+        color="white"
+        fontWeight={600}
+        borderRadius="lg"
+        size="lg"
+        _hover={{ bg: '#E31C5F' }}
       >
         {t('forms.patient.eventDetails.addSymptom', 'Add Another Symptom')}
       </Button>
@@ -248,7 +250,6 @@ function FamilyForm({ onBack, countryCode, languageCode }: FamilyFormProps) {
   });
 
   const onSubmit = async (params: any) => {
-    console.error('apicalls',params);
     try {
       if (!params.captchaChecked || !params.agreedToTerms) {
         toast({
@@ -281,6 +282,7 @@ function FamilyForm({ onBack, countryCode, languageCode }: FamilyFormProps) {
         labTestsPerformed: labTestsPerformed || undefined,
         additionalDetails: additionalDetails || undefined,
         agreedToTerms: params.agreedToTerms,
+        senderTimezoneOffset: new Date().getTimezoneOffset(),
         countryCode: countryCode,
         reporterType: "family",
         submissionLanguage: languageCode || "en",

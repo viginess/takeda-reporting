@@ -40,9 +40,7 @@ export const updateSystemSettings = superAdminProcedure
         .optional(),
       clinicalConfig: z
         .object({
-          adminEmail: z.string().email(),
-          timezone: z.string(),
-          retention: z.string(),
+          retention: z.string().optional(),
 
           twoFA: z.boolean().optional(),
           sessionTimeout: z.string(),
@@ -52,6 +50,12 @@ export const updateSystemSettings = superAdminProcedure
           receiverId: z.string().optional(),
           meddraVersion: z.string().optional(),
           lockoutCooldown: z.string().optional(),
+
+          smtpHost: z.string().optional(),
+          smtpPort: z.string().optional(),
+          smtpUser: z.string().optional(),
+          smtpPass: z.string().optional(),
+          smtpFrom: z.string().optional(),
         })
         .optional(),
     }),

@@ -118,6 +118,7 @@ export async function processE2BWorkflow(reportId: string) {
     return {
       success: true,
       xmlPath,
+      xmlContent: xml,
       isValid: validation.valid,
       errors: validation.errors,
     };

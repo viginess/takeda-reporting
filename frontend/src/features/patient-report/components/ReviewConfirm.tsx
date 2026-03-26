@@ -95,7 +95,7 @@ export function ReviewConfirm({
       >
         {/* PRODUCTS */}
         <AccordionItem>
-          <AccordionButton fontWeight="600" color="gray.800" _expanded={{ bg: 'gray.50' }} justifyContent="space-between">
+          <AccordionButton as="div" fontWeight="600" color="gray.800" _expanded={{ bg: 'gray.50' }} justifyContent="space-between">
             <Flex align="center" gap={2}>
               <Text>{t('forms.patient.productDetails.title')}</Text>
               {products.length > 0 && <Badge colorScheme="red" fontSize="xs">{products.length}</Badge>}
@@ -135,7 +135,7 @@ export function ReviewConfirm({
 
         {/* SYMPTOMS / EVENTS */}
         <AccordionItem>
-          <AccordionButton fontWeight="600" color="gray.800" _expanded={{ bg: 'gray.50' }} justifyContent="space-between">
+          <AccordionButton as="div" fontWeight="600" color="gray.800" _expanded={{ bg: 'gray.50' }} justifyContent="space-between">
             <Flex align="center" gap={2}>
               <Text>{t('forms.patient.eventDetails.title')}</Text>
               {symptoms.length > 0 && <Badge colorScheme="orange" fontSize="xs">{symptoms.length}</Badge>}
@@ -162,7 +162,7 @@ export function ReviewConfirm({
 
         {/* PERSONAL */}
         <AccordionItem>
-          <AccordionButton fontWeight="600" color="gray.800" _expanded={{ bg: 'gray.50' }} justifyContent="space-between">
+          <AccordionButton as="div" fontWeight="600" color="gray.800" _expanded={{ bg: 'gray.50' }} justifyContent="space-between">
             <Text>{t('forms.patient.personalDetails.title')}</Text>
             <Button as="span" size="sm" variant="ghost" leftIcon={<Pencil size={14} />} onClick={(e) => { e.stopPropagation(); setStep('patient'); }}>{t('forms.patient.common.edit')}</Button>
           </AccordionButton>
@@ -190,7 +190,7 @@ export function ReviewConfirm({
 
         {/* ADDITIONAL */}
         <AccordionItem>
-          <AccordionButton fontWeight="600" color="gray.800" _expanded={{ bg: 'gray.50' }} justifyContent="space-between">
+          <AccordionButton as="div" fontWeight="600" color="gray.800" _expanded={{ bg: 'gray.50' }} justifyContent="space-between">
             <Text>{t('forms.patient.additionalDetails.title')}</Text>
             <Button size="sm" variant="ghost" leftIcon={<Pencil size={14} />} onClick={(e) => { e.stopPropagation(); setStep('additional'); }}>{t('forms.patient.common.edit')}</Button>
           </AccordionButton>
