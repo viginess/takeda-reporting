@@ -22,6 +22,8 @@ export async function validateE2BR3(xml: string) {
   const infraSchema = readSchema('infrastructureRoot.xsd');
   const vocSchema = readSchema('voc.xsd');
   const datatypesSchema = readSchema('datatypes.xsd');
+  const datatypesBaseSchema = readSchema('datatypes-base.xsd');
+  const narrativeBlockSchema = readSchema('NarrativeBlock.xsd');
 
   try {
     // 1. Custom Structural Checks (Check for mandatory HL7 v3 elements)
@@ -53,6 +55,8 @@ export async function validateE2BR3(xml: string) {
         { fileName: 'infrastructureRoot.xsd', contents: infraSchema },
         { fileName: 'voc.xsd', contents: vocSchema },
         { fileName: 'datatypes.xsd', contents: datatypesSchema },
+        { fileName: 'datatypes-base.xsd', contents: datatypesBaseSchema },
+        { fileName: 'NarrativeBlock.xsd', contents: narrativeBlockSchema },
       ],
       extension: 'schema'
     });

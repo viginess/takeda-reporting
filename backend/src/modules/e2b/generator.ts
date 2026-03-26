@@ -44,7 +44,20 @@ export function generateE2BR3(report: SafetyReport, options: { senderId: string,
   const timestampTS = messageDate.toISOString().replace(/[-:T]/g, '').split('.')[0];
   const messageId = `${prefix}-CLINSOLUTION-${timestampTS}-${(report.referenceId || report.id.substring(0, 8)).toUpperCase()}`;
 
-  const timestamp = messageDate.toISOString().replace(/[-:T]/g, '').split('.')[0] + '+0000';
+  const offsetNumber = (report as any).senderTimezoneOffset;
+  let tzString = '+0000';
+  if (typeof offsetNumber === 'number') {
+    // JavaScript getTimezoneOffset() returns minutes *behind* UTC (e.g. -330 for IST +05:30)
+    // HL7 expects +HHMM for ahead of UTC, -HHMM for behind UTC.
+    // So if offset is -330, we want +0530. If offset is 240 (NY), we want -0400.
+    const sign = offsetNumber <= 0 ? '+' : '-';
+    const absMinutes = Math.abs(offsetNumber);
+    const hours = Math.floor(absMinutes / 60).toString().padStart(2, '0');
+    const mins = (absMinutes % 60).toString().padStart(2, '0');
+    tzString = `${sign}${hours}${mins}`;
+  }
+
+  const timestamp = messageDate.toISOString().replace(/[-:T]/g, '').split('.')[0] + tzString;
 
   /**
    * Expresses a date in HL7 v3 format with precision.
@@ -59,8 +72,8 @@ export function generateE2BR3(report: SafetyReport, options: { senderId: string,
     if (precision === 'year') value = iso.substring(0, 4);
     else if (precision === 'day') value = iso.substring(0, 8);
     
-    // R3 Standard often requires the timezone offset (+0000 for UTC)
-    return value + '+0000';
+    // Use the reporter's timezone string constructed above
+    return value + tzString;
   };
 
   const doc = create({ version: '1.0', encoding: 'UTF-8' })

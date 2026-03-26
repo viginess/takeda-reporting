@@ -8,7 +8,6 @@ import {
 
 export const systemSettings = pgTable("system_settings", {
   id: integer("id").primaryKey().default(1), // Singleton: Always 1
-  defaultLanguage: text("default_language").notNull().default("English (US)"),
   
   // Storing granular settings in JSONB fields as requested/planned
   notificationThresholds: jsonb("notification_thresholds").$type<{
@@ -28,7 +27,6 @@ export const systemSettings = pgTable("system_settings", {
   }),
   
   clinicalConfig: jsonb("clinical_config").$type<{
-    adminEmail: string;
     timezone: string;
     retention: string;
 
@@ -40,8 +38,14 @@ export const systemSettings = pgTable("system_settings", {
     receiverId: string;
     meddraVersion: string;
     lockoutCooldown: string;
+    
+    // SMTP Configuration
+    smtpHost?: string;
+    smtpPort?: string;
+    smtpUser?: string;
+    smtpPass?: string;
+    smtpFrom?: string;
   }>().notNull().default({
-    adminEmail: "admin@pharma.com",
     timezone: "UTC+05:30 (IST)",
     retention: "24 months",
 
@@ -53,6 +57,12 @@ export const systemSettings = pgTable("system_settings", {
     receiverId: "EVHUMAN",
     meddraVersion: "29.0",
     lockoutCooldown: "30 min",
+
+    smtpHost: "",
+    smtpPort: "587",
+    smtpUser: "",
+    smtpPass: "",
+    smtpFrom: "info@takeda-reporting.com",
   }),
   updatedAt: timestamp("updated_at").defaultNow(),
   updatedBy: text("updated_by"),
