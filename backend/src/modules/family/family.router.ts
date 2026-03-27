@@ -76,23 +76,45 @@ export const familyRouter = router({
 
         // ── Send Email Notification ──────────────────────────────────
         const recipient = settings?.clinicalConfig?.smtpUser || settings?.clinicalConfig?.smtpFrom || process.env.SMTP_USER;
-        if (recipient) {
+        if (!recipient) {
+          console.warn(`[E2B] No recipient configured for report ${row.referenceId || row.id} — email skipped`);
+        } else {
+          const refId = row.referenceId || row.id;
+          const validationPassed = e2bResult.isValid;
+          const validationErrList = (e2bResult.errors || [])
+            .map((e: any) => `<li>${e.message || JSON.stringify(e)}</li>`)
+            .join('');
+
+          const subject = validationPassed
+            ? `New Family Safety Report: ${refId}`
+            : `⚠️ [VALIDATION FAILED] New Family Safety Report: ${refId}`;
+
+          const validationBanner = validationPassed
+            ? `<p style="color:green;"><b>✅ E2B XML Validation: PASSED</b></p>`
+            : `<p style="color:red;"><b>⚠️ E2B XML Validation: FAILED</b></p>
+               <p>The following issues were detected and must be corrected before regulatory submission:</p>
+               <ul style="color:red;">${validationErrList}</ul>`;
+
           await sendAdminNotificationEmail({
             to: recipient,
-            subject: `New Family Safety Report: ${row.referenceId || row.id}`,
+            subject,
             html: `
               <p>A new safety report has been submitted by a Family Member/Caregiver.</p>
-              <p><b>Reference ID:</b> ${row.referenceId || row.id}</p>
+              <p><b>Reference ID:</b> ${refId}</p>
+              ${validationBanner}
               <p>Please find the attached E2B XML and Safety PDF for your review.</p>
             `,
             attachments: [
-              { filename: `${row.referenceId || row.id}.pdf`, content: buffer },
-              { filename: `${row.referenceId || row.id}.xml`, content: e2bResult.xmlContent || "" }
+              { filename: `${refId}.pdf`, content: buffer },
+              { filename: `${refId}.xml`, content: e2bResult.xmlContent || "" }
             ]
           });
         }
-      } catch (workflowErr) {
-        console.error("Workflow failure for Family report:", workflowErr);
+      } catch (workflowErr: any) {
+        console.error("[E2B] Workflow non-blocking failure:", {
+          step: workflowErr?.step || 'unknown',
+          message: workflowErr?.message || String(workflowErr)
+        });
       }
 
       return { success: true, data: row };
