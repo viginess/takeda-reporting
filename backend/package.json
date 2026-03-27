@@ -23,6 +23,7 @@
     "@trpc/server": "^11.0.0",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/pdfkit": "^0.17.5",
+    "@xmldom/xmldom": "^0.8.11",
     "adm-zip": "^0.5.16",
     "axios": "^1.13.6",
     "dotenv": "^17.3.1",
@@ -35,6 +36,7 @@
     "xlsx": "^0.18.5",
     "xmlbuilder2": "^4.0.3",
     "xmllint-wasm": "^5.1.0",
+    "xpath": "^0.0.34",
     "zod": "^3.25.76"
   },
   "devDependencies": {
