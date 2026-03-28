@@ -35,7 +35,10 @@
       "adm-zip": ["node_modules/@types/adm-zip", "node_modules/adm-zip"],
       "pdfkit": ["node_modules/@types/pdfkit", "node_modules/pdfkit"],
       "xmlbuilder2": ["node_modules/xmlbuilder2"],
-      "xmllint-wasm": ["node_modules/xmllint-wasm"]
+      "xmllint-wasm": ["node_modules/xmllint-wasm"],
+      "@xmldom/xmldom": ["node_modules/@types/xmldom", "node_modules/@xmldom/xmldom"],
+      "xpath": ["node_modules/xpath"],
+      "nodemailer": ["node_modules/@types/nodemailer", "node_modules/nodemailer"]
     }
   },
   "include": ["src"]
