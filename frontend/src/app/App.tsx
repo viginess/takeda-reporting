@@ -3,7 +3,7 @@ import { QueryClient, QueryClientProvider, QueryCache, MutationCache } from '@ta
 import { TRPCClientError } from '@trpc/client';
 import { httpBatchLink } from '@trpc/client';
 import { trpc } from '../utils/trpc';
-import WelcomePage from '../WelcomePage';
+import WelcomePage from '../features/welcome/WelcomePage';
 import { supabase } from '../utils/supabaseClient';
 import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
 import AdminLayout from '../admin/features/layout/AdminLayout';

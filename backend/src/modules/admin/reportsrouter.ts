@@ -4,15 +4,15 @@ import { TRPCError } from "@trpc/server";
 import {
   viewerProcedure,
   adminProcedure,
-} from "../../trpc/procedures.js";
-import { db } from "../../db/index.js";
+} from '../../trpc/core/procedures.js';
+import { db } from '../../db/core/index.js';
 import {
   patientReports,
   hcpReports,
   familyReports,
   notifications,
   admins,
-} from "../../db/schema.js";
+} from '../../db/core/schema.js';
 import { systemSettings } from "../../db/admin/settings.schema.js";
 import { auditLogs } from "../../db/audit/audit.schema.js";
 import {
@@ -50,7 +50,9 @@ export const getAllReports = viewerProcedure.query(async () => {
         has_relevant_history as "hasRelevantHistory",
         lab_tests_performed as "labTestsPerformed",
         xml_url as "xmlUrl",
-        pdf_url as "pdfUrl"
+        pdf_url as "pdfUrl",
+        is_valid as "isValid",
+        validation_errors as "validationErrors"
       FROM patient_reports
       UNION ALL
       SELECT 
@@ -75,7 +77,9 @@ export const getAllReports = viewerProcedure.query(async () => {
         has_relevant_history as "hasRelevantHistory",
         lab_tests_performed as "labTestsPerformed",
         xml_url as "xmlUrl",
-        pdf_url as "pdfUrl"
+        pdf_url as "pdfUrl",
+        is_valid as "isValid",
+        validation_errors as "validationErrors"
       FROM hcp_reports
       UNION ALL
       SELECT 
@@ -100,7 +104,9 @@ export const getAllReports = viewerProcedure.query(async () => {
         has_relevant_history as "hasRelevantHistory",
         lab_tests_performed as "labTestsPerformed",
         xml_url as "xmlUrl",
-        pdf_url as "pdfUrl"
+        pdf_url as "pdfUrl",
+        is_valid as "isValid",
+        validation_errors as "validationErrors"
       FROM family_reports
       ORDER BY "createdAt" DESC
     `);
@@ -235,6 +241,8 @@ export const getAllReports = viewerProcedure.query(async () => {
           ? primarySymptom.outcome
           : "Not Provided",
       audit: reportAudits,
+      isValid: row.isValid !== false,
+      validationErrors: row.validationErrors || [],
       fullDetails: {
         patientDetails: row.patientDetails || null,
         hcpDetails: row.hcpDetails || null,
@@ -275,7 +283,14 @@ export const updateReport = adminProcedure
           .optional(),
         severity: z.enum(["info", "warning", "urgent"]).optional(),
         adminNotes: z.string().optional(),
-        symptoms: z.any().optional(), // Allow medical coding updates
+        symptoms: z.any().optional(), 
+        patientDetails: z.any().optional(),
+        hcpDetails: z.any().optional(),
+        reporterDetails: z.any().optional(),
+        products: z.any().optional(),
+        medicalHistory: z.any().optional(),
+        labTests: z.any().optional(),
+        additionalDetails: z.any().optional(),
       }),
     }),
   )
@@ -356,6 +371,44 @@ export const updateReport = adminProcedure
       .where(eq(tableToUpdate.id, reportId))
       .returning()) as any[];
 
+    // ─── Automated Sync Flow ────────────────────────────────────────────────
+    // 1. Pre-Validate Data
+    const { preValidateFormData } = await import("../e2b/pre-validator.js");
+    const preRes = preValidateFormData(newRecord);
+    
+    let finalIsValid = preRes.valid;
+    let finalErrors = preRes.errors;
+
+    // 2. Regenerate & Schema Validate if logic is OK
+    if (finalIsValid) {
+      const senderId = sysSettings?.clinicalConfig?.senderId || 'CLINSOLUTION-DEFAULT';
+      const receiverId = sysSettings?.clinicalConfig?.receiverId || 'EVHUMAN';
+      const meddraVersion = sysSettings?.clinicalConfig?.meddraVersion || "29.0";
+
+      try {
+        const xml = generateE2BR3(newRecord as any, { 
+          senderId, 
+          receiverId, 
+          meddraVersion,
+          reportType: reporterType 
+        });
+        const validation = await validateE2BR3(xml);
+        finalIsValid = validation.valid;
+        finalErrors = [...finalErrors, ...validation.errors];
+      } catch (genErr: any) {
+        finalIsValid = false;
+        finalErrors.push({ message: `Generation Error: ${genErr.message}`, type: 'exception' });
+      }
+    }
+
+    // 3. Persist final status
+    await db.update(tableToUpdate)
+      .set({ 
+        isValid: finalIsValid, 
+        validationErrors: finalErrors 
+      } as any)
+      .where(eq(tableToUpdate.id, reportId));
+
     const changedKeys = Object.keys(updates).filter(
       (k) => (oldRecord as any)[k] !== (updates as any)[k],
     );
@@ -390,7 +443,36 @@ export const updateReport = adminProcedure
       });
     }
 
-    return { success: true, data: newRecord };
+    return { success: true, data: { ...newRecord, isValid: finalIsValid, validationErrors: finalErrors } };
+  });
+
+export const revalidateAllReports = adminProcedure.mutation(async () => {
+    const { preValidateFormData } = await import("../e2b/pre-validator.js");
+    const tables = [patientReports, hcpReports, familyReports];
+    for (const table of tables) {
+      const all = await db.select().from(table);
+      for (const r of all) {
+        const res = preValidateFormData(r);
+        await db.update(table)
+          .set({ 
+            isValid: res.valid, 
+            validationErrors: res.errors 
+          } as any)
+          .where(eq(table.id, r.id));
+      }
+    }
+    return { success: true };
+  });
+
+export const regenerateReportFiles = adminProcedure
+  .input(z.object({
+    reportId: z.string().uuid(),
+    reporterType: z.enum(["Patient", "HCP", "Family"])
+  }))
+  .mutation(async ({ input }) => {
+    const { reportId } = input;
+    const { processE2BWorkflow } = await import("../e2b/index.js");
+    return await processE2BWorkflow(reportId);
   });
 
 export const getDashboardStats = viewerProcedure.query(async () => {
@@ -564,6 +646,13 @@ export const getReportPDF = adminProcedure
     const [report] = await db.select().from(table).where(eq(table.id, reportId));
     if (!report) throw new TRPCError({ code: "NOT_FOUND", message: "Report not found" });
 
+    if (report.isValid === false) {
+      throw new TRPCError({ 
+        code: "FORBIDDEN", 
+        message: "PDF download blocked: Report has validation errors. Please fix and regenerate first." 
+      });
+    }
+
     // If PDF already exists, return its signed URL
     if (report.pdfUrl) {
       try {
@@ -601,6 +690,13 @@ export const getReportXML = adminProcedure
 
     const [report] = await db.select().from(table).where(eq(table.id, reportId));
     if (!report || !report.xmlUrl) throw new TRPCError({ code: "NOT_FOUND", message: "XML not found" });
+
+    if (report.isValid === false) {
+      throw new TRPCError({ 
+        code: "FORBIDDEN", 
+        message: "XML download blocked: Report has validation errors. Please fix and regenerate first." 
+      });
+    }
 
     const { getSignedE2BUrl } = await import("../e2b/storage.js");
     const url = await getSignedE2BUrl(report.xmlUrl);

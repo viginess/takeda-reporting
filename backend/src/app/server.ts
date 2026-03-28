@@ -1,8 +1,8 @@
 import { createHTTPServer } from "@trpc/server/adapters/standalone";
-import { appRouter } from "./trpc/index.js";
+import { appRouter } from '../trpc/core/index.js';
 import jwt from "jsonwebtoken";
 import cron from "node-cron";
-import { runArchiver } from "./jobs/archiver.js";
+import { runArchiver } from "../jobs/archiver.js";
 
 const server = createHTTPServer({
   router: appRouter,

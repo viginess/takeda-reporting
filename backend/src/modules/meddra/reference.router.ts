@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { router, publicProcedure } from "../../trpc/init.js";
+import { router, publicProcedure } from '../../trpc/core/init.js';
 import { meddraService } from "./meddra.service.js";
 
 /**

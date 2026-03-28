@@ -5,13 +5,15 @@ Backend service for Clin Solutions L.L.C. project.js server powered by tRPC and 
 ## Features
 
 - **tRPC API**: Type-safe communication with the frontend.
+- **Two-Tier Validation**: Combined Business-Rule checks (Tier 1) and strict ICH XSD Schema validation (Tier 2).
+- **Automated E2B Sync**: Lifecycle orchestration that generates, validates, and stores XML/PDF files on every update.
 - **Drizzle ORM**: Type-safe database operations.
 - **SQL Database**: PostgreSQL (Supabase).
 - **Translation Services**: Integrated Azure Translator API supporting 137+ languages.
-- **Translation Caching**: Intelligent Supabase-backed caching to minimize API usage and improve latency.
+- **Translation Caching**: Intelligent Supabase-backed caching.
 - **Validation**: Strict input validation with Zod.
 - **Compliance**: E2B R3 (HL7 v3) XML generation and ICH-compliant safety reporting.
-- **Logging**: Server-side audit logging for all exports.
+- **Logging**: Server-side audit logging for all exports and edits.
 
 ## Getting Started
 
