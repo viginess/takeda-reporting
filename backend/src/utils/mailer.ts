@@ -1,5 +1,5 @@
 import nodemailer from 'nodemailer';
-import { db } from '../db/index.js';
+import { db } from '../db/core/index.js';
 import { systemSettings } from '../db/admin/settings.schema.js';
 import { eq } from 'drizzle-orm';
 

@@ -2,9 +2,9 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { SaasProvider } from '@saas-ui/react';
 import { extendTheme } from '@chakra-ui/react';
-import './global.css';
-import './i18n';
-import App from './app/App.tsx';
+import '../assets/styles/global.css';
+import '../i18n';
+import App from './App.tsx';
 
 const theme = extendTheme({
   colors: {

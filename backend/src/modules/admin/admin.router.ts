@@ -1,4 +1,4 @@
-import { router } from "../../trpc/init.js";
+import { router } from '../../trpc/core/init.js';
 import {
   syncProfile,
   updateAdminProfile,
@@ -19,6 +19,8 @@ import {
   getReportPDF,
   getReportXML,
   getBulkReports,
+  regenerateReportFiles,
+  revalidateAllReports,
 } from "./reportsrouter.js";
 import {
   getSystemSettings,
@@ -41,12 +43,14 @@ export const adminRouter = router({
   syncPasswordChange,
   getSettingsAuditLogs,
   getAdmins,
+  getReportPDF,
+  getReportXML,
+  getBulkReports,
   getMe,
   updateAdminRole,
   inviteAdmin,
   runManualArchiving,
-  getReportPDF,
-  getReportXML,
-  getBulkReports,
   toggleTwoFactor,
+  regenerateReportFiles,
+  revalidateAllReports,
 });

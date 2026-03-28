@@ -1,5 +1,5 @@
 import { eq, lt, and, ne } from "drizzle-orm";
-import { db } from "../db/index.js";
+import { db } from '../db/core/index.js';
 import { 
   systemSettings, 
   patientReports, 
@@ -7,7 +7,7 @@ import {
   familyReports, 
   archivedReports, 
   auditLogs 
-} from "../db/schema.js";
+} from '../db/core/schema.js';
 
 /**
  * Parses retention period string (e.g., "6 months", "24 months") into a Date object.

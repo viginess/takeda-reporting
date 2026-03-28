@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { router, publicProcedure } from "../../trpc/init.js";
-import { rateLimitedProcedure } from "../../trpc/procedures.js";
+import { router, publicProcedure } from '../../trpc/core/init.js';
+import { rateLimitedProcedure } from '../../trpc/core/procedures.js';
 import { TRPCError } from "@trpc/server";
-import { db } from "../../db/index.js";
+import { db } from '../../db/core/index.js';
 import { eq, sql } from "drizzle-orm";
 import { systemSettings } from "../../db/admin/settings.schema.js";
 import { admins } from "../../db/admin/admin.schema.js";

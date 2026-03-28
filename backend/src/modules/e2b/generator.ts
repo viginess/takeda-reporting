@@ -1,6 +1,6 @@
 import { create } from 'xmlbuilder2';
 import crypto from 'crypto';
-import { patientReports, hcpReports, familyReports } from '../../db/schema.js';
+import { patientReports, hcpReports, familyReports } from '../../db/core/schema.js';
 
 export type PatientReport = typeof patientReports.$inferSelect;
 export type HCPReport = typeof hcpReports.$inferSelect;
@@ -63,14 +63,14 @@ export function generateE2BR3(report: SafetyReport, options: { senderId: string,
       'xsi:schemaLocation': 'urn:hl7-org:v3 MCCI_IN200100UV01.xsd',
     });
 
-  // Batch Header
-  doc.ele('realmCode', { code: 'US' }).up()
-    .ele('id', { root: OID.MESSAGE_ID, extension: messageId }).up()
+  // Batch Header (MCCI Transmission Wrapper)
+  doc.ele('id', { root: OID.MESSAGE_ID, extension: messageId }).up()
     .ele('creationTime', { value: timestamp }).up()
     .ele('responseModeCode', { code: 'D' }).up()
     .ele('interactionId', { root: '2.16.840.1.113883.1.6', extension: 'MCCI_IN200100UV01' }).up()
     .ele('name', { code: 'ICH-ICSR-R3' }).up();
 
+  // Message Payload
   const icsr = doc.ele('PORR_IN049016UV');
   icsr.ele('id', { root: OID.MESSAGE_ID, extension: messageId }).up()
     .ele('creationTime', { value: timestamp }).up()
@@ -79,7 +79,7 @@ export function generateE2BR3(report: SafetyReport, options: { senderId: string,
     .ele('processingModeCode', { code: 'T' }).up()
     .ele('acceptAckCode', { code: 'AL' }).up();
 
-  // Transmission Details
+  // 1. MESSAGE-level Transmission Details (INSIDE PORR)
   icsr.ele('receiver', { typeCode: 'RCV' })
     .ele('device', { classCode: 'DEV', determinerCode: 'INSTANCE' })
       .ele('id', { root: '2.16.840.1.113883.3.989.2.1.3.14', extension: options.receiverId || 'EVHUMAN' }).up()
@@ -92,6 +92,17 @@ export function generateE2BR3(report: SafetyReport, options: { senderId: string,
 
   const controlAct = icsr.ele('controlActProcess', { classCode: 'CACT', moodCode: 'EVN' });
   controlAct.ele('code', { code: 'PORR_TE049016UV', codeSystem: '2.16.840.1.113883.1.18' }).up();
+
+  // 2. BATCH-level Transmission Details (AFTER PORR, at root level)
+  doc.ele('receiver', { typeCode: 'RCV' })
+    .ele('device', { classCode: 'DEV', determinerCode: 'INSTANCE' })
+      .ele('id', { root: '2.16.840.1.113883.3.989.2.1.3.14', extension: options.receiverId || 'EVHUMAN' }).up()
+    .up().up();
+
+  doc.ele('sender', { typeCode: 'SND' })
+    .ele('device', { classCode: 'DEV', determinerCode: 'INSTANCE' })
+      .ele('id', { root: '2.16.840.1.113883.3.989.2.1.3.13', extension: options.senderId || 'SENDER' }).up()
+    .up().up();
 
   // ── REPORTER (Author) ──────────────────────────────────────────────────
   // VALIDATOR MIRROR: //authorOrPerformer//name/given and /name/family must be non-empty
@@ -147,8 +158,16 @@ export function generateE2BR3(report: SafetyReport, options: { senderId: string,
         .ele('text', { mediaType: att.mimeType || 'application/pdf', representation: 'B64' }).txt(att.base64Data || att.content).up();
   });
   
-  // Expedited Criteria
-  const isExpedited = report.severity === 'Fatal' || report.severity === 'Life-Threatening';
+  // 1.5. Case Seriousness (A.1.5.1)
+  const severityVal = (report.severity || '').toLowerCase();
+  const isSerious = (report as any).seriousness === '1' || (report as any).isSerious === true || severityVal === 'fatal' || severityVal === 'life-threatening';
+  investigationEvent.ele('component', { typeCode: 'COMP' })
+    .ele('observationEvent', { classCode: 'OBS', moodCode: 'EVN' })
+      .ele('code', { code: '15', codeSystem: '2.16.840.1.113883.3.989.2.1.1.19' }).up() // A.1.5.1 OID 15
+      .ele('value', { 'xsi:type': 'BL', value: isSerious ? 'true' : 'false' }).up();
+
+  // 1.6. Expedited Criteria
+  const isExpedited = severityVal === 'fatal' || severityVal === 'life-threatening';
   investigationEvent.ele('component', { typeCode: 'COMP' })
     .ele('observationEvent', { classCode: 'OBS', moodCode: 'EVN' })
       .ele('code', { code: '23', codeSystem: OID.EXPEDITED_CONDITION }).up()
@@ -170,7 +189,7 @@ export function generateE2BR3(report: SafetyReport, options: { senderId: string,
   if (pDetails.dob) { const dob = expressHL7Date(pDetails.dob); if (dob) pPerson.ele('birthTime', { value: dob }).up(); }
 
   if (pDetails.ageValue) {
-    subject1.ele('subjectOf1', { typeCode: 'SBJ' })
+    subject1.ele('subjectOf2', { typeCode: 'SBJ' })
       .ele('observation', { classCode: 'OBS', moodCode: 'EVN' })
         .ele('code', { code: '3', codeSystem: '2.16.840.1.113883.3.989.2.1.1.11' }).up()
         .ele('value', { 'xsi:type': 'PQ', value: pDetails.ageValue, unit: 'a' }).up();
@@ -256,17 +275,13 @@ export function generateE2BR3(report: SafetyReport, options: { senderId: string,
     const substAdmin = drugOrg.ele('component', { typeCode: 'COMP' })
       .ele('substanceAdministration', { classCode: 'SBADM', moodCode: 'EVN' });
     
-    substAdmin.ele('id', { root: '2.16.840.1.113883.3.989.2.1.3.22', extension: `${prefix}-${idx}` }).up()
-      .ele('outboundRelationship2', { typeCode: 'COMP' })
-        .ele('observation', { classCode: 'OBS', moodCode: 'EVN' })
-          // Bug 2 Fix: Use correct OID 2.16.840.1.113883.3.989.2.1.1.12
-          .ele('code', { code: '6', codeSystem: '2.16.840.1.113883.3.989.2.1.1.12' }).up()
-          .ele('value', { 'xsi:type': 'CE', code: category, codeSystem: '2.16.840.1.113883.3.989.2.1.1.13' }).up().up().up();
+    substAdmin.ele('id', { root: '2.16.840.1.113883.3.989.2.1.3.22', extension: `${prefix}-${idx}` }).up();
 
     if (d.startDate || d.endDate) {
       const time = substAdmin.ele('effectiveTime', { 'xsi:type': 'IVL_TS' });
       if (d.startDate) time.ele('low', { value: expressHL7Date(d.startDate) || '' }).up();
       if (d.endDate) time.ele('high', { value: expressHL7Date(d.endDate) || '' }).up();
+      time.up();
     }
 
     if (d.route) substAdmin.ele('routeCode', { code: d.route.toUpperCase(), codeSystem: '2.16.840.1.113883.3.989.2.1.1.21' }).up();
@@ -278,14 +293,20 @@ export function generateE2BR3(report: SafetyReport, options: { senderId: string,
     pInstance.ele('asInstanceOfKind', { classCode: 'INST' }).ele('kindOfMaterialKind', { classCode: 'MAT', determinerCode: 'KIND' }).ele('code', { nullFlavor: 'NA' }).up()
       .ele('name').txt(d.productName || d.product || 'Unknown Drug').up().up().up().up();
 
+    // Category must follow consumable in the HL7 schema sequence
+    substAdmin.ele('outboundRelationship2', { typeCode: 'COMP' })
+      .ele('observation', { classCode: 'OBS', moodCode: 'EVN' })
+        .ele('code', { code: '6', codeSystem: '2.16.840.1.113883.3.989.2.1.1.12' }).up()
+        .ele('value', { 'xsi:type': 'CE', code: category, codeSystem: '2.16.840.1.113883.3.989.2.1.1.13' }).up().up().up();
+
     // Indication (G.k.2.2)
     if (d.condition || d.indication) {
       substAdmin.ele('outboundRelationship2', { typeCode: 'RSON' }).ele('observation', { classCode: 'OBS', moodCode: 'EVN' }).ele('id', { root: '2.16.840.1.113883.3.989.2.1.3.2', extension: `IND-${prefix}-${idx}` }).up().ele('code', { code: '19', codeSystem: '2.16.840.1.113883.3.989.2.1.1.19' }).up().ele('value', { 'xsi:type': 'ED' }).txt(d.condition || d.indication).up();
     }
 
     if (category === '1') {
-      // Causality Assessment (G.k.9.i) - REQUIRED for EMA Rule BR-G.k.9
-      substAdmin.ele('outboundRelationship', { typeCode: 'CAUS' })
+      // Causality Assessment (outboundRelationship2 - CAUS)
+      substAdmin.ele('outboundRelationship2', { typeCode: 'CAUS' })
         .ele('observation', { classCode: 'OBS', moodCode: 'EVN' })
           .ele('code', { code: '9', codeSystem: '2.16.840.1.113883.3.989.2.1.1.12' }).up()
           .ele('value', { 
@@ -293,7 +314,7 @@ export function generateE2BR3(report: SafetyReport, options: { senderId: string,
             code: d.causality || '3', 
             codeSystem: '2.16.840.1.113883.3.989.2.1.1.19' 
           }).up().up().up();
-
+      
       if (d.reactions) {
         d.reactions.forEach((r: any) => {
           substAdmin.ele('outboundRelationship2', { typeCode: 'PERT' })

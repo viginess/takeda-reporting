@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
-import { t } from "../init.js";
-import { db } from "../../db/index.js";
+import { t } from "../core/init.js";
+import { db } from '../../db/core/index.js';
 import { admins } from "../../db/admin/admin.schema.js";
 import { eq } from "drizzle-orm";
 

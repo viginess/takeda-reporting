@@ -1,9 +1,9 @@
 import { z } from "zod";
 import { eq, desc } from "drizzle-orm";
-import { router, publicProcedure } from "../../trpc/init.js";
-import { rateLimitedProcedure } from "../../trpc/procedures.js";
-import { db } from "../../db/index.js";
-import { patientReports, notifications } from "../../db/schema.js";
+import { router, publicProcedure } from '../../trpc/core/init.js';
+import { rateLimitedProcedure } from '../../trpc/core/procedures.js';
+import { db } from '../../db/core/index.js';
+import { patientReports, notifications } from '../../db/core/schema.js';
 import { createPatientSchema, updatePatientSchema } from "./patient.validation.js";
 import { determineNotificationData, shouldCreateNotification } from "../../utils/notification-helper.js";
 

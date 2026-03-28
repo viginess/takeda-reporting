@@ -1,8 +1,8 @@
 import { t, publicProcedure } from "./init.js";
-import { isAuthed } from "./middleware/auth.js";
-import { isMfaAuthed } from "./middleware/mfa.js";
-import { requiresRole } from "./middleware/rbac.js";
-import { rateLimitedProcedure } from "./middleware/rateLimit.js";
+import { isAuthed } from "../middleware/auth.js";
+import { isMfaAuthed } from "../middleware/mfa.js";
+import { requiresRole } from "../middleware/rbac.js";
+import { rateLimitedProcedure } from "../middleware/rateLimit.js";
 
 export { publicProcedure, rateLimitedProcedure };
 
