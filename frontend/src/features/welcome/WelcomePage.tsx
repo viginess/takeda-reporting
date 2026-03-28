@@ -16,14 +16,14 @@ import {
 } from '@chakra-ui/react';
 import { useState } from 'react';
 
-import logo from './assets/logo.jpg';
-import PatientForm from './features/patient-report';
-import FamilyForm from './features/family-report';
-import HcpForm from './features/hcp-report';
-import { countries } from './utils/countries';
-import { languages } from './utils/languages';
+import logo from '../../assets/logo.jpg';
+import PatientForm from '../patient-report';
+import FamilyForm from '../family-report';
+import HcpForm from '../hcp-report';
+import { countries } from '../../utils/countries';
+import { languages } from '../../utils/languages';
 import { useTranslation } from 'react-i18next';
-import { useLanguageLoader } from './i18n/loader';
+import { useLanguageLoader } from '../../i18n/loader';
 import { ChevronLeft } from 'lucide-react';
 
 type Step = 'select' | 'audience' | 'patient' | 'family' | 'hcp';

@@ -48,13 +48,11 @@ export async function generateSafetyPDF(report: any): Promise<Buffer> {
         doc.on('error', reject);
 
         // Font Registration
-        let nativeFontName = '';
         const fPath = FONT_REGISTRY[subLang];
         if (fPath && fs.existsSync(fPath)) {
             try {
                 const fName = fPath.endsWith('.ttc') ? (subLang === 'JA' ? 'MS-Gothic' : 'NirmalaUI') : undefined;
                 doc.registerFont('NativeFont', fPath, fName);
-                nativeFontName = 'NativeFont';
             } catch (e) {}
         }
 
