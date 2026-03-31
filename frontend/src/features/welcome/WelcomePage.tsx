@@ -382,9 +382,22 @@ function WelcomePage() {
         borderTop="1px solid"
         borderColor="gray.200"
       >
-        <Text lineHeight="tall">
+        <Text lineHeight="tall" mb={2}>
           {t('welcome.footer')}
         </Text>
+        <HStack justify="center" spacing={4}>
+          <Link href="/privacy-policy" color="gray.500" _hover={{ color: '#CE0037' }}>
+            Privacy Policy
+          </Link>
+          <Text color="gray.300">|</Text>
+          <Link href="/terms-conditions" color="gray.500" _hover={{ color: '#CE0037' }}>
+            Terms & Conditions
+          </Link>
+          <Text color="gray.300">|</Text>
+          <Link href="/contact" color="gray.500" _hover={{ color: '#CE0037' }}>
+            Contact
+          </Link>
+        </HStack>
       </Box>
     </Flex>
   );

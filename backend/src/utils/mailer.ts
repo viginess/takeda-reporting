@@ -24,20 +24,24 @@ export async function sendAdminNotificationEmail({
     const [settings] = await db.select().from(systemSettings).where(eq(systemSettings.id, 1));
     const clinical = settings?.clinicalConfig;
 
-    const host = clinical?.smtpHost || process.env.SMTP_HOST;
-    const port = Number(clinical?.smtpPort) || Number(process.env.SMTP_PORT) || 587;
-    const user = clinical?.smtpUser || process.env.SMTP_USER;
-    const pass = clinical?.smtpPass || process.env.SMTP_PASS;
-    const from = clinical?.smtpFrom || process.env.SMTP_FROM || '"Clin Solutions Notification" <no-reply@clinsolutions.com>';
+    const host = process.env.SMTP_HOST || clinical?.smtpHost;
+    const port = Number(process.env.SMTP_PORT) || Number(clinical?.smtpPort) || 587;
+    const user = process.env.SMTP_USER || clinical?.smtpUser;
+    const pass = process.env.SMTP_PASS || clinical?.smtpPass;
+    const from = process.env.SMTP_FROM || clinical?.smtpFrom || '"Takeda Reporting" <no-reply@takeda-reporting.com>';
 
     let transporter;
 
     if (host && user && pass) {
+      console.log(`Using SMTP: ${host}:${port} (${user})`);
       transporter = nodemailer.createTransport({
         host,
         port,
-        secure: port === 465,
+        secure: port === 465, // Use SSL for port 465, otherwise STARTTLS
         auth: { user, pass },
+        tls: {
+          rejectUnauthorized: false, // Often required for Ionos/1and1 internal relays
+        },
       });
     } else {
       // Create a test account (Ethereal) if SMTP is missing
