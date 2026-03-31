@@ -219,8 +219,13 @@ export function generateE2BR3(report: SafetyReport, options: { senderId: string,
     
     if (s.eventStartDate || s.eventEndDate) {
       const time = rObs.ele('effectiveTime', { 'xsi:type': 'IVL_TS' });
-      if (s.eventStartDate) time.ele('low', { value: expressHL7Date(s.eventStartDate) || '' }).up();
-      if (s.eventEndDate && s.eventEndDate !== 'Ongoing') time.ele('high', { value: expressHL7Date(s.eventEndDate) || '' }).up();
+      const lowVal = expressHL7Date(s.eventStartDate);
+      if (lowVal) time.ele('low', { value: lowVal }).up();
+      
+      if (s.eventEndDate && s.eventEndDate !== 'Ongoing') {
+        const highVal = expressHL7Date(s.eventEndDate);
+        if (highVal) time.ele('high', { value: highVal }).up();
+      }
     }
     
     const medV = report.meddraVersion || options.meddraVersion || "29.0";
@@ -258,11 +263,15 @@ export function generateE2BR3(report: SafetyReport, options: { senderId: string,
   // Medical History (D.7.1)
   const history: any[] = (report.medicalHistory as any[]) || [];
   history.forEach((h, hidx) => {
-    subject1.ele('subjectOf', { typeCode: 'SBJ' }).ele('observation', { classCode: 'OBS', moodCode: 'EVN' })
+    const hLowVal = expressHL7Date(h.startDate);
+    const hEffTime = subject1.ele('subjectOf', { typeCode: 'SBJ' }).ele('observation', { classCode: 'OBS', moodCode: 'EVN' })
       .ele('id', { root: '2.16.840.1.113883.3.989.2.1.3.2', extension: `HIST-${hidx}` }).up()
       .ele('code', { code: '7', codeSystem: '2.16.840.1.113883.3.989.5.1.3.2.1.10' }).up()
-      .ele('value', { 'xsi:type': 'CE', code: h.meddraCode || '10000000', codeSystem: OID.MEDDRA, displayName: h.meddraTerm || h.condition }).up()
-      .ele('effectiveTime').ele('low', { value: expressHL7Date(h.startDate) || '' }).up().up();
+      .ele('value', { 'xsi:type': 'CE', code: h.meddraCode || '10000000', codeSystem: OID.MEDDRA, displayName: h.meddraTerm || h.condition }).up();
+    
+    if (hLowVal) {
+      hEffTime.ele('effectiveTime').ele('low', { value: hLowVal }).up().up();
+    }
   });
 
   // Drugs (G.k) 
@@ -279,8 +288,11 @@ export function generateE2BR3(report: SafetyReport, options: { senderId: string,
 
     if (d.startDate || d.endDate) {
       const time = substAdmin.ele('effectiveTime', { 'xsi:type': 'IVL_TS' });
-      if (d.startDate) time.ele('low', { value: expressHL7Date(d.startDate) || '' }).up();
-      if (d.endDate) time.ele('high', { value: expressHL7Date(d.endDate) || '' }).up();
+      const dLowVal = expressHL7Date(d.startDate);
+      if (dLowVal) time.ele('low', { value: dLowVal }).up();
+      
+      const dHighVal = expressHL7Date(d.endDate);
+      if (dHighVal) time.ele('high', { value: dHighVal }).up();
       time.up();
     }
 
