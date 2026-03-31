@@ -106,6 +106,7 @@ export function HcpReviewConfirm({
       >
         <AccordionItem>
           <AccordionButton
+            as="div"
             fontWeight="600"
             color="gray.800"
             _expanded={{ bg: 'gray.50' }}
@@ -134,6 +135,7 @@ export function HcpReviewConfirm({
 
         <AccordionItem>
           <AccordionButton
+            as="div"
             fontWeight="600"
             color="gray.800"
             _expanded={{ bg: 'gray.50' }}
@@ -171,6 +173,7 @@ export function HcpReviewConfirm({
 
         <AccordionItem>
           <AccordionButton
+            as="div"
             fontWeight="600"
             color="gray.800"
             _expanded={{ bg: 'gray.50' }}
@@ -209,6 +212,7 @@ export function HcpReviewConfirm({
 
         <AccordionItem>
           <AccordionButton
+            as="div"
             fontWeight="600"
             color="gray.800"
             _expanded={{ bg: 'gray.50' }}
@@ -238,6 +242,7 @@ export function HcpReviewConfirm({
 
         <AccordionItem>
           <AccordionButton
+            as="div"
             fontWeight="600"
             color="gray.800"
             _expanded={{ bg: 'gray.50' }}
@@ -267,7 +272,7 @@ export function HcpReviewConfirm({
         </AccordionItem>
 
         <AccordionItem>
-          <AccordionButton fontWeight="600" color="gray.800" _expanded={{ bg: 'gray.50' }} justifyContent="space-between">
+          <AccordionButton as="div" fontWeight="600" color="gray.800" _expanded={{ bg: 'gray.50' }} justifyContent="space-between">
             <Text>{t('forms.hcp.reviewConfirm.sections.additionalDetails')}</Text>
             <Button size="sm" variant="ghost" leftIcon={<Pencil size={14} />} onClick={(e) => { e.stopPropagation(); setStep('additional'); }}>{t('forms.patient.common.edit')}</Button>
           </AccordionButton>

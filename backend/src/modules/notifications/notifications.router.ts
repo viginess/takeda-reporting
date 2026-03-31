@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { router, publicProcedure } from "../../trpc/init.js";
-import { db } from "../../db/index.js";
-import { notifications } from "../../db/schema.js";
+import { router, publicProcedure } from '../../trpc/core/init.js';
+import { db } from '../../db/core/index.js';
+import { notifications } from '../../db/core/schema.js';
 import { eq, desc } from "drizzle-orm";
 
 export const notificationsRouter = router({

@@ -6,9 +6,9 @@ import {
   protectedProcedure,
   viewerProcedure,
   superAdminProcedure,
-} from "../../trpc/procedures.js";
-import { db } from "../../db/index.js";
-import { admins } from "../../db/schema.js";
+} from '../../trpc/core/procedures.js';
+import { db } from '../../db/core/index.js';
+import { admins } from '../../db/core/schema.js';
 
 export const syncProfile = protectedProcedure
   .input(

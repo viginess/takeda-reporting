@@ -1,11 +1,11 @@
 import { generateE2BR3 } from './generator.js';
 import { validateE2BR3 } from './validator.js';
 import { storeE2BR3 } from './storage.js';
-import { patientReports, hcpReports, familyReports } from '../../db/schema.js';
+import { patientReports, hcpReports, familyReports } from '../../db/core/schema.js';
 import { systemSettings } from '../../db/admin/settings.schema.js';
-import { db } from '../../db/index.js';
+import { db } from '../../db/core/index.js';
 import { eq } from 'drizzle-orm';
-import { auditLogs } from '../../db/schema.js';
+import { auditLogs } from '../../db/core/schema.js';
 /**
  * Main orchestrator for the E2B XML workflow.
  * Generates, validates, stores, and updates the report record.
@@ -76,28 +76,37 @@ export async function processE2BWorkflow(reportId: string) {
     const sysSettings = (await db.select().from(systemSettings).where(eq(systemSettings.id, 1)).limit(1))[0];
     const meddraVersion = sysSettings?.clinicalConfig?.meddraVersion || "29.0";
     
+    // 3. Validation Flow (Tier 1 & Tier 2)
+    const { preValidateFormData } = await import('./pre-validator.js');
+    const preValidation = preValidateFormData(report);
+    
     const xml = generateE2BR3(report, { senderId, receiverId, reportType, meddraVersion });
     console.log('XML Generated');
 
-    // 3. Validate XML
-    const validation = await validateE2BR3(xml);
-    if (!validation.valid) {
-      console.warn('E2B XML Validation failed:', validation.errors);
+    const schemaValidation = await validateE2BR3(xml);
+    
+    const finalValid = preValidation.valid && schemaValidation.valid;
+    const finalErrors = [...preValidation.errors, ...schemaValidation.errors];
+
+    if (!finalValid) {
+      console.warn('E2B Validation failed:', finalErrors);
     } else {
-      console.log('E2B XML Validation passed');
+      console.log('E2B Validation passed');
     }
 
     // 4. Store XML in Supabase (returns the filePath)
     const xmlPath = await storeE2BR3(report.referenceId || reportId, xml);
     console.log(`XML Stored at path: ${xmlPath}`);
 
-    // 5. Update Report with XML Path
+    // 5. Update Report with XML Path and Validation Status
     await db
       .update(tableToUpdate)
       .set({
         xmlUrl: xmlPath,
+        isValid: finalValid,
+        validationErrors: finalErrors,
         updatedAt: new Date(),
-      })
+      } as any)
       .where(eq(tableToUpdate.id, reportId));
 
     // 6. Audit Logging
@@ -108,7 +117,7 @@ export async function processE2BWorkflow(reportId: string) {
         reportId: reportId,
         changedBy: 'SYSTEM', // Context-aware user would be better
         action: 'XML_EXPORT',
-        newValue: { xmlPath, isValid: validation.valid, version: reportVersion }
+        newValue: { xmlPath, isValid: finalValid, version: reportVersion }
       });
     } catch (auditError) {
       console.error('Audit Log failed:', auditError);
@@ -118,8 +127,9 @@ export async function processE2BWorkflow(reportId: string) {
     return {
       success: true,
       xmlPath,
-      isValid: validation.valid,
-      errors: validation.errors,
+      xmlContent: xml,
+      isValid: finalValid,
+      errors: finalErrors,
     };
   } catch (error: any) {
     console.error('E2B Workflow Error:', error);

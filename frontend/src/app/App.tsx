@@ -3,7 +3,11 @@ import { QueryClient, QueryClientProvider, QueryCache, MutationCache } from '@ta
 import { TRPCClientError } from '@trpc/client';
 import { httpBatchLink } from '@trpc/client';
 import { trpc } from '../utils/trpc';
-import WelcomePage from '../WelcomePage';
+import WelcomePage from '../features/welcome/WelcomePage';
+import PrivacyPolicyPage from '../features/legal/PrivacyPolicyPage';
+import TermsConditionsPage from '../features/legal/TermsConditionsPage';
+import ImprintPage from '../features/legal/ImprintPage';
+import ContactPage from '../features/contact/ContactPage';
 import { supabase } from '../utils/supabaseClient';
 import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
 import AdminLayout from '../admin/features/layout/AdminLayout';
@@ -119,6 +123,10 @@ function App() {
           <RecoveryRedirector />
           <Routes>
             <Route path="/" element={<WelcomePage />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+            <Route path="/terms-conditions" element={<TermsConditionsPage />} />
+            <Route path="/imprint" element={<ImprintPage />} />
+            <Route path="/contact" element={<ContactPage />} />
             <Route element={<ProtectedRoute />}>
               <Route path="/admin" element={<AdminLayout />}>
                 <Route index element={<DashBoard />} />

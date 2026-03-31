@@ -188,9 +188,14 @@ export function SuccessStep({ onBackToHome, onSubmitAnother, reportId }: Success
         maxW="450px"
       >
         Questions? Contact us at{' '}
-        <Text as="span" color="#CE0037" fontWeight="600">
-          support@company.com
-        </Text>
+        <Link 
+          href="mailto:aereporting@viginess.com" 
+          color="#CE0037" 
+          fontWeight="600"
+          _hover={{ textDecoration: 'underline' }}
+        >
+          aereporting@viginess.com
+        </Link>
       </Text>
     </Flex>
   );
