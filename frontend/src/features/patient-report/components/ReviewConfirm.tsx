@@ -298,8 +298,8 @@ export function ReviewConfirm({
               terms: t('forms.patient.reviewConfirm.terms.terms')
             }}
             components={{
-              privacy: <Link href="https://www.takeda.com/privacy-notice/" isExternal color="#CE0037" textDecoration="underline" />,
-              terms: <Link href="https://www.takeda.com/terms-and-conditions/" isExternal color="#CE0037" textDecoration="underline" />
+              privacy: <Link href="/privacy-policy" isExternal color="#CE0037" textDecoration="underline" />,
+              terms: <Link href="/terms-conditions" isExternal color="#CE0037" textDecoration="underline" />
             }}
           />
         </Checkbox>

@@ -54,8 +54,8 @@ The project follows a **Monorepo-lite** structure, separating frontend and backe
 
 ```mermaid
 graph TD
-    User((User Browser)) -->|React + Saas UI| Frontend[Frontend - Vite/React]
-    Frontend -->|tRPC Queries/Mutations| Backend[Backend - Node.js/tRPC]
+    User((User Browser)) -->|"React + Saas UI"| Frontend[Frontend - Vite/React]
+    Frontend -->|"tRPC Queries/Mutations"| Backend[Backend - Node.js/tRPC]
     Backend -->|Drizzle ORM| DB[(PostgreSQL - Supabase)]
 
     subgraph Security Layer
@@ -75,16 +75,16 @@ graph TD
     classDef xml fill:#f43f5e,stroke:#e11d48,stroke-width:2px,color:white;
     classDef pdf fill:#f59e0b,stroke:#d97706,stroke-width:2px,color:white;
 
-    F["Frontend Forms\nPatient / HCP / Family"]:::ui -->|tRPC (Zod)| B["Node.js Backend"]
-    B -->|1. Save Data| DB[("Supabase Postgres")]:::api
+    F["Frontend Forms\nPatient / HCP / Family"]:::ui -->|"tRPC (Zod)"| B["Node.js Backend"]
+    B -->|"1. Save Data"| DB[("Supabase Postgres")]:::api
     
-    B -->|2. Pre-Validate| PVAL{Business Logic?}
+    B -->|"2. Pre-Validate"| PVAL{Business Logic?}
     PVAL -->|Fail| DB
     
     PVAL -->|Pass| G{"Gen & Validate"}:::api
     
-    G -->|3. E2B R3 XML Gen| XML["HL7 v3 XML"]:::xml
-    G -->|4. XSD Check (Tier 2)| SVAL{"ICH Compliant?"}
+    G -->|"3. E2B R3 XML Gen"| XML["HL7 v3 XML"]:::xml
+    G -->|"4. XSD Check (Tier 2)"| SVAL{"ICH Compliant?"}
     
     SVAL -->|Fail| DB
     SVAL -->|Pass| PDF["Safety PDF"]:::pdf

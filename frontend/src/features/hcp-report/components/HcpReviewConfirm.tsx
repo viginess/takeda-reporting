@@ -379,7 +379,7 @@ export function HcpReviewConfirm({
             components={{
               privacy: (
                 <Link
-                  href="https://www.takeda.com/privacy-notice/"
+                  href="/privacy-policy"
                   isExternal
                   color="#CE0037"
                   textDecoration="underline"
@@ -387,7 +387,7 @@ export function HcpReviewConfirm({
               ),
               terms: (
                 <Link
-                  href="https://www.takeda.com/terms-and-conditions/"
+                  href="/terms-conditions"
                   isExternal
                   color="#CE0037"
                   textDecoration="underline"

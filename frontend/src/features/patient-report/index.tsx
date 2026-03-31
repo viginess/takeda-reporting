@@ -9,6 +9,7 @@ import {
   ButtonGroup,
   Button,
   useToast,
+  HStack,
 } from "@chakra-ui/react";
 import {
   FormLayout,
@@ -536,7 +537,20 @@ function PatientForm({ onBack, countryCode, languageCode }: PatientFormProps) {
         borderColor="gray.200"
       >
         <Text>{t("welcome.footer")}</Text>
-        <Text mt={1} fontSize="xs">
+        <HStack justify="center" spacing={4} mt={2} fontSize="xs">
+          <Link href="/privacy-policy" isExternal color="gray.500" _hover={{ color: '#CE0037' }}>
+            Privacy Policy
+          </Link>
+          <Text color="gray.300">|</Text>
+          <Link href="/terms-conditions" isExternal color="gray.500" _hover={{ color: '#CE0037' }}>
+            Terms & Conditions
+          </Link>
+          <Text color="gray.300">|</Text>
+          <Link href="/contact" isExternal color="gray.500" _hover={{ color: '#CE0037' }}>
+            Contact
+          </Link>
+        </HStack>
+        <Text mt={2} fontSize="2xs">
           Copyright © 2026 Clin Solutions L.L.C.
         </Text>
       </Box>
