@@ -29,7 +29,6 @@ export const systemSettings = pgTable("system_settings", {
   clinicalConfig: jsonb("clinical_config").$type<{
     timezone: string;
     retention: string;
-
     twoFA?: boolean;
     sessionTimeout: string;
     maxLoginAttempts: string;

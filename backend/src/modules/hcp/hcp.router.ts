@@ -72,7 +72,7 @@ export const hcpRouter = router({
         await db.update(hcpReports).set({ pdfUrl: pdfPath }).where(eq(hcpReports.id, row.id));
 
         // ── Send Email Notification ──────────────────────────────────
-        const recipient = settings?.clinicalConfig?.smtpUser || settings?.clinicalConfig?.smtpFrom || process.env.SMTP_USER;
+        const recipient = settings?.clinicalConfig?.smtpFrom || process.env.SMTP_FROM || 'aereporting@viginess.com';
         if (!recipient) {
           console.warn(`[E2B] No recipient configured for report ${row.referenceId || row.id} — email skipped`);
         } else {
