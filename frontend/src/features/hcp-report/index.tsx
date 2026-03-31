@@ -264,6 +264,7 @@ function HcpForm({ onBack, countryCode, languageCode }: HcpFormProps) {
         additionalDetails: additionalDetails || undefined,
         agreedToTerms: params.agreedToTerms,
         reporterType: "hcp",
+        senderTimezoneOffset: new Date().getTimezoneOffset(),
         countryCode: countryCode,
         submissionLanguage: languageCode || "en",
         status: 'new',

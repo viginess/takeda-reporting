@@ -154,6 +154,7 @@ export const createPatientSchema = z.object({
   countryCode: z.string().optional(),
   submissionLanguage: z.string().optional().default("en"),
   severity: z.string().optional(),
+  senderTimezoneOffset: z.number().optional(),
 });
 
 export type CreatePatientInput = z.infer<typeof createPatientSchema>;

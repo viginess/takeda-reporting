@@ -1,8 +1,8 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { router } from "../../trpc/init.js";
-import { adminProcedure } from "../../trpc/procedures.js";
-import { db } from "../../db/index.js";
+import { router } from '../../trpc/core/init.js';
+import { adminProcedure } from '../../trpc/core/procedures.js';
+import { db } from '../../db/core/index.js';
 import { meddraImports } from "../../db/meddra/import.schema.js";
 import { desc, eq, and } from "drizzle-orm";
 import { meddraService } from "./meddra.service.js";

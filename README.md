@@ -17,9 +17,13 @@ A comprehensive clinical reporting system for Clin Solutions L.L.C. Pharmaceutic
 
 ## Key Features
 
+- **Three Report Types**: Dedicated submission flows for **Patients**, **Health Care Professionals (HCPs)**, and **Family Members**.
 - **E2B R3 Standards**: Automatic generation of US-CLINSOLUTION compliant safety reports in XML format.
-- **MedDRA Integration**: Smart autocomplete and mapping to full PT (Preferred Term) and LLT (Lowest Level Term) hierarchies.
+- **Three-Tier Validation**: Combined **Business-Rule** checks (Tier 1), strict **ICH XSD Schema** validation (Tier 2), and **MedDRA Technical Vocabulary** verification (Tier 3) to ensure 100% regulatory compliance.
+- **Admin Correction UI**: Real-time full-form editing for administrators with an automated "Fix-Regenerate-Validate" lifecycle.
 - **Improved Symptoms UX**: Dynamic, multi-block symptom entry with clear numbering and visual separation.
+- **Download Guard**: Security mechanism that blocks non-compliant XML/PDF exports until all validation errors are resolved.
+- **MedDRA Integration**: Smart autocomplete and mapping to full PT (Preferred Term) and LLT (Lowest Level Term) hierarchies.
 - **Audit Logging**: Robust server-side tracking of all safety data exports and modifications.
 - **137+ Languages**: Real-time translation with intelligent backend-side caching.
 
@@ -62,7 +66,7 @@ graph TD
 
 ## E2B(R3) & PDF Generation Pipeline
 
-The core regulatory requirement of this system strictly maps dynamic JSON frontend forms into compliant ICH E2B(R3) XML structures and printable PDF reports. 
+The core regulatory requirement of this system strictly maps dynamic JSON frontend forms into compliant ICH E2B(R3) XML structures and printable PDF reports.
 
 ```mermaid
 graph TD
@@ -71,20 +75,23 @@ graph TD
     classDef xml fill:#f43f5e,stroke:#e11d48,stroke-width:2px,color:white;
     classDef pdf fill:#f59e0b,stroke:#d97706,stroke-width:2px,color:white;
 
-    F["Frontend Forms\nPatient / HCP / Family"]:::ui -->|"tRPC Validation (Zod)"| B["Node.js Backend"]
-    B -->|"Save Raw JSON"| DB[("Supabase Postgres")]:::api
-
-    DB --> G{Generator Services}:::api
+    F["Frontend Forms\nPatient / HCP / Family"]:::ui -->|tRPC (Zod)| B["Node.js Backend"]
+    B -->|1. Save Data| DB[("Supabase Postgres")]:::api
     
-    G -->|generator.ts| XML["ICH E2B R3 XML\nHL7 v3 Format"]:::xml
-    G -->|pdf-generator.ts| PDF["Safety Report PDF\nVisual & Rendered"]:::pdf
-
-    subgraph "Mapping Engine (generator.ts)"
-        M1["Reporter Details"] -.->|C.2.r| XML
-        M2["Patient History & Labs"] -.->|D.7.1 & F.r| XML
-        M3["Adverse Reactions"] -.->|E.i Section| XML
-        M4["Suspect & Concomitant Drugs"] -.->|G.k Section| XML
-        M5["Narratives & Media"] -.->|H.5.r & C.1.6| XML
+    B -->|2. Pre-Validate| PVAL{Business Logic?}
+    PVAL -->|Fail| DB
+    
+    PVAL -->|Pass| G{"Gen & Validate"}:::api
+    
+    G -->|3. E2B R3 XML Gen| XML["HL7 v3 XML"]:::xml
+    G -->|4. XSD Check (Tier 2)| SVAL{"ICH Compliant?"}
+    
+    SVAL -->|Fail| DB
+    SVAL -->|Pass| PDF["Safety PDF"]:::pdf
+    SVAL -->|Pass| DB
+    
+    subgraph "Administrative Correction UI"
+    A["Report Editor"]:::ui -->|Update & Re-Validate| B
     end
 ```
 

@@ -1,9 +1,9 @@
 import { z } from "zod";
 import { sql, eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
-import { superAdminProcedure, viewerProcedure } from "../../trpc/procedures.js";
-import { db } from "../../db/index.js";
-import { admins, notifications } from "../../db/schema.js";
+import { superAdminProcedure, viewerProcedure } from '../../trpc/core/procedures.js';
+import { db } from '../../db/core/index.js';
+import { admins, notifications } from '../../db/core/schema.js';
 import { systemSettings } from "../../db/admin/settings.schema.js";
 import { auditLogs } from "../../db/audit/audit.schema.js";
 import { runArchiver } from "../../jobs/archiver.js";
@@ -15,9 +15,32 @@ export const getSystemSettings = viewerProcedure.query(async () => {
     .where(eq(systemSettings.id, 1));
 
   if (!settings) {
+    // Populate initial record with environment variables if available
+    const initialClinicalConfig = {
+      smtpHost: process.env.SMTP_HOST || "",
+      smtpPort: process.env.SMTP_PORT || "587",
+      smtpUser: process.env.SMTP_USER || "",
+      smtpPass: process.env.SMTP_PASS || "",
+      smtpFrom: process.env.SMTP_FROM || "info@takeda-reporting.com",
+      
+      // Other defaults
+      timezone: "UTC+05:30 (IST)",
+      retention: "24 months",
+      sessionTimeout: "60 min",
+      maxLoginAttempts: "5",
+      passwordExpiry: "90 days",
+      senderId: "CLINSOLUTION-DEFAULT",
+      receiverId: "EVHUMAN",
+      meddraVersion: "29.1",
+      lockoutCooldown: "30 min",
+    };
+
     [settings] = await db
       .insert(systemSettings)
-      .values({ id: 1 })
+      .values({ 
+        id: 1,
+        clinicalConfig: initialClinicalConfig as any
+      })
       .returning();
   }
 
@@ -27,7 +50,6 @@ export const getSystemSettings = viewerProcedure.query(async () => {
 export const updateSystemSettings = superAdminProcedure
   .input(
     z.object({
-      defaultLanguage: z.string().min(1).optional(),
       notificationThresholds: z
         .object({
           urgentAlerts: z.boolean(),
@@ -40,9 +62,7 @@ export const updateSystemSettings = superAdminProcedure
         .optional(),
       clinicalConfig: z
         .object({
-          adminEmail: z.string().email(),
-          timezone: z.string(),
-          retention: z.string(),
+          retention: z.string().optional(),
 
           twoFA: z.boolean().optional(),
           sessionTimeout: z.string(),
@@ -52,6 +72,12 @@ export const updateSystemSettings = superAdminProcedure
           receiverId: z.string().optional(),
           meddraVersion: z.string().optional(),
           lockoutCooldown: z.string().optional(),
+
+          smtpHost: z.string().optional(),
+          smtpPort: z.string().optional(),
+          smtpUser: z.string().optional(),
+          smtpPass: z.string().optional(),
+          smtpFrom: z.string().optional(),
         })
         .optional(),
     }),

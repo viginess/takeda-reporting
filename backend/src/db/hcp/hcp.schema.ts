@@ -53,6 +53,9 @@ export const hcpReports = pgTable("hcp_reports", {
   countryCode: text("country_code"),
   submissionLanguage: text("submission_language").default("en"),
   reportVersion: integer("report_version").default(1),
+  senderTimezoneOffset: integer("sender_timezone_offset"),
+  isValid: boolean("is_valid").default(true),
+  validationErrors: jsonb("validation_errors"),
   lastUpdatedAt: timestamp("last_updated_at"),
   // Meta
   createdAt: timestamp("created_at").defaultNow(),

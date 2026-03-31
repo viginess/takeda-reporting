@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { t } from "../init.js";
+import { t } from "../core/init.js";
 
 // In-memory store for rate limiting
 const rateLimits = new Map<string, { count: number; resetAt: number }>();

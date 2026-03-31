@@ -1,9 +1,9 @@
 import { z } from "zod";
 import { eq, desc } from "drizzle-orm";
-import { router, publicProcedure } from "../../trpc/init.js";
-import { rateLimitedProcedure } from "../../trpc/procedures.js";
-import { db } from "../../db/index.js";
-import { familyReports, notifications } from "../../db/schema.js";
+import { router, publicProcedure } from '../../trpc/core/init.js';
+import { rateLimitedProcedure } from '../../trpc/core/procedures.js';
+import { db } from '../../db/core/index.js';
+import { familyReports, notifications } from '../../db/core/schema.js';
 import { systemSettings } from "../../db/admin/settings.schema.js";
 import { createFamilySchema, updateFamilySchema } from "./family.validation.js";
 import { determineNotificationData, shouldCreateNotification } from "../../utils/notification-helper.js";
@@ -38,6 +38,7 @@ export const familyRouter = router({
           severity: input.severity || determineNotificationData(input, "Family", "TEMP").type,
           meddraVersion: (await db.select().from(systemSettings).where(eq(systemSettings.id, 1)))[0]?.clinicalConfig?.meddraVersion || "29.1",
           countryCode: input.countryCode,
+          senderTimezoneOffset: input.senderTimezoneOffset,
         })
         .returning();
 
@@ -63,16 +64,57 @@ export const familyRouter = router({
       // Trigger E2B XML & PDF Workflow
       try {
         const { processE2BWorkflow } = await import("../e2b/index.js");
-        await processE2BWorkflow(row.id);
+        const e2bResult = await processE2BWorkflow(row.id);
 
         const { generateSafetyPDF } = await import("../pdf/pdf-generator.js");
         const { storeSafetyPDF } = await import("../pdf/storage.js");
+        const { sendAdminNotificationEmail } = await import("../../utils/mailer.js");
         
         const buffer = await generateSafetyPDF(row);
         const pdfPath = await storeSafetyPDF(row.referenceId || row.id, buffer);
         await db.update(familyReports).set({ pdfUrl: pdfPath }).where(eq(familyReports.id, row.id));
-      } catch (workflowErr) {
-        console.error("Workflow failure for Family report:", workflowErr);
+
+        // ── Send Email Notification ──────────────────────────────────
+        const recipient = settings?.clinicalConfig?.smtpFrom || process.env.SMTP_FROM || 'aereporting@viginess.com';
+        if (!recipient) {
+          console.warn(`[E2B] No recipient configured for report ${row.referenceId || row.id} — email skipped`);
+        } else {
+          const refId = row.referenceId || row.id;
+          const validationPassed = e2bResult.isValid;
+          const validationErrList = (e2bResult.errors || [])
+            .map((e: any) => `<li>${e.message || JSON.stringify(e)}</li>`)
+            .join('');
+
+          const subject = validationPassed
+            ? `New Family Safety Report: ${refId}`
+            : `⚠️ [VALIDATION FAILED] New Family Safety Report: ${refId}`;
+
+          const validationBanner = validationPassed
+            ? `<p style="color:green;"><b>✅ E2B XML Validation: PASSED</b></p>`
+            : `<p style="color:red;"><b>⚠️ E2B XML Validation: FAILED</b></p>
+               <p>The following issues were detected and must be corrected before regulatory submission:</p>
+               <ul style="color:red;">${validationErrList}</ul>`;
+
+          await sendAdminNotificationEmail({
+            to: recipient,
+            subject,
+            html: `
+              <p>A new safety report has been submitted by a Family Member/Caregiver.</p>
+              <p><b>Reference ID:</b> ${refId}</p>
+              ${validationBanner}
+              <p>Please find the attached E2B XML and Safety PDF for your review.</p>
+            `,
+            attachments: [
+              { filename: `${refId}.pdf`, content: buffer },
+              { filename: `${refId}.xml`, content: e2bResult.xmlContent || "" }
+            ]
+          });
+        }
+      } catch (workflowErr: any) {
+        console.error("[E2B] Workflow non-blocking failure:", {
+          step: workflowErr?.step || 'unknown',
+          message: workflowErr?.message || String(workflowErr)
+        });
       }
 
       return { success: true, data: row };
