@@ -30,15 +30,7 @@ export const isAuthed = t.middleware(async ({ ctx, next }) => {
     console.error("Error fetching system settings in isAuthed:", err);
   }
 
-  // 1. Enforce Maintenance Mode
-  if (clinical.maintenanceMode) {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message: "System is in maintenance mode. Admin operations are temporarily disabled.",
-    });
-  }
-
-  // 2. Verify JWT
+  // 1. Verify JWT
   try {
     const payload = jwt.verify(ctx.token, jwtSecret) as any;
     const userId = payload.sub;
@@ -48,7 +40,7 @@ export const isAuthed = t.middleware(async ({ ctx, next }) => {
 
     const [admin] = await db.select().from(admins).where(eq(admins.id, userId));
 
-    // 3. Enforce Session Timeout
+    // 2. Enforce Session Timeout
     const iatTimeMs = payload.iat ? payload.iat * 1000 : 0;
     const isBrandNewToken = Date.now() - iatTimeMs < 5 * 60 * 1000;
 
@@ -66,12 +58,12 @@ export const isAuthed = t.middleware(async ({ ctx, next }) => {
       }
     }
 
-    // 4. Update Heartbeat
+    // 3. Update Heartbeat
     if (userId) {
       db.update(admins).set({ lastActiveAt: new Date() }).where(eq(admins.id, userId)).catch(() => {});
     }
 
-    // 5. Enforce Password Expiry
+    // 4. Enforce Password Expiry
     if (clinical.passwordExpiry && clinical.passwordExpiry !== "Never" && admin?.passwordChangedAt) {
       const expiryDays = parseInt(clinical.passwordExpiry);
       if (!isNaN(expiryDays)) {
