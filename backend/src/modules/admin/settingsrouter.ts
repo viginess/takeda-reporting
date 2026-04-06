@@ -21,7 +21,7 @@ export const getSystemSettings = viewerProcedure.query(async () => {
       smtpPort: process.env.SMTP_PORT || "587",
       smtpUser: process.env.SMTP_USER || "",
       smtpPass: process.env.SMTP_PASS || "",
-      smtpFrom: process.env.SMTP_FROM || "info@takeda-reporting.com",
+      smtpFrom: process.env.SMTP_FROM || "info@viginess.com",
       
       // Other defaults
       timezone: "UTC+05:30 (IST)",

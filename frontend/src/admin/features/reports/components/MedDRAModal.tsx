@@ -39,7 +39,7 @@ export function MedDRAModal({
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="xl">
       <ModalOverlay backdropFilter="blur(5px)" />
-      <ModalContent borderRadius="2xl" p={2}>
+      <ModalContent borderRadius="2xl" p={2} mx={{ base: 4, md: 0 }}>
         <ModalCloseButton mt={2} mr={2} />
         <ModalBody p={5}>
           <Heading size="md" mb={1} color="#1e293b">Medical Coding (MedDRA)</Heading>

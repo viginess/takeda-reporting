@@ -4,7 +4,6 @@ import {
   Heading,
   Text,
   Button,
-  HStack,
   Link,
   useToast,
 } from '@chakra-ui/react';
@@ -52,7 +51,7 @@ export function SuccessStep({ onBackToHome, onSubmitAnother, reportId }: Success
         border="1px solid"
         borderColor="green.200"
         borderRadius="xl"
-        p={10}
+        p={{ base: 6, md: 10 }}
         boxShadow="sm"
         position="relative"
         overflow="hidden"
@@ -69,8 +68,8 @@ export function SuccessStep({ onBackToHome, onSubmitAnother, reportId }: Success
       >
         {/* Success Icon */}
         <Box
-          w="80px"
-          h="80px"
+          w={{ base: "60px", md: "80px" }}
+          h={{ base: "60px", md: "80px" }}
           bg="green.500"
           borderRadius="full"
           display="flex"
@@ -80,12 +79,12 @@ export function SuccessStep({ onBackToHome, onSubmitAnother, reportId }: Success
           mb={6}
           boxShadow="0 4px 16px rgba(16, 185, 129, 0.25)"
         >
-          <LuBadgeCheck size={52} color="white" strokeWidth={1.5} />
+          <LuBadgeCheck size={40} color="white" strokeWidth={1.5} />
         </Box>
 
         {/* Heading */}
         <Heading 
-          size="lg" 
+          size={{ base: "md", md: "lg" }} 
           mb={3} 
           color="green.900"
           fontWeight="600"
@@ -95,7 +94,7 @@ export function SuccessStep({ onBackToHome, onSubmitAnother, reportId }: Success
 
         {/* Description */}
         <Text 
-          fontSize="md" 
+          fontSize={{ base: "sm", md: "md" }} 
           color="green.700" 
           mb={8} 
           lineHeight="1.7"
@@ -107,7 +106,7 @@ export function SuccessStep({ onBackToHome, onSubmitAnother, reportId }: Success
 
         {/* Report Number with Copy Icon */}
         <Box
-          p={4}
+          p={3}
           bg="white"
           borderRadius="lg"
           border="1px solid"
@@ -118,7 +117,7 @@ export function SuccessStep({ onBackToHome, onSubmitAnother, reportId }: Success
           mx="auto"
         >
           <Text 
-            fontSize="lg" 
+            fontSize={{ base: "md", md: "lg" }} 
             color="green.900" 
             fontWeight="700" 
             fontFamily="mono"
@@ -135,26 +134,33 @@ export function SuccessStep({ onBackToHome, onSubmitAnother, reportId }: Success
             alignItems="center"
             onClick={handleCopy}
           >
-            <FaRegCopy size={16} />
+            <FaRegCopy size={14} />
           </Box>
         </Box>
       </Box>
 
-      {/* Horizontal Action Buttons */}
-      <HStack spacing={4} mt={8} flexWrap="wrap" justify="center">
+      {/* Action Buttons */}
+      <Flex 
+        direction={{ base: "column", sm: "row" }} 
+        gap={4} 
+        mt={8} 
+        w="full" 
+        justify="center"
+        align="stretch"
+      >
         <Button
           bg="#CE0037"
           color="white"
           fontWeight={600}
           borderRadius="lg"
           size="lg"
-          h="56px"
+          h={{ base: "52px", md: "56px" }}
           px={8}
           fontSize="md"
           _hover={{ bg: '#B8002F' }}
           onClick={onSubmitAnother}
         >
-          {t('forms.success.submitAnother', 'Submit Another Report')}
+          {t('forms.success.submitAnother', 'Submit Another')}
         </Button>
 
         <Button
@@ -166,7 +172,7 @@ export function SuccessStep({ onBackToHome, onSubmitAnother, reportId }: Success
           fontWeight={500}
           borderRadius="lg"
           size="lg"
-          h="56px"
+          h={{ base: "52px", md: "56px" }}
           px={8}
           fontSize="md"
           _hover={{
@@ -178,7 +184,7 @@ export function SuccessStep({ onBackToHome, onSubmitAnother, reportId }: Success
         >
           {t('forms.success.backToHome', 'Back to Home')}
         </Button>
-      </HStack>
+      </Flex>
 
       {/* Support Contact */}
       <Text 

@@ -52,10 +52,10 @@ export function GeneralSection({
       {userRole === "super_admin" && (
         <SettingsCard title="E2B XML Regulatory Info" icon={Database}>
           <RowItem label="Sender ID" desc="Your organization's registered ClinSolution ID">
-            <Input value={senderId} onChange={(e) => track(() => setSenderId(e.target.value))} size="sm" w="220px" bg="white" />
+            <Input value={senderId} onChange={(e) => track(() => setSenderId(e.target.value))} size="sm" w={{ base: "full", md: "220px" }} bg="white" />
           </RowItem>
           <RowItem label="Receiver ID" desc="The Regulatory Agency's registered ID">
-            <Input value={receiverId} onChange={(e) => track(() => setReceiverId(e.target.value))} size="sm" w="220px" bg="white" />
+            <Input value={receiverId} onChange={(e) => track(() => setReceiverId(e.target.value))} size="sm" w={{ base: "full", md: "220px" }} bg="white" />
           </RowItem>
           <RowItem label="MedDRA Version" desc="Active MedDRA version for clinical report coding">
             <select
@@ -106,19 +106,19 @@ export function GeneralSection({
       {userRole === "super_admin" && (
         <SettingsCard title="SMTP Configuration (Notification Email)" icon={Database}>
           <RowItem label="SMTP Host" desc="The hostname of your email provider (e.g., smtp.gmail.com)">
-            <Input value={smtpHost} onChange={(e) => track(() => setSmtpHost(e.target.value))} size="sm" w="220px" bg="white" placeholder="e.g. smtp.gmail.com" />
+            <Input value={smtpHost} onChange={(e) => track(() => setSmtpHost(e.target.value))} size="sm" w={{ base: "full", md: "220px" }} bg="white" placeholder="e.g. smtp.gmail.com" />
           </RowItem>
           <RowItem label="SMTP Port" desc="The port used for SMTP (e.g., 587 or 465)">
-            <Input value={smtpPort} onChange={(e) => track(() => setSmtpPort(e.target.value))} size="sm" w="220px" bg="white" placeholder="587" />
+            <Input value={smtpPort} onChange={(e) => track(() => setSmtpPort(e.target.value))} size="sm" w={{ base: "full", md: "220px" }} bg="white" placeholder="587" />
           </RowItem>
           <RowItem label="SMTP Username" desc="The user account for SMTP authentication">
-            <Input value={smtpUser} onChange={(e) => track(() => setSmtpUser(e.target.value))} size="sm" w="220px" bg="white" placeholder="your-email@gmail.com" />
+            <Input value={smtpUser} onChange={(e) => track(() => setSmtpUser(e.target.value))} size="sm" w={{ base: "full", md: "220px" }} bg="white" placeholder="your-email@gmail.com" />
           </RowItem>
           <RowItem label="SMTP Password" desc="The password or App Password for SMTP authentication">
-            <Input type="password" value={smtpPass} onChange={(e) => track(() => setSmtpPass(e.target.value))} size="sm" w="220px" bg="white" />
+            <Input type="password" value={smtpPass} onChange={(e) => track(() => setSmtpPass(e.target.value))} size="sm" w={{ base: "full", md: "220px" }} bg="white" />
           </RowItem>
           <RowItem label="Sender Email (From)" desc="The email address that will appear in the 'From' field">
-            <Input value={smtpFrom} onChange={(e) => track(() => setSmtpFrom(e.target.value))} size="sm" w="220px" bg="white" placeholder="no-reply@clinsolutions.com" />
+            <Input value={smtpFrom} onChange={(e) => track(() => setSmtpFrom(e.target.value))} size="sm" w={{ base: "full", md: "220px" }} bg="white" placeholder="no-reply@clinsolutions.com" />
           </RowItem>
         </SettingsCard>
       )}

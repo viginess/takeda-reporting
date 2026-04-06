@@ -4,12 +4,26 @@ import { supabase } from '../../../utils/supabaseClient';
 import { trpc } from '../../../utils/trpc';
 
 import Sidebar from './Sidebar';
-import { Flex, Box, IconButton } from '@chakra-ui/react';
+import { 
+  Flex, 
+  Box, 
+  IconButton, 
+  useDisclosure, 
+  Drawer, 
+  DrawerBody, 
+  DrawerOverlay, 
+  DrawerContent, 
+  DrawerCloseButton,
+  useBreakpointValue
+} from '@chakra-ui/react';
 import { FiMenu } from 'react-icons/fi';
 
 export default function AdminLayout() {
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
+  const { isOpen, onOpen, onClose } = useDisclosure();
   const navigate = useNavigate();
+  
+  const isMobile = useBreakpointValue({ base: true, lg: false });
 
   const { data: systemSettings } = trpc.admin.getSystemSettings.useQuery();
 
@@ -51,10 +65,36 @@ export default function AdminLayout() {
     return () => subscription.unsubscribe();
   }, [navigate, systemSettings]);
 
+  // Handle logout and close drawer if needed
+  useEffect(() => {
+    onClose();
+  }, [navigate, onClose]);
+
+  const handleToggle = () => {
+    if (isMobile) {
+      onOpen();
+    } else {
+      setSidebarExpanded(!sidebarExpanded);
+    }
+  };
+
   return (
     <Flex h="100vh" w="100vw" overflow="hidden" bg="white">
-      {/* Sidebar with state controls */}
-      <Sidebar expanded={sidebarExpanded} />
+      {/* Drawer for Mobile */}
+      {isMobile ? (
+        <Drawer isOpen={isOpen} placement="left" onClose={onClose} size="xs">
+          <DrawerOverlay />
+          <DrawerContent>
+            <DrawerCloseButton zIndex="20" color="gray.500" />
+            <DrawerBody p={0}>
+              <Sidebar expanded={true} isMobile={true} onNavClick={onClose} />
+            </DrawerBody>
+          </DrawerContent>
+        </Drawer>
+      ) : (
+        /* Sidebar for Desktop */
+        <Sidebar expanded={sidebarExpanded} />
+      )}
 
       {/* Main Content Area */}
       <Flex 
@@ -72,28 +112,29 @@ export default function AdminLayout() {
           borderColor="gray.200"
           bg="white"
           align="center"
-          px={4}
+          px={{ base: 3, md: 4 }}
           gap={3}
           flexShrink={0}
         >
           <IconButton
             aria-label="Toggle sidebar"
             icon={<FiMenu size={18} />}
-            onClick={() => setSidebarExpanded(e => !e)}
+            onClick={handleToggle}
             variant="ghost"
             color="gray.600"
             size="sm"
             _hover={{ bg: "gray.100", color: "gray.800" }}
           />
-          <Box as="span" color="gray.800" fontSize="sm" fontWeight="600">
+          <Box as="span" color="gray.800" fontSize={{ base: 'xs', sm: 'sm' }} fontWeight="600" noOfLines={1}>
             Clin Solutions L.L.C. Admin Panel
           </Box>
         </Flex>
 
-        <Box flex="1" overflow="auto" position="relative">
+        <Box flex="1" overflow="auto" position="relative" p={{ base: 4, md: 6, lg: 8 }}>
           <Outlet />
         </Box>
       </Flex>
     </Flex>
   );
 }
+

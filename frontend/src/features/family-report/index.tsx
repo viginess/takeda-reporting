@@ -9,7 +9,8 @@ import {
   ButtonGroup,
   Button,
   useToast,
-  HStack,
+  Wrap,
+  WrapItem,
 } from '@chakra-ui/react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -75,7 +76,7 @@ function ProductStep({ inputStyles }: { inputStyles: any }) {
   return (
     <Box mt={12}>
       {fields.map((field, index) => (
-        <Box key={field.id} mb={10} position="relative" p={6} border="1px solid" borderColor="gray.100" borderRadius="xl" bg="white" shadow="sm">
+        <Box key={field.id} mb={10} position="relative" p={{ base: 4, md: 6 }} border="1px solid" borderColor="gray.100" borderRadius="xl" bg="white" shadow="sm">
           <Flex justify="space-between" align="center" mb={6}>
             <Heading as="h3" size="md" color="gray.700">
               {t('forms.patient.productDetails.productLabel')} #{index + 1}
@@ -134,7 +135,7 @@ function EventStep({
   return (
     <Box mt={12}>
       {fields.map((field, index) => (
-        <Box key={field.id} mb={10} position="relative" p={6} border="1px solid" borderColor="gray.100" borderRadius="xl" bg="white" shadow="sm">
+        <Box key={field.id} mb={10} position="relative" p={{ base: 4, md: 6 }} border="1px solid" borderColor="gray.100" borderRadius="xl" bg="white" shadow="sm">
           <Flex justify="space-between" align="center" mb={6}>
             <Heading as="h3" size="md" color="gray.700">
                {t('forms.patient.eventDetails.symptom', 'Symptom')} #{index + 1}
@@ -315,8 +316,8 @@ function FamilyForm({ onBack, countryCode, languageCode }: FamilyFormProps) {
         as="header"
         align="center"
         justify="space-between"
-        px={6}
-        py={4}
+        px={{ base: 4, md: 6 }}
+        py={{ base: 3, md: 4 }}
         bg="white"
         boxShadow="sm"
         borderBottom="1px solid"
@@ -324,20 +325,27 @@ function FamilyForm({ onBack, countryCode, languageCode }: FamilyFormProps) {
       >
         {onBack ? (
           <Box as="button" onClick={onBack} p={0} minW="auto" h="auto">
-            <Image src={logo} alt="Clin Solutions L.L.C." h="48px" cursor="pointer" filter="drop-shadow(0 2px 4px rgba(0,0,0,0.1))" />
+            <Image src={logo} alt="Clin Solutions L.L.C." h={{ base: "32px", md: "48px" }} cursor="pointer" filter="drop-shadow(0 2px 4px rgba(0,0,0,0.1))" />
           </Box>
         ) : (
           <Link href="/">
-            <Image src={logo} alt="Clin Solutions L.L.C." h="48px" cursor="pointer" filter="drop-shadow(0 2px 4px rgba(0,0,0,0.1))" />
+            <Image src={logo} alt="Clin Solutions L.L.C." h={{ base: "32px", md: "48px" }} cursor="pointer" filter="drop-shadow(0 2px 4px rgba(0,0,0,0.1))" />
           </Link>
         )}
-        <Heading as="h1" size="md" fontWeight="600" color="gray.800">
+        <Heading 
+          as="h1" 
+          size={{ base: "xs", sm: "sm", md: "md" }} 
+          fontWeight="600" 
+          color="gray.800"
+          noOfLines={1}
+          ml={2}
+        >
           {t('forms.family.title')}
         </Heading>
-        <Box w="32px" />
+        <Box w={{ base: "0px", sm: "32px" }} />
       </Flex>
 
-      <Flex flex="1" justify="center" px={{ base: 2, md: 4 }} py={{ base: 4, md: 8 }}>
+      <Flex flex="1" justify="center" px={{ base: 2, sm: 4, md: 4 }} py={{ base: 4, md: 8 }}>
         <Box maxW="800px" w="full" bg="white" borderRadius="xl" boxShadow="md" p={{ base: 4, sm: 6, md: 10 }}>
           <StepForm
             resolver={zodResolver(createFamilySchema) as any}
@@ -370,7 +378,7 @@ function FamilyForm({ onBack, countryCode, languageCode }: FamilyFormProps) {
           >
             {({ FormStep }) => (
               <FormLayout spacing={8}>
-                <FormStepper colorScheme="red" mb={10}>
+                <FormStepper colorScheme="red" mb={10} size={{ base: "sm", md: "md" }}>
                   <FormStep name="product" title={t('forms.family.steps.product')}>
                     <ProductStep inputStyles={inputStyles} />
                   </FormStep>
@@ -454,7 +462,7 @@ function FamilyForm({ onBack, countryCode, languageCode }: FamilyFormProps) {
       {/* Footer */}
       <Box
         as="footer"
-        py={4}
+        py={6}
         px={6}
         textAlign="center"
         fontSize="sm"
@@ -463,23 +471,33 @@ function FamilyForm({ onBack, countryCode, languageCode }: FamilyFormProps) {
         borderTop="1px solid"
         borderColor="gray.200"
       >
-        <Text>
+        <Text mb={4}>
           {t('welcome.footer')}
         </Text>
-        <HStack justify="center" spacing={4} mt={2} fontSize="xs">
-          <Link href="/privacy-policy" isExternal color="gray.500" _hover={{ color: '#CE0037' }}>
-            Privacy Policy
-          </Link>
-          <Text color="gray.300">|</Text>
-          <Link href="/terms-conditions" isExternal color="gray.500" _hover={{ color: '#CE0037' }}>
-            Terms & Conditions
-          </Link>
-          <Text color="gray.300">|</Text>
-          <Link href="/contact" isExternal color="gray.500" _hover={{ color: '#CE0037' }}>
-            Contact
-          </Link>
-        </HStack>
-        <Text mt={2} fontSize="2xs">
+        <Wrap justify="center" spacing={{ base: 2, md: 4 }} align="center" fontSize="xs">
+          <WrapItem>
+            <Link href="/privacy-policy" isExternal color="gray.500" _hover={{ color: '#CE0037' }}>
+              Privacy Policy
+            </Link>
+          </WrapItem>
+          <WrapItem display={{ base: 'none', sm: 'block' }}>
+            <Text color="gray.300">|</Text>
+          </WrapItem>
+          <WrapItem>
+            <Link href="/terms-conditions" isExternal color="gray.500" _hover={{ color: '#CE0037' }}>
+              Terms & Conditions
+            </Link>
+          </WrapItem>
+          <WrapItem display={{ base: 'none', sm: 'block' }}>
+            <Text color="gray.300">|</Text>
+          </WrapItem>
+          <WrapItem>
+            <Link href="/contact" isExternal color="gray.500" _hover={{ color: '#CE0037' }}>
+              Contact
+            </Link>
+          </WrapItem>
+        </Wrap>
+        <Text mt={4} fontSize="2xs">
           Copyright © 2026 Clin Solutions L.L.C.
         </Text>
       </Box>

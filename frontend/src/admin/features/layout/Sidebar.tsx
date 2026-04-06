@@ -5,8 +5,6 @@ import { supabase } from "../../../utils/supabaseClient";
 import { trpc } from "../../../utils/trpc";
 import logo from "../../../assets/logo.jpg";
 
-
-
 const navItems = [
   { icon: <FiHome size={18} />, label: "Dashboard", href: "/admin" },
   { icon: <FiFileText size={18} />, label: "Reports", href: "/admin/reports" },
@@ -15,7 +13,13 @@ const navItems = [
   { icon: <FiSettings size={18} />, label: "Settings", href: "/admin/settings" },
 ];
 
-export default function Sidebar({ expanded }: { expanded: boolean }) {
+interface SidebarProps {
+  expanded: boolean;
+  isMobile?: boolean;
+  onNavClick?: () => void;
+}
+
+export default function Sidebar({ expanded, isMobile, onNavClick }: SidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { data: user } = trpc.admin.getMe.useQuery();
@@ -23,6 +27,7 @@ export default function Sidebar({ expanded }: { expanded: boolean }) {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate("/admin/login");
+    if (onNavClick) onNavClick();
   };
 
   const activeLabel = navItems.find((item) => {
@@ -44,11 +49,11 @@ export default function Sidebar({ expanded }: { expanded: boolean }) {
   return (
     <Box
       as="aside"
-      w={expanded ? "200px" : "64px"}
+      w={isMobile ? "full" : (expanded ? "200px" : "64px")}
       transition="width 0.25s cubic-bezier(0.4,0,0.2,1)"
       overflow="hidden"
       bg="white"
-      borderRight="1px solid"
+      borderRight={isMobile ? "none" : "1px solid"}
       borderColor="gray.200"
       display="flex"
       flexDirection="column"
@@ -97,6 +102,7 @@ export default function Sidebar({ expanded }: { expanded: boolean }) {
               as={RouterLink}
               key={label}
               to={href}
+              onClick={onNavClick}
               title={!expanded ? label : "Clin Solutions L.L.C. Admin Panel"}
               display="flex"
               alignItems="center"
@@ -120,7 +126,7 @@ export default function Sidebar({ expanded }: { expanded: boolean }) {
               <Box as="span" flexShrink={0} display="flex" alignItems="center">
                 {icon}
               </Box>
-              {expanded && (
+              {(expanded || isMobile) && (
                 <Text as="span" overflow="hidden">
                   {label}
                 </Text>
@@ -154,7 +160,7 @@ export default function Sidebar({ expanded }: { expanded: boolean }) {
           <Box as="span" flexShrink={0} display="flex" alignItems="center">
             <FiLogOut size={18} />
           </Box>
-          {expanded && (
+          {(expanded || isMobile) && (
             <Text as="span" overflow="hidden">
               Logout
             </Text>
@@ -164,3 +170,4 @@ export default function Sidebar({ expanded }: { expanded: boolean }) {
     </Box>
   );
 }
+

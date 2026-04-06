@@ -61,7 +61,7 @@ export const systemSettings = pgTable("system_settings", {
     smtpPort: "587",
     smtpUser: "",
     smtpPass: "",
-    smtpFrom: "info@takeda-reporting.com",
+    smtpFrom: "info@viginess.com",
   }),
   updatedAt: timestamp("updated_at").defaultNow(),
   updatedBy: text("updated_by"),

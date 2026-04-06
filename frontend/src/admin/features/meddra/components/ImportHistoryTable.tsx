@@ -85,79 +85,81 @@ export const ImportHistoryTable: React.FC<ImportHistoryTableProps> = ({ history 
         </VStack>
       </HStack>
 
-      <Table variant="simple" size="md">
-        <Thead>
-          <Tr borderBottom="2px solid" borderColor="gray.50">
-            <Th color="gray.400" textTransform="uppercase" fontSize="xs" letterSpacing="wider" py={4}>Date</Th>
-            <Th color="gray.400" textTransform="uppercase" fontSize="xs" letterSpacing="wider" py={4}>Version</Th>
-            <Th color="gray.400" textTransform="uppercase" fontSize="xs" letterSpacing="wider" py={4}>File Name</Th>
-            <Th color="gray.400" textTransform="uppercase" fontSize="xs" letterSpacing="wider" py={4}>Status</Th>
-            <Th color="gray.400" textTransform="uppercase" fontSize="xs" letterSpacing="wider" py={4}>Admin</Th>
-          </Tr>
-        </Thead>
-        <Tbody>
-          {history.length === 0 ? (
-            <Tr>
-              <Td colSpan={5} textAlign="center" py={20}>
-                <VStack spacing={4}>
-                  <Box 
-                    p={6} 
-                    bg="gray.50" 
-                    borderRadius="full" 
-                    border="1px dashed" 
-                    borderColor="gray.200"
-                  >
-                    <Icon as={FiClock} boxSize={10} color="gray.300" />
-                  </Box>
-                  <VStack spacing={1}>
-                    <Text color="gray.800" fontWeight="bold" fontSize="lg">No history found</Text>
-                    <Text color="gray.500" fontSize="sm">New imports will appear here once they are initiated.</Text>
-                  </VStack>
-                </VStack>
-              </Td>
+      <Box overflowX="auto">
+        <Table variant="simple" size="md" minW="800px">
+          <Thead>
+            <Tr borderBottom="2px solid" borderColor="gray.50">
+              <Th color="gray.400" textTransform="uppercase" fontSize="xs" letterSpacing="wider" py={4}>Date</Th>
+              <Th color="gray.400" textTransform="uppercase" fontSize="xs" letterSpacing="wider" py={4}>Version</Th>
+              <Th color="gray.400" textTransform="uppercase" fontSize="xs" letterSpacing="wider" py={4}>File Name</Th>
+              <Th color="gray.400" textTransform="uppercase" fontSize="xs" letterSpacing="wider" py={4}>Status</Th>
+              <Th color="gray.400" textTransform="uppercase" fontSize="xs" letterSpacing="wider" py={4}>Admin</Th>
             </Tr>
-          ) : (
-            history.map((job) => (
-              <Tr 
-                key={job.id} 
-                _hover={{ bg: "gray.50" }} 
-                transition="all 0.2s"
-                borderBottom="1px solid"
-                borderColor="gray.50"
-              >
-                <Td color="gray.700" py={5}>
-                  <Text fontWeight="medium">{formatDate(job.createdAt)}</Text>
-                </Td>
-                <Td py={5}>
-                  <Badge 
-                    colorScheme="blue" 
-                    variant="subtle" 
-                    bg="blue.50" 
-                    color="blue.600" 
-                    px={3} 
-                    py={0.5} 
-                    borderRadius="full"
-                    fontSize="xs"
-                    fontWeight="bold"
-                  >
-                    v{job.version}
-                  </Badge>
-                </Td>
-                <Td color="gray.600" py={5} fontSize="sm">
-                  <HStack spacing={2}>
-                    <Icon as={FiFile} boxSize={3} color="gray.400" />
-                    <Text>{job.fileName}</Text>
-                  </HStack>
-                </Td>
-                <Td py={5}>{getStatusBadge(job.status)}</Td>
-                <Td color="gray.500" fontSize="xs" py={5}>
-                  <Text isTruncated maxW="150px">{job.createdBy}</Text>
+          </Thead>
+          <Tbody>
+            {history.length === 0 ? (
+              <Tr>
+                <Td colSpan={5} textAlign="center" py={20}>
+                  <VStack spacing={4}>
+                    <Box 
+                      p={6} 
+                      bg="gray.50" 
+                      borderRadius="full" 
+                      border="1px dashed" 
+                      borderColor="gray.200"
+                    >
+                      <Icon as={FiClock} boxSize={10} color="gray.300" />
+                    </Box>
+                    <VStack spacing={1}>
+                      <Text color="gray.800" fontWeight="bold" fontSize="lg">No history found</Text>
+                      <Text color="gray.500" fontSize="sm">New imports will appear here once they are initiated.</Text>
+                    </VStack>
+                  </VStack>
                 </Td>
               </Tr>
-            ))
-          )}
-        </Tbody>
-      </Table>
+            ) : (
+              history.map((job) => (
+                <Tr 
+                  key={job.id} 
+                  _hover={{ bg: "gray.50" }} 
+                  transition="all 0.2s"
+                  borderBottom="1px solid"
+                  borderColor="gray.50"
+                >
+                  <Td color="gray.700" py={5}>
+                    <Text fontWeight="medium">{formatDate(job.createdAt)}</Text>
+                  </Td>
+                  <Td py={5}>
+                    <Badge 
+                      colorScheme="blue" 
+                      variant="subtle" 
+                      bg="blue.50" 
+                      color="blue.600" 
+                      px={3} 
+                      py={0.5} 
+                      borderRadius="full"
+                      fontSize="xs"
+                      fontWeight="bold"
+                    >
+                      v{job.version}
+                    </Badge>
+                  </Td>
+                  <Td color="gray.600" py={5} fontSize="sm">
+                    <HStack spacing={2}>
+                      <Icon as={FiFile} boxSize={3} color="gray.400" />
+                      <Text>{job.fileName}</Text>
+                    </HStack>
+                  </Td>
+                  <Td py={5}>{getStatusBadge(job.status)}</Td>
+                  <Td color="gray.500" fontSize="xs" py={5}>
+                    <Text isTruncated maxW="150px">{job.createdBy}</Text>
+                  </Td>
+                </Tr>
+              ))
+            )}
+          </Tbody>
+        </Table>
+      </Box>
     </Box>
   );
 };

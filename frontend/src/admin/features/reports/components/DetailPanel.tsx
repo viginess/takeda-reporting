@@ -1,11 +1,11 @@
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Edit3, ChevronDown, Plus, X, AlertTriangle, User, Calendar, Activity,
-  Save, AlertCircle, History, DownloadCloud, FileCode, Check, FileText, RefreshCw
+  Save, AlertCircle, History, DownloadCloud, FileCode, Check, FileText, RefreshCw, ChevronLeft
 } from "lucide-react";
 import {
   Box, Flex, Text, Button, Badge, Input, SimpleGrid, VStack,
-  IconButton as ChakraIconButton
+  IconButton as ChakraIconButton, IconButton
 } from "@chakra-ui/react";
 import type { Report, Status, Severity } from "../types";
 import { statusCfg, severityCfg, statusOptions, severityOptions } from "../types";
@@ -26,6 +26,7 @@ interface DetailPanelProps {
   downloadingPdf: boolean;
   isRegenerating: boolean;
   updateMutation: { isPending: boolean };
+  isMobile?: boolean;
   onClose: () => void;
   onSetMode: (m: "view" | "edit") => void;
   onEditDataChange: (d: any) => void;
@@ -51,6 +52,7 @@ export function DetailPanel({
   downloadingPdf,
   isRegenerating,
   updateMutation,
+  isMobile,
   onClose,
   onSetMode,
   onEditDataChange,
@@ -66,11 +68,11 @@ export function DetailPanel({
   return (
     <Flex
       as={motion.div as any}
-      initial={{ opacity: 0, x: 24 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: 24 }}
+      initial={{ opacity: 0, x: isMobile ? 0 : 24, y: isMobile ? 20 : 0 }}
+      animate={{ opacity: 1, x: 0, y: 0 }}
+      exit={{ opacity: 0, x: isMobile ? 0 : 24, y: isMobile ? 20 : 0 }}
       transition={{ duration: 0.22 } as any}
-      ml={4}
+      ml={isMobile ? 0 : 4}
       flex={1}
       bg="white"
       borderRadius="2xl"
@@ -78,13 +80,22 @@ export function DetailPanel({
       borderColor="#e2e8f0"
       overflow="hidden"
       direction="column"
+      position={isMobile ? "absolute" : "relative"}
+      top={0}
+      left={0}
+      right={0}
+      bottom={0}
+      zIndex={10}
     >
       {/* Panel Header */}
-      <Flex p={4} px={5} borderBottom="1px solid" borderColor="#f1f5f9" align="center" justify="space-between" bg="#f8fafc">
-        <Flex align="center" gap={3}>
-          <Text fontFamily="monospace" fontSize="sm" fontWeight="extrabold" color="#CE0037">{report.id}</Text>
+      <Flex p={{ base: 3, md: 4 }} px={{ base: 4, md: 5 }} borderBottom="1px solid" borderColor="#f1f5f9" align="center" justify="space-between" bg="#f8fafc">
+        <Flex align="center" gap={{ base: 2, md: 3 }}>
+          {isMobile && (
+            <IconButton aria-label="Back" icon={<ChevronLeft size={20} />} size="sm" variant="ghost" onClick={onClose} mr={-1} />
+          )}
+          <Text fontFamily="monospace" fontSize={{ base: "xs", md: "sm" }} fontWeight="extrabold" color="#CE0037">{report.id}</Text>
           <StatusBadge status={report.status} />
-          {saved && (
+          {saved && !isMobile && (
             <Flex as={motion.span as any} initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}
               align="center" gap={1} fontSize="xs" color="green.600" fontWeight="bold">
               <Check size={12} /> Saved
@@ -95,57 +106,49 @@ export function DetailPanel({
           {mode === "view" ? (
             <>
               {report.isValid === false && (
-                <Button onClick={() => onRegenerate(report)} variant="outline" colorScheme="orange" size="sm"
-                  leftIcon={<RefreshCw size={13} />} isLoading={isRegenerating}
-                  title="Re-run compliance checks and update the report">
-                  Regenerate
+                <Button onClick={() => onRegenerate(report)} variant="outline" colorScheme="orange" size={{ base: "xs", sm: "sm" }}
+                  leftIcon={<RefreshCw size={11} />} isLoading={isRegenerating}>
+                  {isMobile ? "" : "Regenerate"}
                 </Button>
               )}
-              <Button onClick={() => onDownloadXml(report)} variant="outline" colorScheme="blue" size="sm"
-                leftIcon={<FileCode size={13} />} isLoading={downloadingXml}
-                disabled={report.isValid === false} opacity={report.isValid === false ? 0.5 : 1}
-                title={report.isValid === false ? "Fix validation errors to download" : ""}>
-                XML
+              <Button onClick={() => onDownloadXml(report)} variant="outline" colorScheme="blue" size={{ base: "xs", sm: "sm" }}
+                leftIcon={<FileCode size={11} />} isLoading={downloadingXml}
+                isDisabled={report.isValid === false} opacity={report.isValid === false ? 0.5 : 1}>
+                {isMobile ? "" : "XML"}
               </Button>
-              <Button onClick={() => onDownloadPdf(report)} variant="outline" colorScheme="blue" size="sm"
-                leftIcon={<DownloadCloud size={13} />} isLoading={downloadingPdf}
-                disabled={report.isValid === false} opacity={report.isValid === false ? 0.5 : 1}
-                title={report.isValid === false ? "Fix validation errors to download" : ""}>
-                PDF
+              <Button onClick={() => onDownloadPdf(report)} variant="outline" colorScheme="blue" size={{ base: "xs", sm: "sm" }}
+                leftIcon={<DownloadCloud size={11} />} isLoading={downloadingPdf}
+                isDisabled={report.isValid === false} opacity={report.isValid === false ? 0.5 : 1}>
+                {isMobile ? "" : "PDF"}
               </Button>
-              <Box w="1px" h="20px" bg="#e2e8f0" mx={1} alignSelf="center" />
-              {!report.adminNotes && (
-                <Button as={motion.button as any} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-                  onClick={() => onSetMode("edit")} variant="ghost" color="#64748b" size="sm"
-                  leftIcon={<Plus size={14} color="#CE0037" />} _hover={{ bg: "#f1f5f9" }}>
-                  Add Note
-                </Button>
-              )}
+              {!isMobile && <Box w="1px" h="20px" bg="#e2e8f0" mx={1} alignSelf="center" />}
               <Button as={motion.button as any} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-                onClick={() => onSetMode("edit")} bg="#CE0037" color="white" size="sm"
-                leftIcon={<Edit3 size={13} />} _hover={{ bg: "#b3002f" }}>
-                Edit Report
+                onClick={() => onSetMode("edit")} bg="#CE0037" color="white" size={{ base: "xs", sm: "sm" }}
+                leftIcon={<Edit3 size={11} />} _hover={{ bg: "#b3002f" }}>
+                {isMobile ? "" : "Edit"}
               </Button>
             </>
           ) : (
             <>
               <Button as={motion.button as any} whileHover={{ scale: 1.02 }} onClick={() => onSetMode("view")}
-                variant="solid" bg="#f1f5f9" color="#64748b" size="sm" leftIcon={<X size={13} />} _hover={{ bg: "#e2e8f0" }}>
-                Cancel
+                variant="solid" bg="#f1f5f9" color="#64748b" size={{ base: "xs", sm: "sm" }} leftIcon={<X size={11} />} _hover={{ bg: "#e2e8f0" }}>
+                {isMobile ? "" : "Cancel"}
               </Button>
               <Button as={motion.button as any} whileHover={{ scale: 1.02 }} onClick={onSave}
-                bg="#CE0037" color="white" size="sm" leftIcon={<Save size={13} />}
+                bg="#CE0037" color="white" size={{ base: "xs", sm: "sm" }} leftIcon={<Save size={11} />}
                 isLoading={updateMutation.isPending} _hover={{ bg: "#b3002f" }}>
-                Save Changes
+                {isMobile ? "Save" : "Save Changes"}
               </Button>
             </>
           )}
-          <ChakraIconButton aria-label="Close panel" icon={<X size={14} />} size="sm" variant="ghost"
-            onClick={onClose} color="#94a3b8" />
+          {!isMobile && (
+            <ChakraIconButton aria-label="Close panel" icon={<X size={14} />} size="sm" variant="ghost"
+              onClick={onClose} color="#94a3b8" />
+          )}
         </Flex>
       </Flex>
 
-      <Box flex={1} overflowY="auto" p={5}>
+      <Box flex={1} overflowY="auto" p={{ base: 4, md: 5 }}>
         {/* Validation Banner — shown at top for non-compliant reports */}
         <ValidationBanner isValid={report.isValid} errors={report.validationErrors} />
 
@@ -157,15 +160,14 @@ export function DetailPanel({
               bg="yellow.50" border="1px solid" borderColor="yellow.200" borderRadius="lg" p={3} mb={5}>
               <AlertCircle size={15} color="#d97706" style={{ marginTop: "2px" }} />
               <Box>
-                <Text m={0} fontSize="sm" fontWeight="bold" color="yellow.800">Edit Mode — Changes are tracked</Text>
-                <Text m={0} mt={1} fontSize="xs" color="yellow.700">All modifications will be logged in the audit trail with your identity and timestamp.</Text>
+                <Text m={0} fontSize="xs" fontWeight="bold" color="yellow.800">Edit Mode — Changes are tracked</Text>
               </Box>
             </Flex>
           )}
         </AnimatePresence>
 
         {/* Reporter / Submitted */}
-        <SimpleGrid columns={2} spacing={3} mb={5}>
+        <SimpleGrid columns={{ base: 1, sm: 2 }} spacing={3} mb={5}>
           {[
             { label: "Reporter", icon: User, value: `${report.reporter} (${report.reporterType})` },
             { label: "Submitted", icon: Calendar, value: report.submitted },
@@ -181,7 +183,7 @@ export function DetailPanel({
         </SimpleGrid>
 
         {/* Status + Severity */}
-        <SimpleGrid columns={2} spacing={3} mb={5}>
+        <SimpleGrid columns={{ base: 1, sm: 2 }} spacing={3} mb={5}>
           <Box bg="#f8fafc" borderRadius="xl" p={3} px={4} border="1px solid" borderColor="#f1f5f9">
             <Flex align="center" gap={2} mb={2}>
               <Activity size={12} color="#94a3b8" />
@@ -210,7 +212,7 @@ export function DetailPanel({
               <Text fontSize="2xs" color="#94a3b8" fontWeight="bold" textTransform="uppercase" letterSpacing="0.05em">Severity</Text>
             </Flex>
             {mode === "edit" ? (
-              <Flex gap={1.5}>
+              <Flex gap={1.5} wrap="wrap">
                 {severityOptions.map((s) => {
                   const cfg = severityCfg[s]; const active = editData.severity === s;
                   return (
@@ -236,14 +238,14 @@ export function DetailPanel({
             </Flex>
             <VStack align="stretch" spacing={2.5}>
               {report.fullDetails.symptoms.map((s: any, idx: number) => (
-                <Flex key={idx} justify="space-between" align="center" bg="white" p={2.5} borderRadius="lg" border="1px solid" borderColor="red.100">
-                  <Box>
+                <Flex key={idx} justify="space-between" align="center" bg="white" p={2.5} borderRadius="lg" border="1px solid" borderColor="red.100" gap={2}>
+                  <Box flex={1}>
                     <Text fontSize="xs" fontWeight="bold" color="#1e293b" noOfLines={1}>{s.name || s.symptom || "Unknown Symptom"}</Text>
                     {s.meddraCode
                       ? <Text fontSize="2xs" color="green.600" fontWeight="bold">Mapped: {s.meddraCode}</Text>
                       : <Text fontSize="2xs" color="#94a3b8">Uncoded</Text>}
                   </Box>
-                  <Button size="xs" variant="ghost" colorScheme="red" fontSize="2xs"
+                  <Button size="xs" variant="ghost" colorScheme="red" fontSize="2xs" flexShrink={0}
                     onClick={() => onOpenCodingModal(idx)} leftIcon={<Plus size={10} />}>
                     {s.meddraCode ? "Remap" : "Code"}
                   </Button>
@@ -263,7 +265,7 @@ export function DetailPanel({
             {mode === "edit" ? (
               <Input as="textarea" value={editData.adminNotes}
                 onChange={(e) => onEditDataChange({ ...editData, adminNotes: e.target.value })}
-                placeholder="Add internal notes about this report (visible only to admins)..."
+                placeholder="Add internal notes..."
                 size="sm" minH="100px" py={3} bg="white" borderColor="#e2e8f0" borderRadius="xl"
                 fontSize="sm" _focus={{ borderColor: "#CE0037", boxShadow: "0 0 0 1px #CE0037" } as any} />
             ) : (
@@ -280,7 +282,7 @@ export function DetailPanel({
         {report.fullDetails && (
           <Box bg="white" borderRadius="xl" border="1px solid" borderColor="#e2e8f0" mb={5} overflow="hidden" boxShadow="0 1px 3px rgba(0,0,0,0.04)">
             <Button onClick={() => onSetShowFullDetails(v => !v)} variant="ghost" w="full"
-              justifyContent="space-between" p={3} px={5} h="auto"
+              justifyContent="space-between" p={3} px={{ base: 3, md: 5 }} h="auto"
               bg={showFullDetails ? "white" : "#f8fafc"}
               borderBottom={showFullDetails ? "1px solid #f1f5f9" : "none"}
               borderRadius="none" _hover={{ bg: "#f8fafc" }}>
@@ -289,9 +291,6 @@ export function DetailPanel({
                   <FileText size={11} color="#CE0037" />
                 </Flex>
                 <Text fontSize="sm" fontWeight="700" color="#0f172a">Full Form Details</Text>
-                <Badge bg="#f1f5f9" color="#64748b" borderRadius="full" px={2} py={0.5} fontSize="2xs" fontWeight="bold" textTransform="none">
-                  {Object.keys(report.fullDetails).length} sections
-                </Badge>
               </Flex>
               <Box as={motion.div as any} animate={{ rotate: showFullDetails ? 180 : 0 }} transition={{ duration: 0.2 } as any}>
                 <ChevronDown size={14} color="#94a3b8" />
@@ -301,7 +300,7 @@ export function DetailPanel({
               {showFullDetails && (
                 <Box as={motion.div as any} initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 } as any} overflow="hidden">
-                  <Box p={5}>
+                  <Box p={{ base: 3, md: 5 }}>
                     {mode === "edit"
                       ? <ReportEditor reportData={fullDetailsEdit} onChange={onFullDetailsChange} />
                       : <DataDisplay data={report.fullDetails} depth={0} />}
@@ -336,22 +335,19 @@ export function DetailPanel({
                     <Flex key={i} gap={3} p={3} px={4}
                       borderBottom={i < report.audit.length - 1 ? "1px solid" : "none"}
                       borderColor="#f8fafc" align="flex-start">
-                      <Flex w="28px" h="28px" borderRadius="full" bg="red.50" border="1px solid"
+                      <Flex w="24px" h="24px" borderRadius="full" bg="red.50" border="1px solid"
                         borderColor="red.200" align="center" justify="center" flexShrink={0} mt="2px">
-                        <History size={12} color="#CE0037" />
+                        <History size={10} color="#CE0037" />
                       </Flex>
                       <Box flex={1}>
-                        <Text m={0} fontSize="sm" fontWeight="bold" color="#0f172a">{entry.action}</Text>
+                        <Text m={0} fontSize="xs" fontWeight="bold" color="#0f172a">{entry.action}</Text>
                         {entry.field && (
-                          <Text m={0} mt={1} fontSize="xs" color="#64748b">
-                            <Text as="span" color="#94a3b8">{entry.field}:</Text>{" "}
-                            <Text as="span" textDecoration="line-through" color="red.500">{entry.from}</Text>
-                            {" → "}
-                            <Text as="span" color="green.600" fontWeight="bold">{entry.to}</Text>
+                          <Text m={0} mt={1} fontSize="2xs" color="#64748b">
+                            <Text as="span" color="#94a3b8">{entry.field}</Text>
                           </Text>
                         )}
                         <Text m={0} mt={1} fontSize="2xs" color="#94a3b8">
-                          by <Text as="strong" color="#64748b">{entry.by}</Text> · {entry.at}
+                          {entry.at}
                         </Text>
                       </Box>
                     </Flex>
@@ -365,3 +361,4 @@ export function DetailPanel({
     </Flex>
   );
 }
+

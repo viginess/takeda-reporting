@@ -9,21 +9,21 @@ const ImprintPage = () => {
     return (
         <Flex direction="column" minH="100vh" bg="gray.50" fontFamily="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">
             {/* Header */}
-            <Flex as="header" align="center" justify="space-between" px={12} py={5} bg="white" boxShadow="sm" borderBottom="1px solid" borderColor="gray.100">
+            <Flex as="header" align="center" justify="space-between" px={{ base: 4, md: 12 }} py={5} bg="white" boxShadow="sm" borderBottom="1px solid" borderColor="gray.100">
                 <Link to="/">
-                    <Image src={logo} alt="Clin Solutions L.L.C." h="48px" cursor="pointer" filter="drop-shadow(0 2px 4px rgba(0,0,0,0.1))" />
+                    <Image src={logo} alt="Clin Solutions L.L.C." h={{ base: "32px", md: "48px" }} cursor="pointer" filter="drop-shadow(0 2px 4px rgba(0,0,0,0.1))" />
                 </Link>
                 <HStack spacing={4}>
                     <ChakraLink as={Link} to="/" display="flex" alignItems="center" color="gray.600" _hover={{ color: '#CE0037' }}>
                         <ChevronLeft size={20} />
-                        <Text ml={1} fontWeight="500">Back to Home</Text>
+                        <Text ml={1} fontWeight="500" display={{ base: "none", sm: "block" }}>Back to Home</Text>
                     </ChakraLink>
                 </HStack>
             </Flex>
 
             {/* Main Content */}
-            <Box flex="1" py={10} px={4}>
-                <Container maxW="container.lg" bg="white" p={8} borderRadius="xl" boxShadow="md" dir={isRTLValue ? 'rtl' : 'ltr'}>
+            <Box flex="1" py={{ base: 4, md: 10 }} px={{ base: 2, md: 4 }}>
+                <Container maxW="container.lg" bg="white" p={{ base: 6, md: 8 }} borderRadius="xl" boxShadow="md" dir={isRTLValue ? 'rtl' : 'ltr'}>
                     <VStack align="stretch" spacing={6}>
                         <Heading as="h1" size="xl" color="#CE0037">Imprint</Heading>
                         <Divider />
