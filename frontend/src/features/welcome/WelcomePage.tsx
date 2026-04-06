@@ -12,7 +12,6 @@ import {
   CardBody,
   SimpleGrid,
   Link,
-  HStack,
   Wrap,
   WrapItem,
 } from '@chakra-ui/react';
