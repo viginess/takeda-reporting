@@ -87,28 +87,28 @@ export default function NotificationsPage() {
   const unreadCount = (notifications as any[]).filter((n: any) => !n.read).length;
 
   return (
-    <Box minH="100%" bg="#f8fafc" fontFamily="'DM Sans', system-ui, sans-serif" p={8}>
+    <Box minH="100%" bg="#f8fafc" fontFamily="'DM Sans', system-ui, sans-serif" p={{ base: 4, md: 8 }}>
 
       {/* ── Header ── */}
-      <Flex as={motion.div} {...({} as any)} initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} align="flex-start" justify="space-between" mb={8}>
+      <Flex as={motion.div} {...({} as any)} initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} direction={{ base: 'column', sm: 'row' }} align={{ base: 'flex-start', sm: 'center' }} justify="space-between" mb={{ base: 6, md: 8 }} gap={4}>
         <Box>
           <Flex align="center" gap={3} mb={1}>
             <Bell size={22} color="#CE0037" />
-            <Heading as="h1" size="lg" color="#0f172a" letterSpacing="-0.5px">
+            <Heading as="h1" size={{ base: "md", md: "lg" }} color="#0f172a" letterSpacing="-0.5px">
               Notifications
             </Heading>
             {unreadCount > 0 && (
               <Badge bg="#CE0037" color="white" borderRadius="full" px={3} py={0.5} fontSize="xs" fontWeight="bold">
-                {unreadCount} unread
+                {unreadCount}
               </Badge>
             )}
           </Flex>
-          <Text color="#64748b" fontSize="sm">
-            Stay updated on drug reports, urgent cases, and system activity
+          <Text color="#64748b" fontSize={{ base: "xs", md: "sm" }}>
+            Stay updated on reports and system activity
           </Text>
         </Box>
 
-        <Flex gap={3}>
+        <Flex gap={2}>
           <Button
             as={motion.button}
             {...({} as any)}
@@ -120,9 +120,10 @@ export default function NotificationsPage() {
             borderColor="#e2e8f0"
             borderRadius="lg"
             leftIcon={<Check size={14} />}
-            fontSize="sm"
+            fontSize="xs"
             color="#334155"
             boxShadow="sm"
+            px={3}
           >
             Mark all read
           </Button>
@@ -137,11 +138,12 @@ export default function NotificationsPage() {
             borderColor="red.200"
             borderRadius="lg"
             leftIcon={<Trash2 size={14} />}
-            fontSize="sm"
+            fontSize="xs"
             color="#CE0037"
             boxShadow="sm"
+            px={3}
           >
-            Clear all
+            Clear
           </Button>
         </Flex>
       </Flex>
@@ -150,7 +152,7 @@ export default function NotificationsPage() {
       <Flex as={motion.div} {...({} as any)} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} gap={3} mb={6} align="center" wrap="wrap">
 
         {/* Search */}
-        <Box flex={1} minW="220px">
+        <Box flex={1} minW={{ base: "100%", md: "220px" }}>
           <InputGroup>
             <InputLeftElement pointerEvents="none">
               <Search size={15} color="#94a3b8" />
@@ -181,7 +183,7 @@ export default function NotificationsPage() {
         </Box>
 
         {/* Type Filter Tabs */}
-        <Flex gap={1} bg="white" border="1px solid" borderColor="#e2e8f0" borderRadius="xl" p={1}>
+        <Flex gap={1} bg="white" border="1px solid" borderColor="#e2e8f0" borderRadius="xl" p={1} overflowX="auto" maxW="100%">
           {filterOptions.map((f) => (
             <Button
               key={f.value}
@@ -189,9 +191,10 @@ export default function NotificationsPage() {
               variant={filter === f.value ? "solid" : "ghost"}
               bg={filter === f.value ? "#CE0037" : "transparent"}
               color={filter === f.value ? "white" : "#64748b"}
-              size="sm"
+              size="xs"
               borderRadius="md"
-              fontSize="xs"
+              fontSize="2xs"
+              px={3}
               _hover={filter === f.value ? {} : { bg: "#f8fafc" }}
             >
               {f.label}
@@ -210,8 +213,9 @@ export default function NotificationsPage() {
           leftIcon={<Filter size={13} />}
           size="sm"
           boxShadow="sm"
+          fontSize="xs"
         >
-          Unread only
+          Unread
         </Button>
       </Flex>
 
@@ -222,7 +226,7 @@ export default function NotificationsPage() {
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.15 }}
-        columns={5}
+        columns={{ base: 2, sm: 3, md: 5 }}
         spacing={3}
         mb={8}
       >
@@ -241,23 +245,23 @@ export default function NotificationsPage() {
               border="1px solid"
               borderColor={filter === type ? cfg.border : "#e2e8f0"}
               borderRadius="xl"
-              p={4}
+              p={{ base: 3, md: 4 }}
               cursor="pointer"
               boxShadow="sm"
               transition="all 0.15s"
             >
               <Flex justify="space-between" align="center" mb={2}>
-                <cfg.icon size={15} color={cfg.color} />
+                <cfg.icon size={14} color={cfg.color} />
                 {unread > 0 && (
                   <Badge bg={cfg.color} color="white" borderRadius="full" px={2} py={0.5} fontSize="2xs">
                     {unread}
                   </Badge>
                 )}
               </Flex>
-              <Text fontSize="2xl" fontWeight="extrabold" color="#0f172a" letterSpacing="-0.5px">
+              <Text fontSize={{ base: "xl", md: "2xl" }} fontWeight="extrabold" color="#0f172a" letterSpacing="-0.5px">
                 {count}
               </Text>
-              <Text fontSize="xs" color="#64748b" fontWeight="medium" mt={1}>
+              <Text fontSize="2xs" color="#64748b" fontWeight="medium" mt={1}>
                 {cfg.label}
               </Text>
             </Box>

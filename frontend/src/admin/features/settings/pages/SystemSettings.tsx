@@ -239,35 +239,35 @@ export default function SystemSettings() {
     <Flex direction="column" minH="100%" bg="#f8fafc" fontFamily="'DM Sans', system-ui, sans-serif">
 
       {/* Header */}
-      <Box p={7} px={8} borderBottom="1px solid" borderColor="#e2e8f0" bg="white">
-        <Flex as={motion.div} {...({} as any)} initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} align="flex-start" justify="space-between">
+      <Box p={{ base: 4, md: 7 }} px={{ base: 4, md: 8 }} borderBottom="1px solid" borderColor="#e2e8f0" bg="white">
+        <Flex as={motion.div} {...({} as any)} initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} direction={{ base: 'column', sm: 'row' }} align={{ base: 'flex-start', sm: 'center' }} justify="space-between" gap={4}>
           <Box>
             <Flex align="center" gap={3} mb={1}>
               <Settings size={22} color="#CE0037" />
-              <Heading as="h1" size="lg" color="#0f172a" letterSpacing="-0.5px">System Settings</Heading>
+              <Heading as="h1" size={{ base: "md", md: "lg" }} color="#0f172a" letterSpacing="-0.5px">System Settings</Heading>
             </Flex>
-            <Text color="#64748b" fontSize="sm">Configure system behavior and security policies</Text>
+            <Text color="#64748b" fontSize={{ base: "xs", md: "sm" }}>Configure system behavior and security policies</Text>
           </Box>
-          <Flex align="center" gap={3}>
-            <Flex align="center" gap={1.5} bg="red.50" border="1px solid" borderColor="red.200" borderRadius="md" px={3} py={1.5}>
-              <Shield size={13} color="#CE0037" />
-              <Text fontSize="xs" fontWeight="bold" color="#CE0037">Admin Only</Text>
+          <Flex align="center" gap={2} wrap="wrap">
+            <Flex align="center" gap={1.5} bg="red.50" border="1px solid" borderColor="red.200" borderRadius="md" px={2} py={1}>
+              <Shield size={12} color="#CE0037" />
+              <Text fontSize="2xs" fontWeight="bold" color="#CE0037">Admin Only</Text>
             </Flex>
             <AnimatePresence>
               {unsaved && (
                 <Flex as={motion.div} {...({} as any)} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
-                  align="center" gap={1.5} bg="yellow.50" border="1px solid" borderColor="yellow.200" borderRadius="md" px={3} py={1.5}>
-                  <AlertCircle size={13} color="#d97706" />
-                  <Text fontSize="xs" fontWeight="bold" color="yellow.600">Unsaved changes</Text>
+                  align="center" gap={1.5} bg="yellow.50" border="1px solid" borderColor="yellow.200" borderRadius="md" px={2} py={1}>
+                  <AlertCircle size={12} color="#d97706" />
+                  <Text fontSize="2xs" fontWeight="bold" color="yellow.600">Unsaved</Text>
                 </Flex>
               )}
             </AnimatePresence>
             <AnimatePresence>
               {saved && (
                 <Flex as={motion.div} {...({} as any)} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
-                  align="center" gap={1.5} bg="green.50" border="1px solid" borderColor="green.200" borderRadius="md" px={3} py={1.5}>
-                  <Check size={13} color="#059669" />
-                  <Text fontSize="xs" fontWeight="bold" color="emerald.600">Settings saved</Text>
+                  align="center" gap={1.5} bg="green.50" border="1px solid" borderColor="green.200" borderRadius="md" px={2} py={1}>
+                  <Check size={12} color="#059669" />
+                  <Text fontSize="2xs" fontWeight="bold" color="emerald.600">Saved</Text>
                 </Flex>
               )}
             </AnimatePresence>
@@ -275,32 +275,36 @@ export default function SystemSettings() {
         </Flex>
       </Box>
 
-      <Flex flex={1} p={6} px={8} gap={6}>
+      <Flex flex={1} direction={{ base: 'column', md: 'row' }} p={{ base: 4, md: 6 }} px={{ base: 4, md: 8 }} gap={6}>
 
         {/* Sidebar Nav */}
-        <Box as={motion.div} {...({} as any)} initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.08 }} w="260px" flexShrink={0}>
-          <Box bg="white" borderRadius="2xl" border="1px solid" borderColor="#e2e8f0" overflow="hidden">
+        <Box as={motion.div} {...({} as any)} initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.08 }} w={{ base: 'full', md: '260px' }} flexShrink={0}>
+          <Box bg="white" borderRadius="2xl" border="1px solid" borderColor="#e2e8f0" overflow="hidden" display={{ base: 'flex', md: 'block' }} overflowX={{ base: 'auto', md: 'hidden' }} sx={{ '&::-webkit-scrollbar': { display: 'none' } }}>
             {filteredNavSections.map((s, i) => (
               <Flex
                 key={s.id}
                 onClick={() => handleNavClick(s.id)}
                 align="center" gap={3} p={3} px={4} cursor="pointer"
-                borderBottom={i < filteredNavSections.length - 1 ? "1px solid" : "none"}
+                borderBottom={{ base: 'none', md: i < filteredNavSections.length - 1 ? "1px solid" : "none" }}
+                borderRight={{ base: i < filteredNavSections.length - 1 ? "1px solid" : "none", md: 'none' }}
                 borderColor="#f8fafc"
                 bg={active === s.id ? "red.50" : "transparent"}
-                borderLeft="3px solid"
+                borderLeft={{ base: 'none', md: "3px solid" }}
                 borderLeftColor={active === s.id ? "#CE0037" : "transparent"}
+                borderBottomColor={{ base: active === s.id ? "#CE0037" : "transparent", md: 'none' }}
+                borderBottomWidth={{ base: active === s.id ? "2px" : "0", md: '0' }}
                 transition="all 0.15s"
                 _hover={{ bg: active === s.id ? "red.50" : "#f8fafc" }}
+                minW={{ base: '140px', md: 'auto' }}
               >
                 <Flex w="30px" h="30px" borderRadius="md" align="center" justify="center"
                   bg={active === s.id ? "red.50" : "#f8fafc"}
-                  border="1px solid" borderColor={active === s.id ? "red.200" : "#e2e8f0"} flexShrink={0}>
+                  border="1px solid" borderColor={active === s.id ? "red.200" : "#e2e8f0"} flexShrink={0} display={{ base: 'none', sm: 'flex' }}>
                   <s.icon size={14} color={active === s.id ? "#CE0037" : "#94a3b8"} />
                 </Flex>
                 <Box>
                   <Text m={0} fontSize="sm" fontWeight={active === s.id ? "bold" : "medium"} color={active === s.id ? "#CE0037" : "#0f172a"}>{s.label}</Text>
-                  <Text m={0} fontSize="xs" color="#64748b">{s.desc}</Text>
+                  <Text m={0} fontSize="2xs" color="#64748b" display={{ base: 'none', md: 'block' }}>{s.desc}</Text>
                 </Box>
               </Flex>
             ))}
@@ -396,7 +400,7 @@ export default function SystemSettings() {
       {/* Unsaved Changes Modal */}
       <Modal isOpen={isOpen} onClose={onClose} isCentered>
         <ModalOverlay bg="blackAlpha.300" />
-        <ModalContent borderRadius="2xl">
+        <ModalContent borderRadius="2xl" mx={{ base: 4, md: 0 }}>
           <ModalHeader pb={0}>
             <Flex align="center" gap={3}>
               <Flex w="38px" h="38px" borderRadius="lg" bg="red.50" border="1px solid" borderColor="red.200" align="center" justify="center">

@@ -28,7 +28,7 @@ export async function sendAdminNotificationEmail({
     const port = Number(process.env.SMTP_PORT) || Number(clinical?.smtpPort) || 587;
     const user = process.env.SMTP_USER || clinical?.smtpUser;
     const pass = process.env.SMTP_PASS || clinical?.smtpPass;
-    const from = process.env.SMTP_FROM || clinical?.smtpFrom || '"Takeda Reporting" <no-reply@takeda-reporting.com>';
+    const from = process.env.SMTP_FROM || clinical?.smtpFrom || '"Viginess AE Reporting" <no-reply@viginess.com>';
 
     let transporter;
 

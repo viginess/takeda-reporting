@@ -13,6 +13,8 @@ import {
   SimpleGrid,
   Link,
   HStack,
+  Wrap,
+  WrapItem,
 } from '@chakra-ui/react';
 import { useState } from 'react';
 
@@ -68,7 +70,7 @@ function WelcomePage() {
         as="header"
         align="center"
         justify="space-between"
-        px={12}
+        px={{ base: 4, md: 8, lg: 12 }}
         py={5}
         bg="white"
         boxShadow="sm"
@@ -76,23 +78,23 @@ function WelcomePage() {
         borderColor="gray.100"
       >
         <Link href="/">
-    <Image src={logo} alt="Clin Solutions L.L.C." h="48px" cursor="pointer" filter="drop-shadow(0 2px 4px rgba(0,0,0,0.1))" />
-  </Link>
-        <HStack spacing={4}>
-          <Heading
-            as="h1"
-            size="md"
-            fontWeight="600"
-            letterSpacing="tight"
-            color="gray.800"
-          >
-            {t('welcome.title')}
-          </Heading>
-        </HStack>
+          <Image src={logo} alt="Clin Solutions L.L.C." h={{ base: "36px", md: "48px" }} cursor="pointer" filter="drop-shadow(0 2px 4px rgba(0,0,0,0.1))" />
+        </Link>
+        <Heading
+          as="h1"
+          size={{ base: "xs", sm: "sm", md: "md" }}
+          fontWeight="600"
+          letterSpacing="tight"
+          color="gray.800"
+          noOfLines={1}
+          ml={4}
+        >
+          {t('welcome.title')}
+        </Heading>
       </Flex>
 
       {/* Main Content */}
-      <Flex flex="1" align="center" justify="center" px={4} py={8}>
+      <Flex flex="1" align="center" justify="center" px={{ base: 2, sm: 4 }} py={{ base: 4, md: 8 }}>
         <Card
           maxW="900px"
           w="full"
@@ -100,13 +102,14 @@ function WelcomePage() {
           boxShadow="xl"
           borderRadius="xl"
           overflow="hidden"
+          mx={{ base: 2, sm: 0 }}
         >
           <CardBody p={0}>
             <Flex direction={{ base: 'column', md: isRTLValue ? 'row-reverse' : 'row' }}>
               {/* Left Side - Branding */}
               <Box
-                flex="0 0 300px"
-                p={8}
+                flex={{ base: '1', md: '0 0 300px' }}
+                p={{ base: 6, md: 8 }}
                 display="flex"
                 flexDirection="column"
                 alignItems="center"
@@ -125,23 +128,23 @@ function WelcomePage() {
                 }}
               >
                 <Box
-                  w="120px"
-                  h="120px"
+                  w={{ base: "80px", md: "120px" }}
+                  h={{ base: "80px", md: "120px" }}
                   bg="white"
                   borderRadius="full"
                   display="flex"
                   alignItems="center"
                   justifyContent="center"
-                  mb={6}
+                  mb={{ base: 4, md: 6 }}
                   boxShadow="0 10px 30px rgba(0,0,0,0.2)"
                   position="relative"
                   zIndex={1}
                 >
-                  <Image src={logo} alt="Clin Solutions L.L.C." h="60px" w="auto" objectFit="contain" />
+                  <Image src={logo} alt="Clin Solutions L.L.C." h={{ base: "40px", md: "60px" }} w="auto" objectFit="contain" />
                 </Box>
                 <Heading 
                   as="h2" 
-                  size="xl" 
+                  size={{ base: "lg", md: "xl" }} 
                   mb={4} 
                   textAlign={isRTLValue ? 'right' : 'center'}
                   fontWeight="700"
@@ -151,7 +154,7 @@ function WelcomePage() {
                   {t('welcome.welcomeHeading', 'Welcome')}
                 </Heading>
                 <Text
-                  fontSize="sm"
+                  fontSize={{ base: "xs", md: "sm" }}
                   textAlign={isRTLValue ? 'right' : 'center'}
                   opacity={0.95}
                   fontWeight="400"
@@ -164,7 +167,7 @@ function WelcomePage() {
               </Box>
 
               {/* Right Side - Form / Audience / Role Pages */}
-              <Box flex="1" p={10}>
+              <Box flex="1" p={{ base: 6, sm: 8, md: 10 }}>
                 {step === 'select' ? (
                   <>
                     <Heading as="h2" size="lg" mb={2} color="gray.800" fontWeight="600" textAlign={isRTLValue ? 'right' : 'left'}>
@@ -276,12 +279,12 @@ function WelcomePage() {
                     <Text fontSize="sm" color="gray.600" mb={8} textAlign={isRTLValue ? 'right' : 'left'}>
                       {t('welcome.roleDescription')}
                     </Text>
-                    <SimpleGrid columns={{ base: 1, md: 3 }} spacing={4}>
+                    <SimpleGrid columns={{ base: 1, sm: 2, md: 3 }} spacing={4}>
                       <Button
                         variant="outline"
                         borderColor="gray.300"
                         borderWidth="2px"
-                        height="110px"
+                        height={{ base: "80px", md: "110px" }}
                         borderRadius="xl"
                         color="gray.700"
                         onClick={() => setStep('patient')}
@@ -293,7 +296,7 @@ function WelcomePage() {
                           shadow: 'xl',
                         }}
                         transition="all 0.3s"
-                        fontSize="md"
+                        fontSize={{ base: "sm", md: "md" }}
                         fontWeight="600"
                         whiteSpace="normal"
                         textAlign="center"
@@ -304,7 +307,7 @@ function WelcomePage() {
                         variant="outline"
                         borderColor="gray.300"
                         borderWidth="2px"
-                        height="110px"
+                        height={{ base: "80px", md: "110px" }}
                         borderRadius="xl"
                         color="gray.700"
                         onClick={() => setStep('family')}
@@ -316,7 +319,7 @@ function WelcomePage() {
                           shadow: 'xl',
                         }}
                         transition="all 0.3s"
-                        fontSize="md"
+                        fontSize={{ base: "sm", md: "md" }}
                         fontWeight="600"
                         whiteSpace="normal"
                         textAlign="center"
@@ -327,7 +330,7 @@ function WelcomePage() {
                         variant="outline"
                         borderColor="gray.300"
                         borderWidth="2px"
-                        height="110px"
+                        height={{ base: "80px", md: "110px" }}
                         borderRadius="xl"
                         color="gray.700"
                         onClick={() => setStep('hcp')}
@@ -339,7 +342,7 @@ function WelcomePage() {
                           shadow: 'xl',
                         }}
                         transition="all 0.3s"
-                        fontSize="md"
+                        fontSize={{ base: "sm", md: "md" }}
                         fontWeight="600"
                         whiteSpace="normal"
                         textAlign="center"
@@ -360,7 +363,6 @@ function WelcomePage() {
                     >
                       {t('common.back', 'Back')}
                     </Button>
-                    {/* Redundant check removed as hcp is handled top-level */}
                   </>
                 )}
               </Box>
@@ -382,25 +384,35 @@ function WelcomePage() {
         borderTop="1px solid"
         borderColor="gray.200"
       >
-        <Text lineHeight="tall" mb={2}>
+        <Text lineHeight="tall" mb={4}>
           {t('welcome.footer')}
         </Text>
-        <HStack justify="center" spacing={4}>
-          <Link href="/privacy-policy" color="gray.500" _hover={{ color: '#CE0037' }}>
-            Privacy Policy
-          </Link>
-          <Text color="gray.300">|</Text>
-          <Link href="/terms-conditions" color="gray.500" _hover={{ color: '#CE0037' }}>
-            Terms & Conditions
-          </Link>
-          <Text color="gray.300">|</Text>
-          <Link href="/contact" color="gray.500" _hover={{ color: '#CE0037' }}>
-            Contact
-          </Link>
-        </HStack>
+        <Wrap justify="center" spacing={{ base: 2, md: 4 }} align="center">
+          <WrapItem>
+            <Link href="/privacy-policy" color="gray.500" _hover={{ color: '#CE0037' }}>
+              Privacy Policy
+            </Link>
+          </WrapItem>
+          <WrapItem display={{ base: 'none', sm: 'block' }}>
+            <Text color="gray.300">|</Text>
+          </WrapItem>
+          <WrapItem>
+            <Link href="/terms-conditions" color="gray.500" _hover={{ color: '#CE0037' }}>
+              Terms & Conditions
+            </Link>
+          </WrapItem>
+          <WrapItem display={{ base: 'none', sm: 'block' }}>
+            <Text color="gray.300">|</Text>
+          </WrapItem>
+          <WrapItem>
+            <Link href="/contact" color="gray.500" _hover={{ color: '#CE0037' }}>
+              Contact
+            </Link>
+          </WrapItem>
+        </Wrap>
       </Box>
     </Flex>
   );
 }
 
-export default WelcomePage;
+export default WelcomePage;

@@ -146,6 +146,7 @@ export const ImportMeddraModal: React.FC<ImportMeddraModalProps> = ({
         overflow="hidden"
         border="1px"
         borderColor="gray.100"
+        mx={{ base: 4, md: 0 }}
       >
         <ModalHeader bg="gray.50" py={6} px={8} borderBottom="1px" borderColor="gray.100">
           <VStack align="start" spacing={1}>

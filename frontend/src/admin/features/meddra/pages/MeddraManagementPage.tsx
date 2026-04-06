@@ -70,17 +70,17 @@ export default function MeddraManagementPage() {
   };
 
   return (
-    <Box p={8} bg="#f8fafc" minH="100vh" fontFamily="'Inter', sans-serif">
+    <Box p={{ base: 4, md: 8 }} bg="#f8fafc" minH="100vh" fontFamily="'Inter', sans-serif">
       <VStack spacing={6} align="stretch">
         {/* Top Header & Stat */}
-        <Grid templateColumns="1fr auto" gap={6} alignItems="start">
+        <Grid templateColumns={{ base: "1fr", md: "1fr auto" }} gap={6} alignItems="start">
           <Box>
             <Flex align="center" gap={3} mb={1}>
               <FiActivity size={24} color="#CE0037" />
-              <Heading size="lg" letterSpacing="-0.5px">MedDRA Management</Heading>
+              <Heading size={{ base: "md", md: "lg" }} letterSpacing="-0.5px">MedDRA Management</Heading>
             </Flex>
-            <Text color="gray.600" fontSize="sm">
-              Search the regulatory medical dictionary and manage active system versions.
+            <Text color="gray.600" fontSize={{ base: "xs", md: "sm" }}>
+              Search medical dictionary and manage active system versions.
             </Text>
           </Box>
           
@@ -91,10 +91,10 @@ export default function MeddraManagementPage() {
             border="1px" 
             borderColor="red.100" 
             shadow="sm"
-            minW="200px"
+            minW={{ base: "full", md: "200px" }}
           >
             <StatLabel color="gray.500" fontSize="xs" fontWeight="bold" textTransform="uppercase">Active System Version</StatLabel>
-            <StatNumber color="#CE0037" fontSize="2xl">v{activeVersion || "---"}</StatNumber>
+            <StatNumber color="#CE0037" fontSize={{ base: "xl", md: "2xl" }}>v{activeVersion || "---"}</StatNumber>
           </Stat>
         </Grid>
 

@@ -10,8 +10,16 @@ interface RowItemProps {
 
 export function RowItem({ label, desc, children, sensitive }: RowItemProps) {
   return (
-    <Flex align="center" justify="space-between" py={4} borderBottom="1px solid" borderColor="#f1f5f9">
-      <Box flex={1} pr={8}>
+    <Flex 
+      direction={{ base: "column", md: "row" }} 
+      align={{ base: "flex-start", md: "center" }}
+      justify="space-between" 
+      py={4} 
+      gap={{ base: 4, md: 8 }}
+      borderBottom="1px solid" 
+      borderColor="#f1f5f9"
+    >
+      <Box flex={1} pr={{ base: 0, md: 8 }}>
         <Flex align="center" gap={2}>
           <Text fontSize="sm" fontWeight="bold" color="#0f172a">{label}</Text>
           {sensitive && (
@@ -22,7 +30,7 @@ export function RowItem({ label, desc, children, sensitive }: RowItemProps) {
         </Flex>
         {desc && <Text mt={1} fontSize="xs" color="#64748b" lineHeight="1.5">{desc}</Text>}
       </Box>
-      <Box flexShrink={0}>{children}</Box>
+      <Box flexShrink={0} w={{ base: "full", md: "auto" }}>{children}</Box>
     </Flex>
   );
 }

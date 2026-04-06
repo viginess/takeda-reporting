@@ -10,6 +10,8 @@ import {
   Button,
   useToast,
   HStack,
+  Wrap,
+  WrapItem,
 } from "@chakra-ui/react";
 import {
   FormLayout,
@@ -121,7 +123,7 @@ function EventStep({
   return (
     <Box mt={12}>
       {fields.map((field, index) => (
-        <Box key={field.id} mb={10} position="relative" p={6} border="1px solid" borderColor="gray.100" borderRadius="xl" bg="white" shadow="sm">
+        <Box key={field.id} mb={10} position="relative" p={{ base: 4, md: 6 }} border="1px solid" borderColor="gray.100" borderRadius="xl" bg="white" shadow="sm">
           {index > 0 && (
             <Flex justify="flex-end" mb={2}>
               <Button
@@ -324,8 +326,8 @@ function PatientForm({ onBack, countryCode, languageCode }: PatientFormProps) {
         as="header"
         align="center"
         justify="space-between"
-        px={6}
-        py={4}
+        px={{ base: 4, md: 6 }}
+        py={{ base: 3, md: 4 }}
         bg="white"
         boxShadow="sm"
         borderBottom="1px solid"
@@ -336,7 +338,7 @@ function PatientForm({ onBack, countryCode, languageCode }: PatientFormProps) {
             <Image
               src={logo}
               alt="Clin Solutions L.L.C."
-              h="48px"
+              h={{ base: "32px", md: "48px" }}
               cursor="pointer"
               filter="drop-shadow(0 2px 4px rgba(0,0,0,0.1))"
             />
@@ -346,22 +348,29 @@ function PatientForm({ onBack, countryCode, languageCode }: PatientFormProps) {
             <Image
               src={logo}
               alt="Clin Solutions L.L.C."
-              h="48px"
+              h={{ base: "32px", md: "48px" }}
               cursor="pointer"
               filter="drop-shadow(0 2px 4px rgba(0,0,0,0.1))"
             />
           </Link>
         )}
-        <Heading as="h1" size="md" fontWeight="600" color="gray.800">
+        <Heading 
+          as="h1" 
+          size={{ base: "xs", sm: "sm", md: "md" }} 
+          fontWeight="600" 
+          color="gray.800"
+          noOfLines={1}
+          ml={2}
+        >
           {t("forms.patient.title")}
         </Heading>
-        <Box w="32px" />
+        <Box w={{ base: "0px", sm: "32px" }} />
       </Flex>
 
       <Flex
         flex="1"
         justify="center"
-        px={{ base: 2, md: 4 }}
+        px={{ base: 2, sm: 4, md: 4 }}
         py={{ base: 4, md: 8 }}
       >
         <Box
@@ -439,7 +448,7 @@ function PatientForm({ onBack, countryCode, languageCode }: PatientFormProps) {
           >
             {({ FormStep }) => (
               <FormLayout spacing={8}>
-                <FormStepper colorScheme="red" mb={10}>
+                <FormStepper colorScheme="red" mb={10} size={{ base: "sm", md: "md" }}>
                   <FormStep
                     name="product"
                     title={t("forms.patient.steps.product")}
@@ -527,7 +536,7 @@ function PatientForm({ onBack, countryCode, languageCode }: PatientFormProps) {
       {/* Footer */}
       <Box
         as="footer"
-        py={4}
+        py={6}
         px={6}
         textAlign="center"
         fontSize="sm"
@@ -536,21 +545,31 @@ function PatientForm({ onBack, countryCode, languageCode }: PatientFormProps) {
         borderTop="1px solid"
         borderColor="gray.200"
       >
-        <Text>{t("welcome.footer")}</Text>
-        <HStack justify="center" spacing={4} mt={2} fontSize="xs">
-          <Link href="/privacy-policy" isExternal color="gray.500" _hover={{ color: '#CE0037' }}>
-            Privacy Policy
-          </Link>
-          <Text color="gray.300">|</Text>
-          <Link href="/terms-conditions" isExternal color="gray.500" _hover={{ color: '#CE0037' }}>
-            Terms & Conditions
-          </Link>
-          <Text color="gray.300">|</Text>
-          <Link href="/contact" isExternal color="gray.500" _hover={{ color: '#CE0037' }}>
-            Contact
-          </Link>
-        </HStack>
-        <Text mt={2} fontSize="2xs">
+        <Text mb={4}>{t("welcome.footer")}</Text>
+        <Wrap justify="center" spacing={{ base: 2, md: 4 }} align="center" fontSize="xs">
+          <WrapItem>
+            <Link href="/privacy-policy" isExternal color="gray.500" _hover={{ color: '#CE0037' }}>
+              Privacy Policy
+            </Link>
+          </WrapItem>
+          <WrapItem display={{ base: 'none', sm: 'block' }}>
+            <Text color="gray.300">|</Text>
+          </WrapItem>
+          <WrapItem>
+            <Link href="/terms-conditions" isExternal color="gray.500" _hover={{ color: '#CE0037' }}>
+              Terms & Conditions
+            </Link>
+          </WrapItem>
+          <WrapItem display={{ base: 'none', sm: 'block' }}>
+            <Text color="gray.300">|</Text>
+          </WrapItem>
+          <WrapItem>
+            <Link href="/contact" isExternal color="gray.500" _hover={{ color: '#CE0037' }}>
+              Contact
+            </Link>
+          </WrapItem>
+        </Wrap>
+        <Text mt={4} fontSize="2xs">
           Copyright © 2026 Clin Solutions L.L.C.
         </Text>
       </Box>
