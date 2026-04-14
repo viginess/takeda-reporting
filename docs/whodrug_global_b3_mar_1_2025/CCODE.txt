@@ -1,0 +1,249 @@
+ABWAruba                         
+AFGAfghanistan                   
+AGOAngola                        
+AIAAnguilla                      
+ALBAlbania                       
+ANDAndorra                       
+ANTNetherlands Antilles          
+AREUnited Arab Emirates          
+ARGArgentina                     
+ARMArmenia                       
+ASMAmerican Samoa                
+ATAAntarctica                    
+ATFFrench Southern Territories   
+ATGAntigua and Barbuda           
+AUSAustralia                     
+AUTAustria                       
+AZEAzerbaijan                    
+BDIBurundi                       
+BELBelgium                       
+BENBenin                         
+BFABurkina Faso                  
+BGDBangladesh                    
+BGRBulgaria                      
+BHRBahrain                       
+BHSBahamas                       
+BIHBosnia and Herzegovina        
+BLRBelarus                       
+BLZBelize                        
+BMUBermuda                       
+BOLBolivia (Plurinational State o
+BRABrazil                        
+BRBBarbados                      
+BRNBrunei Darussalam             
+BTNBhutan                        
+BVTBouvet Island                 
+BWABotswana                      
+CAFCentral African Republic      
+CANCanada                        
+CCKCocos (Keeling) Islands       
+CHESwitzerland                   
+CHLChile                         
+CHNChina                         
+CIVCote d'Ivoire                 
+CMRCameroon                      
+CODCongo (the Democratic Republic
+COGCongo                         
+COKCook Islands                  
+COLColombia                      
+COMComoros                       
+CPVCabo Verde                    
+CRICosta Rica                    
+CUBCuba                          
+CUWCuracao                       
+CXRChristmas Island              
+CYMCayman Islands                
+CYPCyprus                        
+CZECzechia                       
+DEUGermany                       
+DJIDjibouti                      
+DMADominica                      
+DNKDenmark                       
+DOMDominican Republic            
+DZAAlgeria                       
+ECUEcuador                       
+EGYEgypt                         
+ERIEritrea                       
+ESHWestern Sahara                
+ESPSpain                         
+ESTEstonia                       
+ETHEthiopia                      
+FINFinland                       
+FJIFiji                          
+FLKFalkland Islands (Malvinas)   
+FRAFrance                        
+FROFaroe Islands                 
+FSMMicronesia (Federated States o
+GABGabon                         
+GBRUnited Kingdom of Great Britai
+GDRGerman Democratic Republic    
+GEOGeorgia                       
+GHAGhana                         
+GIBGibraltar                     
+GINGuinea                        
+GLPGuadeloupe                    
+GMBGambia                        
+GNBGuinea-Bissau                 
+GNQEquatorial Guinea             
+GRCGreece                        
+GRDGrenada                       
+GRLGreenland                     
+GTMGuatemala                     
+GUFFrench Guiana                 
+GUMGuam                          
+GUYGuyana                        
+HKGHong Kong                     
+HMDHeard Island and McDonald Isla
+HNDHonduras                      
+HRVCroatia                       
+HTIHaiti                         
+HUNHungary                       
+IDNIndonesia                     
+INDIndia                         
+IOTBritish Indian Ocean Territory
+IRLIreland                       
+IRNIran (Islamic Republic of)    
+IRQIraq                          
+ISLIceland                       
+ISRIsrael                        
+ITAItaly                         
+IWYMidway Islands                
+JAMJamaica                       
+JORJordan                        
+JPNJapan                         
+JTNJohnston Atoll                
+KAZKazakhstan                    
+KENKenya                         
+KGZKyrgyzstan                    
+KHMCambodia                      
+KIRKiribati                      
+KNASaint Kitts and Nevis         
+KORKorea (the Republic of)       
+KWTKuwait                        
+LAOLao People's Democratic Republ
+LBNLebanon                       
+LBRLiberia                       
+LBYLibya                         
+LCASaint Lucia                   
+LIELiechtenstein                 
+LKASri Lanka                     
+LSOLesotho                       
+LTULithuania                     
+LUXLuxembourg                    
+LVALatvia                        
+MACMacao                         
+MARMorocco                       
+MCOMonaco                        
+MDAMoldova (the Republic of)     
+MDGMadagascar                    
+MDVMaldives                      
+MEXMexico                        
+MHLMarshall Islands              
+MKDNorth Macedonia               
+MLIMali                          
+MLTMalta                         
+MMRMyanmar                       
+MNEMontenegro                    
+MNGMongolia                      
+MNPNorthern Mariana Islands      
+MOZMozambique                    
+MRTMauritania                    
+MSRMontserrat                    
+MTQMartinique                    
+MUSMauritius                     
+MWIMalawi                        
+MYSMalaysia                      
+MYTMayotte                       
+N/ANot Applicable                
+NAMNamibia                       
+NCLNew Caledonia                 
+NERNiger                         
+NFKNorfolk Island                
+NGANigeria                       
+NICNicaragua                     
+NIUNiue                          
+NLDNetherlands                   
+NORNorway                        
+NPLNepal                         
+NRUNauru                         
+NZLNew Zealand                   
+OMNOman                          
+PAKPakistan                      
+PANPanama                        
+PCNPitcairn                      
+PERPeru                          
+PHLPhilippines                   
+PLWPalau                         
+PNGPapua New Guinea              
+POLPoland                        
+PRIPuerto Rico                   
+PRKKorea (the Democratic People's
+PRTPortugal                      
+PRYParaguay                      
+PSEPalestine, State of           
+PYFFrench Polynesia              
+QATQatar                         
+REUReunion                       
+ROURomania                       
+RUSRussian Federation            
+RWARwanda                        
+SAUSaudi Arabia                  
+SCGSerbia and Montenegro (-2006) 
+SDNSudan                         
+SENSenegal                       
+SGPSingapore                     
+SGSSouth Georgia and the South Sa
+SHNSaint Helena, Ascension and Tr
+SJMSvalbard and Jan Mayen        
+SLBSolomon Islands               
+SLESierra Leone                  
+SLVEl Salvador                   
+SMRSan Marino                    
+SOMSomalia                       
+SPMSaint Pierre and Miquelon     
+SRBSerbia                        
+SSDSouth Sudan                   
+STPSao Tome and Principe         
+SURSuriname                      
+SVKSlovakia                      
+SVNSlovenia                      
+SWESweden                        
+SWZEswatini                      
+SYCSeychelles                    
+SYRSyrian Arab Republic          
+TCATurks and Caicos Islands      
+TCDChad                          
+TGOTogo                          
+THAThailand                      
+TJKTajikistan                    
+TKLTokelau                       
+TKMTurkmenistan                  
+TLSTimor-Leste                   
+TONTonga                         
+TTOTrinidad and Tobago           
+TUNTunisia                       
+TURTurkey                        
+TUVTuvalu                        
+TWNTaiwan (Province of China)    
+TZATanzania, the United Republic 
+UGAUganda                        
+UKRUkraine                       
+UMIUnited States Minor Outlying I
+UNSUnspecified                   
+URYUruguay                       
+USAUnited States of America      
+UZBUzbekistan                    
+VATHoly See                      
+VCTSaint Vincent and the Grenadin
+VENVenezuela (Bolivarian Republic
+VGBVirgin Islands (British)      
+VIRVirgin Islands (U.S.)         
+VNMViet Nam                      
+VUTVanuatu                       
+WLFWallis and Futuna             
+WSMSamoa                         
+YEMYemen                         
+YUGYugoslavia (-2003)            
+ZAFSouth Africa                  
+ZMBZambia                        
+ZWEZimbabwe                      
