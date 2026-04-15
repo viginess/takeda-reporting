@@ -22,7 +22,8 @@ import {
   Portal,
   VStack,
 } from '@chakra-ui/react';
-import { ProductImageUpload } from '../../../shared/components/ProductImageUpload';
+import { ProductImageUpload } from '../../../shared/components/upload/ProductImageUpload';
+import { DrugSearchInput } from '../../../shared/components/whodrug/DrugSearchInput';
 import { HiQuestionMarkCircle, HiPlus } from 'react-icons/hi2';
 import { useFormContext, useFieldArray } from 'react-hook-form';
 import batchImg from '../../../assets/batch.png';
@@ -71,10 +72,15 @@ export function ProductDetails({ inputStyles, index = 0, onAddProduct }: Product
         <FormLabel fontWeight="500" color="gray.700">
           {t('forms.patient.productDetails.productNameLabel')}
         </FormLabel>
-        <Input
-          placeholder={t('forms.patient.productDetails.productNamePlaceholder')}
-          {...inputStyles}
-          {...register(`${prefix}.productName`, { required: t('forms.patient.productDetails.productNameRequired') })}
+        <DrugSearchInput
+          value={watch(`${prefix}.productName`) || ''}
+          onChange={(name, code) => {
+            setValue(`${prefix}.productName`, name, { shouldValidate: true });
+            if (code) {
+              setValue(`${prefix}.whodrugCode`, code);
+            }
+          }}
+          inputStyles={inputStyles}
         />
       </FormControl>
 

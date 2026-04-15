@@ -1,4 +1,4 @@
-import { getSupabaseAdmin } from '../../utils/supabase.js';
+import { getSupabaseAdmin } from '../../utils/services/supabase.js';
 
 /**
  * Stores the generated Safety PDF in Supabase Storage.
@@ -39,3 +39,4 @@ export async function getSignedPDFUrl(filePath: string): Promise<string> {
   if (error) throw error;
   return data.signedUrl;
 }
+

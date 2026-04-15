@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
-import { supabase } from '../../../utils/supabaseClient';
-import { trpc } from '../../../utils/trpc';
+import { supabase } from '../../../utils/config/supabaseClient';
+import { trpc } from '../../../utils/config/trpc';
 
 import Sidebar from './Sidebar';
 import { 

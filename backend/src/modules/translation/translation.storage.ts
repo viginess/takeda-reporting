@@ -1,4 +1,4 @@
-import { getSupabaseAdmin } from "../../utils/supabase.js";
+import { getSupabaseAdmin } from "../../utils/services/supabase.js";
 
 const BUCKET_NAME = "locales";
 
@@ -55,3 +55,4 @@ export const storageService = {
     }
   },
 };
+

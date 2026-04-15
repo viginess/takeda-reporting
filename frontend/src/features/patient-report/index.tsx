@@ -28,12 +28,12 @@ import { EventDetails } from "./components/EventDetails";
 import { PersonalDetails } from "./components/PersonalDetails";
 import { AdditionalDetails } from "./components/AdditionalDetails";
 import { ReviewConfirm } from "./components/ReviewConfirm";
-import { SuccessStep } from "../../shared/components/SuccessStep";
+import { SuccessStep } from "../../shared/components/common/SuccessStep";
 import { useState } from "react";
 import { useFieldArray, useFormContext } from "react-hook-form";
 
-import { trpc } from "../../utils/trpc";
-import { calculateSeverity } from "../../utils/severity";
+import { trpc } from "../../utils/config/trpc";
+import { calculateSeverity } from "../../utils/common/severity";
 import { useTranslation } from "react-i18next";
 import { HiPlus } from "react-icons/hi2";
 const inputStyles = {

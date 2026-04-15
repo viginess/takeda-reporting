@@ -1,6 +1,6 @@
-import { generateE2BR3 } from './generator.js';
-import { validateE2BR3 } from './validator.js';
-import { storeE2BR3 } from './storage.js';
+import { generateE2BR3 } from './core/generator.js';
+import { validateE2BR3 } from './validation/validator.js';
+import { storeE2BR3 } from './core/storage.js';
 import { patientReports, hcpReports, familyReports } from '../../db/core/schema.js';
 import { systemSettings } from '../../db/admin/settings.schema.js';
 import { db } from '../../db/core/index.js';
@@ -72,12 +72,34 @@ export async function processE2BWorkflow(reportId: string) {
     report.safetyReportId = safetyReportId;
     report.reportVersion = reportVersion;
 
-    // 2. Generate XML
+    // 2. Data Enrichment (Fetch WHODrug ingredients if needed)
+    const { whodrugService } = await import('../whodrug/whodrug.service.js');
+    const allProducts = [...(report.products || []), ...(report.otherMedications || [])];
+    const whoCodes = allProducts.map((p: any) => p.whodrugCode).filter(Boolean);
+    
+    if (whoCodes.length > 0) {
+      const ingredientMapping = await whodrugService.getIngredientsForDrugs(whoCodes);
+      // Enrich report products with their dictionary ingredients
+      if (report.products) {
+        report.products = report.products.map((p: any) => ({
+          ...p,
+          ingredients: p.whodrugCode ? ingredientMapping[p.whodrugCode] : undefined
+        }));
+      }
+      if (report.otherMedications) {
+        report.otherMedications = report.otherMedications.map((p: any) => ({
+          ...p,
+          ingredients: p.whodrugCode ? ingredientMapping[p.whodrugCode] : undefined
+        }));
+      }
+    }
+
+    // 3. Generate XML
     const sysSettings = (await db.select().from(systemSettings).where(eq(systemSettings.id, 1)).limit(1))[0];
     const meddraVersion = sysSettings?.clinicalConfig?.meddraVersion || "29.0";
     
-    // 3. Validation Flow (Tier 1 & Tier 2)
-    const { preValidateFormData } = await import('./pre-validator.js');
+    // 4. Validation Flow (Tier 1 & Tier 2)
+    const { preValidateFormData } = await import('./validation/pre-validator.js');
     const preValidation = preValidateFormData(report);
     
     const xml = generateE2BR3(report, { senderId, receiverId, reportType, meddraVersion });
@@ -130,6 +152,7 @@ export async function processE2BWorkflow(reportId: string) {
       xmlContent: xml,
       isValid: finalValid,
       errors: finalErrors,
+      enrichedReport: report
     };
   } catch (error: any) {
     console.error('E2B Workflow Error:', error);

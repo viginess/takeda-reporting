@@ -1,6 +1,6 @@
 import { create } from 'xmlbuilder2';
 import crypto from 'crypto';
-import { patientReports, hcpReports, familyReports } from '../../db/core/schema.js';
+import { patientReports, hcpReports, familyReports } from '../../../db/core/schema.js';
 
 export type PatientReport = typeof patientReports.$inferSelect;
 export type HCPReport = typeof hcpReports.$inferSelect;
@@ -302,8 +302,43 @@ export function generateE2BR3(report: SafetyReport, options: { senderId: string,
     const consumable = substAdmin.ele('consumable', { typeCode: 'CSM' }).ele('instanceOfKind', { classCode: 'INST' });
     const pInstance = consumable.ele('productInstanceInstance', { classCode: 'MMAT', determinerCode: 'INSTANCE' });
     if (d.batchNumber || d.batch) pInstance.ele('lotNumberText').txt(d.batchNumber || d.batch).up();
-    pInstance.ele('asInstanceOfKind', { classCode: 'INST' }).ele('kindOfMaterialKind', { classCode: 'MAT', determinerCode: 'KIND' }).ele('code', { nullFlavor: 'NA' }).up()
-      .ele('name').txt(d.productName || d.product || 'Unknown Drug').up().up().up().up();
+    const matKind = pInstance.ele('asInstanceOfKind', { classCode: 'INST' }).ele('kindOfMaterialKind', { classCode: 'MAT', determinerCode: 'KIND' });
+    
+    if (d.whodrugCode) {
+      matKind.ele('code', { 
+        code: d.whodrugCode, 
+        codeSystem: '2.16.840.1.113883.6.294', 
+        codeSystemVersion: 'WHODrug Global B3 Mar 2025',
+        displayName: d.productName || d.product
+      }).up();
+    } else {
+      matKind.ele('code', { nullFlavor: 'NA' }).up();
+    }
+
+    matKind.ele('name').txt(d.productName || d.product || 'Unknown Drug').up().up();
+
+    // Substance / Specified Substance (G.k.2.3.r)
+    // For coded drugs, we enumerate the active ingredients
+    if (d.ingredients && Array.isArray(d.ingredients) && d.ingredients.length > 0) {
+      d.ingredients.forEach((ing: any) => {
+        matKind.ele('ingredient', { typeCode: 'ACTI' })
+          .ele('quantity')
+            .ele('numerator', { 'xsi:type': 'PQ', value: '1', unit: '1' }).up()
+            .ele('denominator', { 'xsi:type': 'PQ', value: '1', unit: '1' }).up()
+          .up()
+          .ele('ingredientSubstance', { classCode: 'MMAT', determinerCode: 'KIND' })
+            .ele('code', { 
+              code: ing.code, 
+              codeSystem: '2.16.840.1.113883.6.294', 
+              codeSystemVersion: 'WHODrug Global B3 Mar 2025',
+              displayName: ing.name 
+            }).up()
+            .ele('name').txt(ing.name).up()
+          .up().up();
+      });
+    }
+
+    matKind.up().up().up();
 
     // Category must follow consumable in the HL7 schema sequence
     substAdmin.ele('outboundRelationship2', { typeCode: 'COMP' })

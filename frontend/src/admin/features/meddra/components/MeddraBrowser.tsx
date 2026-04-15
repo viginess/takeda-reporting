@@ -17,7 +17,7 @@ import {
   FiCheckCircle, 
   FiUpload 
 } from "react-icons/fi";
-import { trpc } from "../../../../utils/trpc";
+import { trpc } from "../../../../utils/config/trpc";
 import { MeddraTable } from "./MeddraTable";
 
 interface MeddraBrowserProps {

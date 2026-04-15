@@ -1,4 +1,4 @@
-import { getSupabaseAdmin } from '../../utils/supabase.js';
+import { getSupabaseAdmin } from '../../../utils/services/supabase.js';
 
 /**
  * Stores the generated E2B XML in Supabase Storage.
@@ -41,3 +41,4 @@ export async function getSignedE2BUrl(filePath: string): Promise<string> {
   if (error) throw error;
   return data.signedUrl;
 }
+

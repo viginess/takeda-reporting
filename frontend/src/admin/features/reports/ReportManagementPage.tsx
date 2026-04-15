@@ -7,7 +7,7 @@ import {
   Modal, ModalOverlay, ModalContent, ModalBody, ModalCloseButton,
   Image, useDisclosure, useBreakpointValue
 } from "@chakra-ui/react";
-import { trpc } from "../../../utils/trpc";
+import { trpc } from "../../../utils/config/trpc";
 
 import type { Report, MedDRATerm, Status, Severity } from "./types";
 import { statusOptions } from "./types";
@@ -15,6 +15,7 @@ import { useReportActions } from "./hooks/useReportActions";
 import { ReportTable } from "./components/ReportTable";
 import { DetailPanel } from "./components/DetailPanel";
 import { MedDRAModal } from "./components/MedDRAModal";
+import { WhodrugModal } from "./components/WhodrugModal";
 import { BulkToolbar } from "./components/BulkToolbar";
 
 export default function ReportManagementPage() {
@@ -44,6 +45,17 @@ export default function ReportManagementPage() {
   );
 
   const { isOpen: isCodingOpen, onOpen: onCodingOpen, onClose: onCodingClose } = useDisclosure();
+
+  // WHODrug Modal
+  const [codingDrugIndex, setCodingDrugIndex] = useState<number | null>(null);
+  const [whodrugQuery, setWhodrugQuery] = useState("");
+
+  const { data: whodrugResults, isLoading: searchingWhodrug } = trpc.whodrug.searchDrugs.useQuery(
+    { query: whodrugQuery, limit: 20 },
+    { enabled: whodrugQuery.length >= 2 }
+  );
+
+  const { isOpen: isWhodrugOpen, onOpen: onWhodrugOpen, onClose: onWhodrugClose } = useDisclosure();
 
   // Zoom Modal
   const { isOpen: isZoomOpen, onClose: onZoomClose } = useDisclosure();
@@ -216,6 +228,7 @@ export default function ReportManagementPage() {
                   onRegenerate={handleRegenerate}
                   onSave={handleSave}
                   onOpenCodingModal={(idx) => { setCodingSymptomIndex(idx); onCodingOpen(); }}
+                  onOpenWhodrugModal={(idx) => { setCodingDrugIndex(idx); onWhodrugOpen(); }}
                 />
               )}
             </AnimatePresence>
@@ -235,6 +248,19 @@ export default function ReportManagementPage() {
         searchingMeddra={searchingMeddra}
         updateMutation={updateMutation}
         onSymptomUpdated={setSelectedReport}
+      />
+
+      <WhodrugModal
+        isOpen={isWhodrugOpen}
+        onClose={onWhodrugClose}
+        selectedReport={selectedReport}
+        codingProductIndex={codingDrugIndex}
+        whodrugQuery={whodrugQuery}
+        setWhodrugQuery={setWhodrugQuery}
+        whodrugResults={whodrugResults}
+        searchingWhodrug={searchingWhodrug}
+        updateMutation={updateMutation}
+        onProductUpdated={setSelectedReport}
       />
 
       <Modal isOpen={isZoomOpen} onClose={onZoomClose} size="full">

@@ -8,13 +8,13 @@ import {
   PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
   AreaChart, Area, XAxis, YAxis, CartesianGrid,
 } from "recharts";
-import { trpc } from "../../../utils/trpc";
+import { trpc } from "../../../utils/config/trpc";
 import { useNavigate } from "react-router-dom";
 import {
   Box, Flex, Text, Heading, Button, IconButton, Badge, SimpleGrid,
   Card, CardBody, HStack, VStack, Skeleton
 } from "@chakra-ui/react";
-import { getRelativeTime } from "../../../utils/date-utils";
+import { getRelativeTime } from "../../../utils/common/date-utils";
 
 
 
@@ -358,8 +358,8 @@ export default function AdminDashboard() {
             {areaLoading || isMounting ? (
               <Skeleton h="240px" borderRadius="xl" />
             ) : (
-              <Box h="240px" w="100%">
-                <ResponsiveContainer width="100%" height="100%" debounce={50}>
+              <Box h="240px" w="100%" minW={0} minH={240}>
+                <ResponsiveContainer width="100%" height="100%" minHeight={240}>
                   <AreaChart data={monthlyVolume} margin={{ top: 5, right: 10, left: -25, bottom: 0 }}>
                     <defs>
                       {Object.entries(AREA_COLORS).map(([key, color]) => (
@@ -399,11 +399,11 @@ export default function AdminDashboard() {
             <Text fontWeight="bold" fontSize="sm" color="#0f172a">Report Status Distribution</Text>
           </Box>
           <Flex direction={{ base: 'column', md: 'row' }} p={4} align="center" gap={6}>
-            <Box w={{ base: "100%", md: "45%" }} h="200px">
+            <Box w={{ base: "100%", md: "45%" }} h="200px" minW={0} minH={200}>
               {pieLoading || isMounting ? (
                 <Skeleton h="160px" w="160px" borderRadius="full" m="auto" />
               ) : (
-                <ResponsiveContainer width="100%" height="100%" debounce={50}>
+                <ResponsiveContainer width="100%" height="100%" minHeight={200}>
                   <PieChart>
                     <Pie data={statusDistribution} dataKey="value" nameKey="name" outerRadius={80} innerRadius={46} paddingAngle={3} cx="50%" cy="50%">
                       {statusDistribution.map((_: any, i: number) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} stroke="none" />)}

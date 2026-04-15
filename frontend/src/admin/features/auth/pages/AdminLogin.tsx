@@ -31,8 +31,8 @@ import {
   Activity,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { supabase } from "../../../../utils/supabaseClient";
-import { trpc } from "../../../../utils/trpc";
+import { supabase } from "../../../../utils/config/supabaseClient";
+import { trpc } from "../../../../utils/config/trpc";
 import logo from "../../../../assets/logo.jpg";
 
 // Motion components

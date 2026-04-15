@@ -1,6 +1,6 @@
 import nodemailer from 'nodemailer';
-import { db } from '../db/core/index.js';
-import { systemSettings } from '../db/admin/settings.schema.js';
+import { db } from "../../db/core/index.js";
+import { systemSettings } from "../../db/admin/settings.schema.js";
 import { eq } from 'drizzle-orm';
 
 /**

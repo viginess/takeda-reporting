@@ -4,8 +4,8 @@ import logo from '../../assets/logo.jpg';
 import { useTranslation } from 'react-i18next';
 import { ChevronLeft } from 'lucide-react';
 import { useState } from 'react';
-import { trpc } from '../../utils/trpc';
-import { countries } from '../../utils/countries';
+import { trpc } from '../../utils/config/trpc';
+import { countries } from '../../utils/common/countries';
 
 const ContactPage = () => {
     const { t, i18n } = useTranslation();

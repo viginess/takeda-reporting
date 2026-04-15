@@ -18,7 +18,7 @@ import {
 } from '@chakra-ui/react';
 import { useFormContext, useFieldArray } from 'react-hook-form';
 import { HiPlus } from 'react-icons/hi2';
-import { ProductImageUpload } from '../../../shared/components/ProductImageUpload';
+import { ProductImageUpload } from '../../../shared/components/upload/ProductImageUpload';
 import { useTranslation } from 'react-i18next';
 
 interface HcpAdditionalDetailsProps {

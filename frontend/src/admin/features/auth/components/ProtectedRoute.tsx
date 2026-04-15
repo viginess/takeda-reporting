@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
-import { supabase } from '../../../../utils/supabaseClient';
+import { supabase } from '../../../../utils/config/supabaseClient';
 import { Flex, Box, Skeleton, VStack } from '@chakra-ui/react';
-import { trpc } from '../../../../utils/trpc';
+import { trpc } from '../../../../utils/config/trpc';
 
 export default function ProtectedRoute() {
   const [loading, setLoading] = useState(true);

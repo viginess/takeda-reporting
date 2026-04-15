@@ -30,12 +30,12 @@ import { HcpPatientDetails } from './components/HcpPatientDetails';
 import { HcpReporterDetails } from './components/HcpReporterDetails';
 import { HcpAdditionalDetails } from './components/HcpAdditionalDetails';
 import { HcpReviewConfirm } from './components/HcpReviewConfirm';
-import { SuccessStep } from '../../shared/components/SuccessStep';
+import { SuccessStep } from '../../shared/components/common/SuccessStep';
 import { useState } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 import { HiPlus } from 'react-icons/hi2';
-import { trpc } from '../../utils/trpc';
-import { calculateSeverity } from '../../utils/severity';
+import { trpc } from '../../utils/config/trpc';
+import { calculateSeverity } from '../../utils/common/severity';
 
 const inputStyles = {
   size: 'lg' as const,

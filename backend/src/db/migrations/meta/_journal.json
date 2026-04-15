@@ -57,6 +57,13 @@
       "when": 1774692051142,
       "tag": "0007_jittery_agent_brand",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1776181536470,
+      "tag": "0008_tranquil_turbo",
+      "breakpoints": true
     }
   ]
 }

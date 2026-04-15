@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { router, publicProcedure } from '../../trpc/core/init.js';
-import { storageService } from "./storageService.js";
-import { translateLocale } from "./translationService.js";
+import { storageService } from "./translation.storage.js";
+import { translateLocale } from "./translation.service.js";
 import fs from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";

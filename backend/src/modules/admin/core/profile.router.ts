@@ -1,14 +1,14 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { eq, sql } from "drizzle-orm";
-import { getSupabaseAdmin } from "../../utils/supabase.js";
+import { getSupabaseAdmin } from "../../../utils/services/supabase.js";
 import {
   protectedProcedure,
   viewerProcedure,
   superAdminProcedure,
-} from '../../trpc/core/procedures.js';
-import { db } from '../../db/core/index.js';
-import { admins } from '../../db/core/schema.js';
+} from '../../../trpc/core/procedures.js';
+import { db } from '../../../db/core/index.js';
+import { admins } from '../../../db/core/schema.js';
 
 export const syncProfile = protectedProcedure
   .input(
@@ -312,3 +312,4 @@ export const toggleTwoFactor = viewerProcedure
 
     return { success: true, data: updated };
   });
+

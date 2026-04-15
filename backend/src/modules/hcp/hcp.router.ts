@@ -3,120 +3,20 @@ import { eq, desc } from "drizzle-orm";
 import { router, publicProcedure } from '../../trpc/core/init.js';
 import { rateLimitedProcedure } from '../../trpc/core/procedures.js';
 import { db } from '../../db/core/index.js';
-import { hcpReports, notifications } from '../../db/core/schema.js';
-import { systemSettings } from "../../db/admin/settings.schema.js";
+import { hcpReports } from '../../db/core/schema.js';
 import { createHcpSchema, updateHcpSchema } from "./hcp.validation.js";
-import { determineNotificationData, shouldCreateNotification } from "../../utils/notification-helper.js";
-
+import { createHcpReport } from "./hcp.service.js";
 
 export const hcpRouter = router({
+  // ─── CREATE ────────────────────────────────────────────────────────────────
   create: rateLimitedProcedure
     .input(createHcpSchema)
     .mutation(async ({ input }) => {
-
-      const [row] = await db
-        .insert(hcpReports)
-        .values({
-          referenceId: `REP-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
-          products: input.products ?? [],
-          symptoms: input.symptoms ?? [],
-          patientDetails: input.patientDetails ?? {},
-          reporterDetails: input.reporterDetails ?? {},
-          takingOtherMeds: input.takingOtherMeds,
-          otherMedications: input.otherMedications ?? [],
-          hasRelevantHistory: input.hasRelevantHistory,
-          medicalHistory: input.medicalHistory ?? [],
-          labTestsPerformed: input.labTestsPerformed,
-          labTests: input.labTests ?? [],
-          additionalDetails: input.additionalDetails,
-          attachments: input.attachments ?? [],
-          agreedToTerms: input.agreedToTerms,
-          status: input.status ?? "new",
-          severity: input.severity || determineNotificationData(input, "HCP", "TEMP").type,
-          meddraVersion: (await db.select().from(systemSettings).where(eq(systemSettings.id, 1)))[0]?.clinicalConfig?.meddraVersion || "29.1",
-          countryCode: input.countryCode,
-          senderTimezoneOffset: input.senderTimezoneOffset,
-        })
-        .returning();
-
-      const notifData = determineNotificationData(input, "HCP", row.referenceId || row.id);
-      
-      let [settings] = await db.select().from(systemSettings).where(eq(systemSettings.id, 1));
-      if (!settings) {
-        settings = { id: 1, notificationThresholds: { urgentAlerts: true, alertThreshold: "All Severities", notifyOnApproval: true, emailDigest: false, digestFrequency: "Daily", smsAlerts: false } } as any;
-      }
-      
-      if (shouldCreateNotification(settings, notifData)) {
-        await db.insert(notifications).values({
-          type: notifData.type === "warning" ? "urgent" : notifData.type, // Boost if HCP confirms a warning
-          title: notifData.title,
-          desc: notifData.desc,
-          time: notifData.time,
-          date: notifData.date,
-          reportId: notifData.reportId,
-          classificationReason: notifData.classificationReason,
-        });
-      }
-
-      // Trigger E2B XML & PDF Workflow
-      try {
-        const { processE2BWorkflow } = await import("../e2b/index.js");
-        const e2bResult = await processE2BWorkflow(row.id);
-
-        const { generateSafetyPDF } = await import("../pdf/pdf-generator.js");
-        const { storeSafetyPDF } = await import("../pdf/storage.js");
-        const { sendAdminNotificationEmail } = await import("../../utils/mailer.js");
-        
-        const buffer = await generateSafetyPDF(row);
-        const pdfPath = await storeSafetyPDF(row.referenceId || row.id, buffer);
-        await db.update(hcpReports).set({ pdfUrl: pdfPath }).where(eq(hcpReports.id, row.id));
-
-        // ── Send Email Notification ──────────────────────────────────
-        const recipient = settings?.clinicalConfig?.smtpFrom || process.env.SMTP_FROM || 'aereporting@viginess.com';
-        if (!recipient) {
-          console.warn(`[E2B] No recipient configured for report ${row.referenceId || row.id} — email skipped`);
-        } else {
-          const refId = row.referenceId || row.id;
-          const validationPassed = e2bResult.isValid;
-          const validationErrList = (e2bResult.errors || [])
-            .map((e: any) => `<li>${e.message || JSON.stringify(e)}</li>`)
-            .join('');
-
-          const subject = validationPassed
-            ? `New HCP Safety Report: ${refId}`
-            : `⚠️ [VALIDATION FAILED] New HCP Safety Report: ${refId}`;
-
-          const validationBanner = validationPassed
-            ? `<p style="color:green;"><b>✅ E2B XML Validation: PASSED</b></p>`
-            : `<p style="color:red;"><b>⚠️ E2B XML Validation: FAILED</b></p>
-               <p>The following issues were detected and must be corrected before regulatory submission:</p>
-               <ul style="color:red;">${validationErrList}</ul>`;
-
-          await sendAdminNotificationEmail({
-            to: recipient,
-            subject,
-            html: `
-              <p>A new safety report has been submitted by a Healthcare Professional (HCP).</p>
-              <p><b>Reference ID:</b> ${refId}</p>
-              ${validationBanner}
-              <p>Please find the attached E2B XML and Safety PDF for your review.</p>
-            `,
-            attachments: [
-              { filename: `${refId}.pdf`, content: buffer },
-              { filename: `${refId}.xml`, content: e2bResult.xmlContent || "" }
-            ]
-          });
-        }
-      } catch (workflowErr: any) {
-        console.error("[E2B] Workflow non-blocking failure:", {
-          step: workflowErr?.step || 'unknown',
-          message: workflowErr?.message || String(workflowErr)
-        });
-      }
-
+      const row = await createHcpReport(input);
       return { success: true, data: row };
     }),
 
+  // ─── GET ALL ───────────────────────────────────────────────────────────────
   getAll: publicProcedure
     .input(
       z.object({
@@ -136,6 +36,7 @@ export const hcpRouter = router({
       return { success: true, data: rows, count: rows.length };
     }),
 
+  // ─── GET BY ID ─────────────────────────────────────────────────────────────
   getById: publicProcedure
     .input(z.object({ id: z.string().uuid() }))
     .query(async ({ input }) => {
@@ -148,6 +49,7 @@ export const hcpRouter = router({
       return { success: true, data: row };
     }),
 
+  // ─── UPDATE ────────────────────────────────────────────────────────────────
   update: publicProcedure
     .input(z.object({ id: z.string().uuid(), data: updateHcpSchema }))
     .mutation(async ({ input }) => {
@@ -161,6 +63,7 @@ export const hcpRouter = router({
       return { success: true, data: row };
     }),
 
+  // ─── DELETE ────────────────────────────────────────────────────────────────
   delete: publicProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ input }) => {

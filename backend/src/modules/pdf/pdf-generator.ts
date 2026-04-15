@@ -2,7 +2,7 @@ import PDFDocument from 'pdfkit';
 import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
-import { translateToEnglish } from '../../utils/azure-translator.js';
+import { translateToEnglish } from '../../utils/services/azure-translator.js';
 
 const resolveFontPath = (fileName: string): string => {
     return path.join(process.cwd(), 'assets', 'fonts', fileName);
@@ -142,9 +142,31 @@ export async function generateSafetyPDF(report: any): Promise<Buffer> {
         // Section 4: Drugs (G.k)
         drawSectionHeader(doc, 'SECTION 4 (G): SUSTAINED DRUG INFORMATION', clinRed);
         const products = (report.products as any[]) || [];
-        products.forEach((p, idx) => {
-            renderGridRow(doc, `G.k.2.2.${idx+1}`, p.productName || p.name || 'Suspect Drug', p.condition || 'Not Stated');
-            if (p.actionTaken) renderGridRow(doc, 'G.k.8', 'Action Taken', p.actionTaken, true);
+        const otherMedications = (report.otherMedications as any[]) || [];
+        const allDrugs = [
+            ...products.map(p => ({ ...p, type: 'Suspect (1)' })),
+            ...otherMedications.map(p => ({ ...p, type: 'Concomitant (4)' }))
+        ];
+
+        renderGridHeader(doc, ['E2B Code', 'Product / Coding', 'Value / Ingredients']);
+        allDrugs.forEach((p, idx) => {
+            const coding = p.whodrugCode ? `WHODrug: ${p.whodrugCode}` : 'Coding: Not Stated';
+            const ingredients = (p.ingredients || []).map((i: any) => i.name).join(', ') || 'Ingredients: Not Stated';
+            
+            renderGridRow(doc, `G.k.2.${idx+1}`, p.productName || p.name || 'Unknown Drug', `${p.type} | ${coding}`, true);
+            
+            // Sub-details for the drug
+            doc.fillColor(slateGray).font('Helvetica-Oblique').fontSize(8);
+            doc.text(`   Indication: ${p.condition || p.indication || 'Not Stated'}`, 130);
+            doc.text(`   Ingredients: ${ingredients}`, 130);
+            doc.moveDown(0.5);
+            
+            if (p.batchNumber || p.batch) {
+                renderGridRow(doc, 'G.k.4.r.2', 'Batch Number', p.batchNumber || p.batch);
+            }
+            if (p.actionTaken) {
+                renderGridRow(doc, 'G.k.8', 'Action Taken', p.actionTaken);
+            }
         });
         doc.moveDown(1);
 
@@ -209,3 +231,4 @@ function renderGridRow(doc: PDFKit.PDFDocument, code: string, desc: string, valu
     doc.text(value, 350, cy, { width: 200 });
     doc.font('Helvetica').moveDown(0.5);
 }
+

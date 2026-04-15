@@ -36,9 +36,8 @@ export function preValidateFormData(report: any): { valid: boolean; errors: { me
         errors.push({ message: `Product[${idx}] name is missing (G.k.2.2).`, type: "pre-validation" });
       }
       if (!p.characterization) {
-        // Default first drug to 'Suspect' if missing, others concomitant
-        const defaultChar = idx === 0 ? 'Suspect' : 'Concomitant';
-        console.log(`Product[${idx}] characterization missing, defaulting to ${defaultChar}`);
+        // Default first drug to 'Suspect' (1) if missing, others concomitant (2)
+        p.characterization = idx === 0 ? '1' : '2';
       }
     });
   }

@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { trpc } from "../utils/trpc";
+import { trpc } from "../utils/config/trpc";
 
 /**
  * Hook to handle dynamic loading of translations via tRPC.

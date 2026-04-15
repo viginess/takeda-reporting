@@ -1,12 +1,12 @@
 import { z } from "zod";
 import { sql, eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
-import { superAdminProcedure, viewerProcedure } from '../../trpc/core/procedures.js';
-import { db } from '../../db/core/index.js';
-import { admins, notifications } from '../../db/core/schema.js';
-import { systemSettings } from "../../db/admin/settings.schema.js";
-import { auditLogs } from "../../db/audit/audit.schema.js";
-import { runArchiver } from "../../jobs/archiver.js";
+import { superAdminProcedure, viewerProcedure } from '../../../trpc/core/procedures.js';
+import { db } from '../../../db/core/index.js';
+import { admins, notifications } from '../../../db/core/schema.js';
+import { systemSettings } from "../../../db/admin/settings.schema.js";
+import { auditLogs } from "../../../db/audit/audit.schema.js";
+import { runArchiver } from "../../../jobs/archiver.js";
 
 export const getSystemSettings = viewerProcedure.query(async () => {
   let [settings] = await db

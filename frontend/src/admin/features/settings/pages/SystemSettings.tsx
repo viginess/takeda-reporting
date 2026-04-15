@@ -6,8 +6,8 @@ import {
   ModalBody, ModalFooter, useDisclosure, useToast,Skeleton,
   VStack
 } from "@chakra-ui/react";
-import { trpc } from "../../../../utils/trpc";
-import { supabase } from "../../../../utils/supabaseClient";
+import { trpc } from "../../../../utils/config/trpc";
+import { supabase } from "../../../../utils/config/supabaseClient";
 import { GeneralSection } from "../components/GeneralSection";
 import { ProfileSection } from "../components/ProfileSection";
 import { SecurityTab } from "../components/SecurityTab";

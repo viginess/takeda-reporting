@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useToast } from "@chakra-ui/react";
-import { trpc } from "../../../../utils/trpc";
+import { trpc } from "../../../../utils/config/trpc";
 import type { Status, Severity, Report } from "../types";
 
 export function useReportActions() {

@@ -2,8 +2,8 @@ import { validateXML } from 'xmllint-wasm';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { db } from '../../db/core/index.js';
-import { meddraLlt } from "../../db/meddra/meddra.schema.js";
+import { db } from '../../../db/core/index.js';
+import { meddraLlt } from "../../../db/meddra/meddra.schema.js";
 import { DOMParser } from '@xmldom/xmldom';
 import xpath from 'xpath';
 
@@ -33,7 +33,7 @@ async function ensureMeddraCache() {
  * 6. XSD CHECK: Perform final structural schema validation via xmllint-wasm.
  */
 export async function validateE2BR3(xml: string) {
-  let schemasDir = path.resolve(__dirname, 'schemas');
+  let schemasDir = path.resolve(__dirname, '..', 'schemas');
   if (!fs.existsSync(schemasDir)) {
     // Fallback to src directory if running from compiled dist
     const fallbackDir = path.resolve(process.cwd(), 'src/modules/e2b/schemas');
@@ -153,6 +153,31 @@ export async function validateE2BR3(xml: string) {
     checkDate("//hl7:availabilityTime/@value", "availabilityTime");
     checkDate("//hl7:observation[hl7:code/@code='ASSERTION']/hl7:effectiveTime/hl7:low/@value", "Reaction low date");
     checkDate("//hl7:organizer[hl7:code/@code='1']//hl7:substanceAdministration/hl7:effectiveTime/hl7:low/@value", "Suspect Drug low date");
+
+    // ── WHODrug Discovery (OID: 2.16.840.1.113883.6.294) ────────────────────
+    const whodrugNodes = select("//hl7:*[@codeSystem='2.16.840.1.113883.6.294']", doc) as any[];
+    whodrugNodes.forEach((node) => {
+      const code = node.getAttribute?.('code') || node.nodeValue;
+      if (code) {
+        // WHODrug Global B3 standard: 8-digit code (DRN 6 + Seq1 2)
+        if (!/^\d{8}$/.test(code)) {
+          errors.push({ 
+            message: `Invalid WHODrug code format: ${code}. Expected 8-digit (DRN + Seq1).`, 
+            type: 'whodrug' 
+          });
+        }
+
+        // Best Practice: If medicinal product is coded, substances (G.k.2.3.r) should be enumerated
+        // We look for substanceAdministration/consumable/instanceOfKind/kindOfMaterialKind/ingredient
+        const substances = select("ancestor::hl7:kindOfMaterialKind//hl7:ingredient", node) as any[];
+        if (substances.length === 0) {
+            errors.push({ 
+              message: `Coded drug [${code}] is missing substance enumeration (G.k.2.3.r). This is a WHODrug best practice.`, 
+              type: 'compliance' 
+            });
+        }
+      }
+    });
 
     // --- MedDRA Discovery (XPath Fix 3: XPath 1.0 compatibility) ---
     const meddraNodes = select("//hl7:*[@codeSystem='2.16.840.1.113883.6.163']", doc) as any[];

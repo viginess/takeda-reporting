@@ -19,7 +19,7 @@ import {
 import { useFormContext, useFieldArray } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { HiPlus } from 'react-icons/hi2';
-import { ProductImageUpload } from '../../../shared/components/ProductImageUpload';
+import { ProductImageUpload } from '../../../shared/components/upload/ProductImageUpload';
 
 interface AdditionalDetailsProps {
   inputStyles: any;

@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Edit3, ChevronDown, Plus, X, AlertTriangle, User, Calendar, Activity,
-  Save, AlertCircle, History, DownloadCloud, FileCode, Check, FileText, RefreshCw, ChevronLeft
+  Save, AlertCircle, History, DownloadCloud, FileCode, Check, FileText, RefreshCw, ChevronLeft, Package
 } from "lucide-react";
 import {
   Box, Flex, Text, Button, Badge, Input, SimpleGrid, VStack,
@@ -38,6 +38,7 @@ interface DetailPanelProps {
   onRegenerate: (r: Report) => void;
   onSave: () => void;
   onOpenCodingModal: (idx: number) => void;
+  onOpenWhodrugModal: (idx: number) => void;
 }
 
 export function DetailPanel({
@@ -64,6 +65,7 @@ export function DetailPanel({
   onRegenerate,
   onSave,
   onOpenCodingModal,
+  onOpenWhodrugModal,
 }: DetailPanelProps) {
   return (
     <Flex
@@ -229,6 +231,7 @@ export function DetailPanel({
           </Box>
         </SimpleGrid>
 
+
         {/* Medical Coding */}
         {report.fullDetails?.symptoms?.length > 0 && (
           <Box mb={5} bg="red.50" borderRadius="xl" p={4} border="1px solid" borderColor="red.100">
@@ -248,6 +251,32 @@ export function DetailPanel({
                   <Button size="xs" variant="ghost" colorScheme="red" fontSize="2xs" flexShrink={0}
                     onClick={() => onOpenCodingModal(idx)} leftIcon={<Plus size={10} />}>
                     {s.meddraCode ? "Remap" : "Code"}
+                  </Button>
+                </Flex>
+              ))}
+            </VStack>
+          </Box>
+        )}
+
+        {/* Drug Coding */}
+        {report.fullDetails?.products?.length > 0 && (
+          <Box mb={5} bg="blue.50" borderRadius="xl" p={4} border="1px solid" borderColor="blue.100">
+            <Flex align="center" gap={2} mb={3}>
+              <Package size={13} color="blue.600" />
+              <Text fontSize="xs" color="blue.700" fontWeight="800" textTransform="uppercase" letterSpacing="0.05em">Drug Coding (WHODrug)</Text>
+            </Flex>
+            <VStack align="stretch" spacing={2.5}>
+              {report.fullDetails.products.map((p: any, idx: number) => (
+                <Flex key={idx} justify="space-between" align="center" bg="white" p={2.5} borderRadius="lg" border="1px solid" borderColor="blue.100" gap={2}>
+                  <Box flex={1}>
+                    <Text fontSize="xs" fontWeight="bold" color="#1e293b" noOfLines={1}>{p.name || "Unknown Product"}</Text>
+                    {p.whodrugCode
+                      ? <Text fontSize="2xs" color="blue.600" fontWeight="bold">Mapped: {p.whodrugCode}</Text>
+                      : <Text fontSize="2xs" color="#94a3b8">Uncoded</Text>}
+                  </Box>
+                  <Button size="xs" variant="ghost" colorScheme="blue" fontSize="2xs" flexShrink={0}
+                    onClick={() => onOpenWhodrugModal(idx)} leftIcon={<Plus size={10} />}>
+                    {p.whodrugCode ? "Remap" : "Code"}
                   </Button>
                 </Flex>
               ))}

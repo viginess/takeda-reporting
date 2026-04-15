@@ -10,7 +10,7 @@ import {
   Spinner,
 } from '@chakra-ui/react';
 import { useTranslation } from 'react-i18next';
-import { trpc } from '../../utils/trpc';
+import { trpc } from '../../../utils/config/trpc';
 
 interface MedDRASymptomAutocompleteProps {
   value: string;
