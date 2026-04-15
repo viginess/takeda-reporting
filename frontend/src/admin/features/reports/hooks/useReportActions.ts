@@ -34,12 +34,27 @@ export function useReportActions() {
   const xmlMutation = trpc.admin.getReportXML.useMutation();
   const bulkMutation = trpc.admin.getBulkReports.useMutation();
   const regenerateMutation = trpc.admin.regenerateReportFiles.useMutation({
-    onSuccess: () => {
+    onSuccess: (res) => {
       utils.admin.getAllReports.invalidate();
-      toast({ title: "Report regenerated", status: "success", duration: 3000 });
+      
+      const isActuallyValid = res.success && 'isValid' in res && res.isValid;
+      const isActuallyInvalid = res.success && 'isValid' in res && !res.isValid;
+
+      if (isActuallyValid) {
+        toast({ title: "Report regenerated", description: "Report is now fully compliant.", status: "success", duration: 4000 });
+      } else if (isActuallyInvalid) {
+        toast({ 
+          title: "Files updated with warnings", 
+          description: "XML generated, but regulatory errors persist. Check the banner for details.", 
+          status: "warning", 
+          duration: 6000 
+        });
+      } else {
+        toast({ title: "Regeneration failed", description: (res as any).error || "Unknown error", status: "error" });
+      }
     },
     onError: (err) => {
-      toast({ title: "Regeneration failed", description: err.message, status: "error" });
+      toast({ title: "System error", description: err.message, status: "error" });
     }
   });
 
@@ -119,10 +134,10 @@ export function useReportActions() {
   };
 
   const handleRegenerate = async (report: Report) => {
-    await regenerateMutation.mutateAsync({
+    return await regenerateMutation.mutateAsync({
       reportId: report.originalId ?? report.id,
       reporterType: report.reporterType
-    }).catch(() => {}); // handled by onError
+    });
   };
 
   const executeUpdate = (report: Report, editData: { status?: Status; severity?: Severity; adminNotes: string }, fullDetailsEdit: any) => {

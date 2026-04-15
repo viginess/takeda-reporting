@@ -53,16 +53,19 @@ export function DrugSearchInput({
     setIsOpen(false);
   };
 
+  const handleTextChange = (newText: string) => {
+    setQuery(newText);
+    setIsOpen(true);
+    // Pass the text but NO code — this signals the parent that coding is lost
+    // The parent (ProductDetails) decides whether to clear whodrugCode
+    onChange(newText, undefined);
+  };
+
   return (
     <Box position="relative" ref={containerRef} w="full">
       <Input
         value={query}
-        onChange={(e) => {
-          setQuery(e.target.value);
-          // Allow free-text while searching
-          onChange(e.target.value);
-          setIsOpen(true);
-        }}
+        onChange={(e) => handleTextChange(e.target.value)}
         onFocus={() => setIsOpen(true)}
         placeholder={t('common.searchDrug', 'Search drug dictionary...')}
         autoComplete="off"

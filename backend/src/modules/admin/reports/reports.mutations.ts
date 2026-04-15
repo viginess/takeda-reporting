@@ -37,6 +37,7 @@ export const updateReport = adminProcedure
         hcpDetails: z.any().optional(),
         reporterDetails: z.any().optional(),
         products: z.any().optional(),
+        otherMedications: z.any().optional(),
         medicalHistory: z.any().optional(),
         labTests: z.any().optional(),
         additionalDetails: z.any().optional(),
@@ -107,6 +108,38 @@ export const updateReport = adminProcedure
           code: "PRECONDITION_FAILED",
           message: `Cannot approve report: E2B XML validation failed. Errors: ${errorList}`,
         });
+      }
+    }
+    // Data Enrichment (Fetch WHODrug ingredients & ATCs if updated)
+    if (updates.products || updates.otherMedications) {
+      const { whodrugService } = await import('../../whodrug/whodrug.service.js');
+      const allProducts = [...(updates.products || []), ...(updates.otherMedications || [])];
+      const whoCodes = allProducts.map((p: any) => p.whodrugCode).filter(Boolean);
+      
+      if (whoCodes.length > 0) {
+        const enrichmentMapping = await whodrugService.getEnrichedDrugData(whoCodes);
+        
+        if (updates.products) {
+          updates.products = (updates.products as any[]).map((p: any) => {
+            const enrichment = enrichmentMapping[p.whodrugCode];
+            return {
+              ...p,
+              ingredients: enrichment ? enrichment.ingredients : p.ingredients,
+              atcs: enrichment ? enrichment.atcs : p.atcs
+            };
+          });
+        }
+        
+        if (updates.otherMedications) {
+          updates.otherMedications = (updates.otherMedications as any[]).map((p: any) => {
+            const enrichment = enrichmentMapping[p.whodrugCode];
+            return {
+              ...p,
+              ingredients: enrichment ? enrichment.ingredients : p.ingredients,
+              atcs: enrichment ? enrichment.atcs : p.atcs
+            };
+          });
+        }
       }
     }
 

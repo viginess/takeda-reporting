@@ -1,8 +1,9 @@
+import { useState } from "react";
 import { Search, AlertCircle, Package } from "lucide-react";
 import {
   Modal, ModalOverlay, ModalContent, ModalBody, ModalCloseButton,
   Heading, Text, Box, Badge, Flex, VStack, Input, InputGroup,
-  InputLeftElement, Skeleton, Center, useToast
+  InputLeftElement, Skeleton, Center, useToast, Spinner
 } from "@chakra-ui/react";
 import type { Report } from "../types";
 
@@ -32,6 +33,8 @@ export function WhodrugModal({
   onProductUpdated,
 }: WhodrugModalProps) {
   const toast = useToast();
+  const [codingCode, setCodingCode] = useState<string | null>(null);
+  
   const product = codingProductIndex !== null
     ? selectedReport?.fullDetails?.products?.[codingProductIndex]
     : null;
@@ -48,7 +51,7 @@ export function WhodrugModal({
           {product && (
             <Box bg="#f8fafc" p={4} borderRadius="xl" border="1px solid" borderColor="#e2e8f0" mb={6}>
               <Text fontSize="xs" fontWeight="bold" color="#94a3b8" textTransform="uppercase" mb={1}>Reported Product</Text>
-              <Text fontWeight="700" color="#0f172a">{product.name || "Unknown Product"}</Text>
+              <Text fontWeight="700" color="#0f172a">{product.productName || product.name || product.product || "Unknown Product"}</Text>
               {product.whodrugCode && (
                 <Badge mt={2} colorScheme="red" variant="subtle" borderRadius="md">
                   Current ID: {product.whodrugCode}
@@ -81,6 +84,9 @@ export function WhodrugModal({
                 cursor="pointer" transition="all 0.2s" _hover={{ bg: "red.50", borderColor: "red.100" }}
                 onClick={async () => {
                   if (codingProductIndex === null || !selectedReport) return;
+                  if (codingCode) return; // Prevent double clicks
+                  setCodingCode(drug.code);
+                  
                   const updatedProducts = [...selectedReport.fullDetails.products];
                   updatedProducts[codingProductIndex] = {
                     ...updatedProducts[codingProductIndex],
@@ -100,6 +106,8 @@ export function WhodrugModal({
                     onClose();
                   } catch (err: any) {
                     toast({ title: "Mapping Failed", description: err.message, status: "error" });
+                  } finally {
+                    setCodingCode(null);
                   }
                 }}
               >
@@ -111,6 +119,7 @@ export function WhodrugModal({
                     </Flex>
                   </Box>
                   <Flex align="center" gap={3}>
+                    {codingCode === drug.code && <Spinner size="xs" color="#CE0037" thickness="2px" />}
                     <Text fontSize="2xs" color="gray.400">Match {(drug.similarity * 100).toFixed(0)}%</Text>
                     <Badge colorScheme="red" variant="outline" fontSize="2xs">{drug.code}</Badge>
                   </Flex>

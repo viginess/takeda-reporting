@@ -21,6 +21,7 @@ import {
   InputRightElement,
   Portal,
   VStack,
+  Badge,
 } from '@chakra-ui/react';
 import { ProductImageUpload } from '../../../shared/components/upload/ProductImageUpload';
 import { DrugSearchInput } from '../../../shared/components/whodrug/DrugSearchInput';
@@ -65,17 +66,31 @@ export function HcpProductDetails({ inputStyles, index = 0, onAddProduct }: HcpP
         {t('forms.patient.productDetails.subtitle')}
       </Text>
 
-      <FormControl mb={6} isRequired>
+      <FormControl mb={2} isRequired>
         <DrugSearchInput
           value={watch(`${prefix}.productName`) || ''}
           onChange={(name, code) => {
             setValue(`${prefix}.productName`, name, { shouldValidate: true });
             if (code) {
               setValue(`${prefix}.whodrugCode`, code);
+            } else {
+              setValue(`${prefix}.whodrugCode`, '');
             }
           }}
           inputStyles={inputStyles}
         />
+        {watch(`${prefix}.whodrugCode`) ? (
+          <Flex align="center" mt={2} gap={2}>
+            <Badge colorScheme="green" fontSize="xs" px={2} py={1} borderRadius="full">
+               WHODrug Coded: {watch(`${prefix}.whodrugCode`)}
+            </Badge>
+            <Text fontSize="xs" color="gray.500">Ingredient & ATC data will be auto-populated</Text>
+          </Flex>
+        ) : (
+          <Text fontSize="xs" color="orange.500" mt={1}>
+             Select from suggestions to enable regulatory coding
+          </Text>
+        )}
       </FormControl>
 
       <FormControl mb={6}>

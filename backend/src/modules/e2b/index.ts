@@ -78,18 +78,20 @@ export async function processE2BWorkflow(reportId: string) {
     const whoCodes = allProducts.map((p: any) => p.whodrugCode).filter(Boolean);
     
     if (whoCodes.length > 0) {
-      const ingredientMapping = await whodrugService.getIngredientsForDrugs(whoCodes);
-      // Enrich report products with their dictionary ingredients
+      const enrichmentMapping = await whodrugService.getEnrichedDrugData(whoCodes);
+      // Enrich report products with their dictionary ingredients and ATCs
       if (report.products) {
         report.products = report.products.map((p: any) => ({
           ...p,
-          ingredients: p.whodrugCode ? ingredientMapping[p.whodrugCode] : undefined
+          ingredients: p.whodrugCode && enrichmentMapping[p.whodrugCode] ? enrichmentMapping[p.whodrugCode].ingredients : (p.ingredients || []),
+          atcs: p.whodrugCode && enrichmentMapping[p.whodrugCode] ? enrichmentMapping[p.whodrugCode].atcs : (p.atcs || [])
         }));
       }
       if (report.otherMedications) {
         report.otherMedications = report.otherMedications.map((p: any) => ({
           ...p,
-          ingredients: p.whodrugCode ? ingredientMapping[p.whodrugCode] : undefined
+          ingredients: p.whodrugCode && enrichmentMapping[p.whodrugCode] ? enrichmentMapping[p.whodrugCode].ingredients : (p.ingredients || []),
+          atcs: p.whodrugCode && enrichmentMapping[p.whodrugCode] ? enrichmentMapping[p.whodrugCode].atcs : (p.atcs || [])
         }));
       }
     }
@@ -120,13 +122,15 @@ export async function processE2BWorkflow(reportId: string) {
     const xmlPath = await storeE2BR3(report.referenceId || reportId, xml);
     console.log(`XML Stored at path: ${xmlPath}`);
 
-    // 5. Update Report with XML Path and Validation Status
+    // 5. Update Report with Enriched Data, XML Path and Validation Status
     await db
       .update(tableToUpdate)
       .set({
         xmlUrl: xmlPath,
         isValid: finalValid,
         validationErrors: finalErrors,
+        products: report.products,
+        otherMedications: report.otherMedications,
         updatedAt: new Date(),
       } as any)
       .where(eq(tableToUpdate.id, reportId));

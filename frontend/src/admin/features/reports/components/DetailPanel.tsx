@@ -107,12 +107,10 @@ export function DetailPanel({
         <Flex gap={2}>
           {mode === "view" ? (
             <>
-              {report.isValid === false && (
-                <Button onClick={() => onRegenerate(report)} variant="outline" colorScheme="orange" size={{ base: "xs", sm: "sm" }}
-                  leftIcon={<RefreshCw size={11} />} isLoading={isRegenerating}>
-                  {isMobile ? "" : "Regenerate"}
-                </Button>
-              )}
+              <Button onClick={() => onRegenerate(report)} variant="outline" colorScheme="orange" size={{ base: "xs", sm: "sm" }}
+                leftIcon={<RefreshCw size={11} />} isLoading={isRegenerating}>
+                {isMobile ? "" : "Regenerate"}
+              </Button>
               <Button onClick={() => onDownloadXml(report)} variant="outline" colorScheme="blue" size={{ base: "xs", sm: "sm" }}
                 leftIcon={<FileCode size={11} />} isLoading={downloadingXml}
                 isDisabled={report.isValid === false} opacity={report.isValid === false ? 0.5 : 1}>
@@ -269,7 +267,7 @@ export function DetailPanel({
               {report.fullDetails.products.map((p: any, idx: number) => (
                 <Flex key={idx} justify="space-between" align="center" bg="white" p={2.5} borderRadius="lg" border="1px solid" borderColor="blue.100" gap={2}>
                   <Box flex={1}>
-                    <Text fontSize="xs" fontWeight="bold" color="#1e293b" noOfLines={1}>{p.name || "Unknown Product"}</Text>
+                    <Text fontSize="xs" fontWeight="bold" color="#1e293b" noOfLines={1}>{p.productName || p.name || p.product || "Unknown Product"}</Text>
                     {p.whodrugCode
                       ? <Text fontSize="2xs" color="blue.600" fontWeight="bold">Mapped: {p.whodrugCode}</Text>
                       : <Text fontSize="2xs" color="#94a3b8">Uncoded</Text>}

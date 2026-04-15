@@ -160,7 +160,7 @@ export const publicService = {
           </div>
           
           <p style="font-size: 11px; color: #999; margin-top: 30px; text-align: center;">
-            This inquiry was sent automatically from the Takeda Reporting Contact Page.
+            This inquiry was sent automatically from the Clin Solutions L.L.C. Pharmacovigilance Contact Page.
           </p>
         </div>
       `

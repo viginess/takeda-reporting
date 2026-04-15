@@ -21,6 +21,7 @@ const productSchema = z.object({
   batches: z.array(batchSchema).min(1, "At least one batch is required"),
   doseForm: z.string().optional(),
   route: z.string().optional(),
+  whodrugCode: z.string().optional(),
 });
 
 const symptomSchema = z.object({

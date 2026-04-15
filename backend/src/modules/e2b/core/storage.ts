@@ -32,11 +32,12 @@ export async function storeE2BR3(reportId: string, xml: string): Promise<string>
 /**
  * Generates a temporary signed URL for an admin to download a private XML file.
  */
-export async function getSignedE2BUrl(filePath: string): Promise<string> {
+export async function getSignedE2BUrl(filePath: string, downloadName?: string): Promise<string> {
   const supabase = getSupabaseAdmin();
+  const options: any = { download: downloadName || true };
   const { data, error } = await supabase.storage
     .from('reports-xml')
-    .createSignedUrl(filePath, 3600); // URL valid for 1 hour
+    .createSignedUrl(filePath, 3600, options); // URL valid for 1 hour
 
   if (error) throw error;
   return data.signedUrl;

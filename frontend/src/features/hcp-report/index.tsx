@@ -86,7 +86,7 @@ function ProductStep({ inputStyles }: { inputStyles: any }) {
           <HcpProductDetails
             inputStyles={inputStyles}
             index={index}
-            onAddProduct={() => append({ productName: '', condition: '' })}
+            onAddProduct={() => append({ productName: '', whodrugCode: '', condition: '' })}
           />
           {index < fields.length - 1 && <Box borderBottom="1px solid" borderColor="gray.100" my={10} />}
         </Box>
@@ -335,6 +335,7 @@ function HcpForm({ onBack, countryCode, languageCode }: HcpFormProps) {
               products: [
                 {
                   productName: '',
+                  whodrugCode: '',
                   condition: '',
                   doseForm: '',
                   route: '',

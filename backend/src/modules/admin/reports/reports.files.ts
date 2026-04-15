@@ -42,7 +42,7 @@ export const getReportPDF = adminProcedure
     // If PDF already exists, return its signed URL
     if (report.pdfUrl) {
       try {
-        const url = await getSignedPDFUrl(report.pdfUrl);
+        const url = await getSignedPDFUrl(report.pdfUrl, `${report.referenceId || report.id}.pdf`);
         return { success: true, url };
       } catch (e) {
         console.warn("Failed to get signed URL for existing PDF, regenerating...");
@@ -56,7 +56,7 @@ export const getReportPDF = adminProcedure
     // Save path to DB
     await db.update(table).set({ pdfUrl: filePath }).where(eq(table.id, reportId));
 
-    const signedUrl = await getSignedPDFUrl(filePath);
+    const signedUrl = await getSignedPDFUrl(filePath, `${report.referenceId || report.id}.pdf`);
     return { success: true, url: signedUrl };
   });
 
@@ -84,7 +84,7 @@ export const getReportXML = adminProcedure
     }
 
     const { getSignedE2BUrl } = await import("../../e2b/core/storage.js");
-    const url = await getSignedE2BUrl(report.xmlUrl);
+    const url = await getSignedE2BUrl(report.xmlUrl, `${report.referenceId || report.id}.xml`);
     return { success: true, url };
   });
 

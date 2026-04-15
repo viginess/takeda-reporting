@@ -151,7 +151,8 @@ export async function generateSafetyPDF(report: any): Promise<Buffer> {
         renderGridHeader(doc, ['E2B Code', 'Product / Coding', 'Value / Ingredients']);
         allDrugs.forEach((p, idx) => {
             const coding = p.whodrugCode ? `WHODrug: ${p.whodrugCode}` : 'Coding: Not Stated';
-            const ingredients = (p.ingredients || []).map((i: any) => i.name).join(', ') || 'Ingredients: Not Stated';
+            const ingredients = (p.ingredients || []).map((i: any) => i.name).join(', ') || 'Not Stated';
+            const atcs = (p.atcs || []).map((a: any) => `${a.name} (${a.code})`).join(', ') || 'Not Stated';
             
             renderGridRow(doc, `G.k.2.${idx+1}`, p.productName || p.name || 'Unknown Drug', `${p.type} | ${coding}`, true);
             
@@ -159,6 +160,7 @@ export async function generateSafetyPDF(report: any): Promise<Buffer> {
             doc.fillColor(slateGray).font('Helvetica-Oblique').fontSize(8);
             doc.text(`   Indication: ${p.condition || p.indication || 'Not Stated'}`, 130);
             doc.text(`   Ingredients: ${ingredients}`, 130);
+            doc.text(`   Classifications: ${atcs}`, 130);
             doc.moveDown(0.5);
             
             if (p.batchNumber || p.batch) {

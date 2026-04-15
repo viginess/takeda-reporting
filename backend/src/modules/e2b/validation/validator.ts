@@ -159,22 +159,28 @@ export async function validateE2BR3(xml: string) {
     whodrugNodes.forEach((node) => {
       const code = node.getAttribute?.('code') || node.nodeValue;
       if (code) {
-        // WHODrug Global B3 standard: 8-digit code (DRN 6 + Seq1 2)
-        if (!/^\d{8}$/.test(code)) {
+        // Validation Regex: Support 8-11 digit codes (Global B3)
+        if (!/^\d{8,11}$/.test(code)) {
           errors.push({ 
-            message: `Invalid WHODrug code format: ${code}. Expected 8-digit (DRN + Seq1).`, 
+            message: `Invalid WHODrug code format: ${code}. Expected 8-digit (DRN + Seq1) or 10-digit/11-digit B3 code.`, 
             type: 'whodrug' 
           });
         }
 
         // Best Practice: If medicinal product is coded, substances (G.k.2.3.r) should be enumerated
-        // We look for substanceAdministration/consumable/instanceOfKind/kindOfMaterialKind/ingredient
-        const substances = select("ancestor::hl7:kindOfMaterialKind//hl7:ingredient", node) as any[];
-        if (substances.length === 0) {
-            errors.push({ 
-              message: `Coded drug [${code}] is missing substance enumeration (G.k.2.3.r). This is a WHODrug best practice.`, 
-              type: 'compliance' 
-            });
+        // WE ONLY CHECK THIS FOR MEDICINAL PRODUCTS (under consumable), NOT FOR INGREDIENTS
+        const isIngredientFound = (select("ancestor::hl7:ingredient", node) as any[]).length > 0;
+        const isMedicinalProductFound = (select("ancestor::hl7:consumable", node) as any[]).length > 0;
+
+        if (isMedicinalProductFound && !isIngredientFound) {
+            // Find substances inside the product instance
+            const substances = select("ancestor::hl7:productInstanceInstance//hl7:ingredient", node) as any[];
+            if (Array.isArray(substances) && substances.length === 0) {
+                errors.push({ 
+                  message: `Coded drug [${code}] is missing substance enumeration (G.k.2.3.r). This is a WHODrug best practice.`, 
+                  type: 'compliance' 
+                });
+            }
         }
       }
     });

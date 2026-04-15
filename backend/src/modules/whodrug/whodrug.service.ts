@@ -92,13 +92,21 @@ export const whodrugService = {
    * Fetches ingredients for a list of drug codes (8-digit DRN+Seq1).
    * Used for E2B XML data enrichment.
    */
-  async getIngredientsForDrugs(codes: string[]) {
+  /**
+   * Fetches enriched drug data (Ingredients and ATC) for a list of drug codes.
+   * Uses both ING.txt (Ingredients) and DDA.txt (ATC) mappings.
+   */
+  async getEnrichedDrugData(codes: string[]) {
     if (!codes.length) return {};
     
     // Group codes by DRN/Seq1
-    const keys = codes.map(c => ({ drn: c.substring(0, 6), seq1: c.substring(6, 8) }));
+    const keys = codes.map(c => ({ 
+      drn: c.substring(0, 6), 
+      seq1: c.substring(6, 8) 
+    }));
     
-    const results = await db.select({
+    // 1. Fetch Substance Mapping (ING)
+    const ingResults = await db.select({
       drn: whodrugIng.drugRecordNumber,
       seq1: whodrugIng.seq1,
       ingredientCode: whodrugIng.ingredientCode,
@@ -107,15 +115,77 @@ export const whodrugService = {
     .from(whodrugIng)
     .where(sql`(${whodrugIng.drugRecordNumber}, ${whodrugIng.seq1}) IN ${sql.raw(`(${keys.map(k => `('${k.drn}', '${k.seq1}')`).join(',')})`)}`);
 
-    // Group by 8-digit code
-    const mapping: Record<string, { code: string; name: string }[]> = {};
-    results.forEach(r => {
+    // 2. Fetch ATC Mapping (DDA + INA)
+    // IMPORTANT: DDA stores WHODrug-prefixed ATC codes e.g. '18A09AA'
+    //            INA stores standard WHO ATC codes e.g. 'A09AA'
+    // Fix: strip leading digits with REGEXP_REPLACE before joining to INA
+    const atcResults = await db.select({
+      drn: whodrugDda.drugRecordNumber,
+      seq1: whodrugDda.seq1,
+      atcCode: sql<string>`regexp_replace(${whodrugDda.atcCode}, '^\\d+', '')`,
+      rawAtcCode: whodrugDda.atcCode,
+      atcDescription: whodrugIna.description
+    })
+    .from(whodrugDda)
+    .leftJoin(whodrugIna, sql`regexp_replace(${whodrugDda.atcCode}, '^\\d+', '') = ${whodrugIna.atcCode}`)
+    .where(sql`(${whodrugDda.drugRecordNumber}, ${whodrugDda.seq1}) IN ${sql.raw(`(${keys.map(k => `('${k.drn}', '${k.seq1}')`).join(',')})`)}`);
+
+    // 3. Smart Join: Recover missing ingredient names using the Preferred Name (INN) strategy
+    //
+    // WHODrug B3 convention: the preferred name (INN) for any drug family is stored
+    // at Seq2='001' in whodrug_dd for the same DRN.
+    //
+    // The ingredient code (e.g. '0053608756') maps to a substance within the same DRN family.
+    // Since the importer did not store the substance Seq2, we use Seq2='001' as the INN.
+    // For Zenpep: DRN=001502, Seq2='001' → tradeName='PANCRELIPASE'
+    // For Paracetamol: DRN=000200, Seq2='001' → tradeName='PARACETAMOL'
+    const missingIngredients = ingResults.filter(r => !r.ingredientName);
+    const recoveredNames: Record<string, string> = {};
+
+    if (missingIngredients.length > 0) {
+      const missingDrnsForIng = [...new Set(missingIngredients.map(r => r.drn))];
+      
+      const preferredRecords = await db.select({
+        drn: whodrugDd.drugRecordNumber,
+        name: whodrugDd.tradeName
+      })
+      .from(whodrugDd)
+      .where(and(
+        sql`${whodrugDd.drugRecordNumber} IN ${sql.raw(`(${missingDrnsForIng.map(d => `'${d}'`).join(',')})`)}`,
+        eq(whodrugDd.seq2, '001')
+      ));
+      
+      preferredRecords.forEach(r => { recoveredNames[r.drn] = r.name; });
+    }
+
+    // 4. Assemble Results
+    const mapping: Record<string, { ingredients: { code: string; name: string }[], atcs: { code: string; name: string }[] }> = {};
+    
+    // Initialize mapping for all input codes
+    codes.forEach(c => { mapping[c] = { ingredients: [], atcs: [] }; });
+
+    // Populate Ingredients
+    ingResults.forEach(r => {
       const code = `${r.drn}${r.seq1}`;
-      if (!mapping[code]) mapping[code] = [];
-      mapping[code].push({ 
-        code: r.ingredientCode ?? '', 
-        name: r.ingredientName ?? '' 
-      });
+      if (mapping[code]) {
+        // Use the DRN as key for preferred name lookup (INN strategy)
+        const recoveredName = recoveredNames[r.drn] || null;
+        mapping[code].ingredients.push({
+          code: r.ingredientCode,
+          name: r.ingredientName || recoveredName || r.ingredientCode
+        });
+      }
+    });
+
+    // Populate ATCs
+    atcResults.forEach(r => {
+      const code = `${r.drn}${r.seq1}`;
+      if (mapping[code]) {
+        mapping[code].atcs.push({
+          code: r.atcCode,
+          name: r.atcDescription || 'Unknown classification'
+        });
+      }
     });
 
     return mapping;
@@ -137,7 +207,7 @@ export const whodrugService = {
         ingredients: Number(ingCount.count),
         atcClassifications: Number(atcCount.count)
       },
-      lastUpdated: new Date() // In a real system, this would come from a metadata table
+      lastUpdated: new Date()
     };
   }
 };

@@ -302,7 +302,8 @@ export function generateE2BR3(report: SafetyReport, options: { senderId: string,
     const consumable = substAdmin.ele('consumable', { typeCode: 'CSM' }).ele('instanceOfKind', { classCode: 'INST' });
     const pInstance = consumable.ele('productInstanceInstance', { classCode: 'MMAT', determinerCode: 'INSTANCE' });
     if (d.batchNumber || d.batch) pInstance.ele('lotNumberText').txt(d.batchNumber || d.batch).up();
-    const matKind = pInstance.ele('asInstanceOfKind', { classCode: 'INST' }).ele('kindOfMaterialKind', { classCode: 'MAT', determinerCode: 'KIND' });
+    const asInstanceOfKind = pInstance.ele('asInstanceOfKind', { classCode: 'INST' });
+    const matKind = asInstanceOfKind.ele('kindOfMaterialKind', { classCode: 'MAT', determinerCode: 'KIND' });
     
     if (d.whodrugCode) {
       matKind.ele('code', { 
@@ -315,30 +316,49 @@ export function generateE2BR3(report: SafetyReport, options: { senderId: string,
       matKind.ele('code', { nullFlavor: 'NA' }).up();
     }
 
-    matKind.ele('name').txt(d.productName || d.product || 'Unknown Drug').up().up();
+    matKind.ele('name').txt(d.productName || d.product || 'Unknown Drug').up();
 
-    // Substance / Specified Substance (G.k.2.3.r)
-    // For coded drugs, we enumerate the active ingredients
+    // Substance / Specified Substance (G.k.2.3.r) - Recursive Structure
     if (d.ingredients && Array.isArray(d.ingredients) && d.ingredients.length > 0) {
       d.ingredients.forEach((ing: any) => {
-        matKind.ele('ingredient', { typeCode: 'ACTI' })
+        pInstance.ele('ingredient', { classCode: 'ACTI' })
           .ele('quantity')
             .ele('numerator', { 'xsi:type': 'PQ', value: '1', unit: '1' }).up()
             .ele('denominator', { 'xsi:type': 'PQ', value: '1', unit: '1' }).up()
           .up()
-          .ele('ingredientSubstance', { classCode: 'MMAT', determinerCode: 'KIND' })
-            .ele('code', { 
-              code: ing.code, 
-              codeSystem: '2.16.840.1.113883.6.294', 
-              codeSystemVersion: 'WHODrug Global B3 Mar 2025',
-              displayName: ing.name 
-            }).up()
-            .ele('name').txt(ing.name).up()
-          .up().up();
+          .ele('ingredientProductInstance', { classCode: 'MMAT', determinerCode: 'INSTANCE' })
+            .ele('asInstanceOfKind', { classCode: 'INST' })
+              .ele('kindOfMaterialKind', { classCode: 'MAT', determinerCode: 'KIND' })
+                .ele('code', { 
+                  code: ing.code, 
+                  codeSystem: '2.16.840.1.113883.6.294', 
+                  codeSystemVersion: 'WHODrug Global B3 Mar 2025',
+                  displayName: ing.name 
+                }).up()
+                .ele('name').txt(ing.name).up()
+              .up()
+            .up()
+          .up()
+        .up();
       });
     }
 
-    matKind.up().up().up();
+    // ATC Classifications (G.k.2.1.r) - Moved to substanceAdministration level for compliance
+    if (d.atcs && Array.isArray(d.atcs)) {
+      d.atcs.forEach((atc: any) => {
+        substAdmin.ele('outboundRelationship2', { typeCode: 'COMP' })
+          .ele('observation', { classCode: 'OBS', moodCode: 'EVN' })
+            .ele('code', { code: 'G.k.2.1.r', codeSystem: '2.16.840.1.113883.3.989.2.1.1.20' }).up()
+            .ele('value', { 
+              'xsi:type': 'CE',
+              code: atc.code, 
+              codeSystem: '2.16.840.1.113883.6.73', 
+              displayName: atc.name 
+            }).up()
+          .up()
+        .up();
+      });
+    }
 
     // Category must follow consumable in the HL7 schema sequence
     substAdmin.ele('outboundRelationship2', { typeCode: 'COMP' })

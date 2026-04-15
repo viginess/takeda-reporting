@@ -110,6 +110,21 @@ export default function ReportManagementPage() {
     setSelectedReportIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
   };
 
+  const handleRegenerateWrapper = async (r: Report) => {
+    const res = await handleRegenerate(r);
+    // Type guard to narrow the union and fix the TS error
+    if (res && res.success && 'isValid' in res) {
+      setSelectedReport(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          isValid: res.isValid,
+          validationErrors: (res as any).errors || []
+        };
+      });
+    }
+  };
+
   const handleSave = () => {
     if (!selectedReport) return;
     const newReport = executeUpdate(selectedReport, {
@@ -225,7 +240,7 @@ export default function ReportManagementPage() {
                   onSetShowFullDetails={setShowFullDetails}
                   onDownloadXml={handleDownloadXml}
                   onDownloadPdf={handleDownloadPdf}
-                  onRegenerate={handleRegenerate}
+                  onRegenerate={handleRegenerateWrapper}
                   onSave={handleSave}
                   onOpenCodingModal={(idx) => { setCodingSymptomIndex(idx); onCodingOpen(); }}
                   onOpenWhodrugModal={(idx) => { setCodingDrugIndex(idx); onWhodrugOpen(); }}
