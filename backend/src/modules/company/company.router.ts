@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { router, publicProcedure } from '../../trpc/core/init.js';
-import { companyNotificationService as companyService } from "./company.service.js";
 import { db } from "../../db/core/index.js";
 import { companies, companyNotifications } from "../../db/company/company.schema.js";
 import { eq, desc, ilike, or } from "drizzle-orm";
@@ -85,8 +84,8 @@ export const companyRouter = router({
    */
   getStats: publicProcedure
     .query(async () => {
-      const [total] = await db.select({ count: companies.id }).from(companies);
-      const [registered] = await db.select({ count: companies.id }).from(companies).where(eq(companies.isRegistered, true));
+      // const [total] = await db.select({ count: companies.id }).from(companies);
+      // const [registered] = await db.select({ count: companies.id }).from(companies).where(eq(companies.isRegistered, true));
       
       return {
         totalCompanies: 143, // Fixed seeded count for now

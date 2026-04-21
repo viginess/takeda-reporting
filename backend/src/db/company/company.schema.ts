@@ -7,7 +7,6 @@ import {
   index,
   varchar,
 } from "drizzle-orm/pg-core";
-import { patientReports } from "../patient/patient.schema.js";
 
 /**
  * 1. Companies Table

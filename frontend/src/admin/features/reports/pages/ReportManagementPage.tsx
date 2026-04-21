@@ -7,16 +7,16 @@ import {
   Modal, ModalOverlay, ModalContent, ModalBody, ModalCloseButton,
   Image, useDisclosure, useBreakpointValue
 } from "@chakra-ui/react";
-import { trpc } from "../../../utils/config/trpc";
+import { trpc } from "../../../../utils/config/trpc";
 
-import type { Report, MedDRATerm, Status, Severity } from "./types";
-import { statusOptions } from "./types";
-import { useReportActions } from "./hooks/useReportActions";
-import { ReportTable } from "./components/ReportTable";
-import { DetailPanel } from "./components/DetailPanel";
-import { MedDRAModal } from "./components/MedDRAModal";
-import { WhodrugModal } from "./components/WhodrugModal";
-import { BulkToolbar } from "./components/BulkToolbar";
+import type { Report, MedDRATerm, Status, Severity } from "../types";
+import { statusOptions } from "../types";
+import { useReportActions } from "../hooks/useReportActions";
+import { ReportTable } from "../components/ReportTable";
+import { DetailPanel } from "../components/DetailPanel";
+import { MedDRAModal } from "../components/MedDRAModal";
+import { WhodrugModal } from "../components/WhodrugModal";
+import { BulkToolbar } from "../components/BulkToolbar";
 
 export default function ReportManagementPage() {
   const [search, setSearch] = useState("");
@@ -97,8 +97,8 @@ export default function ReportManagementPage() {
     setEditData({ status: r.status, severity: r.severity, adminNotes: r.adminNotes || "" });
     setFullDetailsEdit(r.fullDetails || {});
     setMode("view");
-    setShowAudit(false);
-    setShowFullDetails(true);
+    showAudit && setShowAudit(false);
+    !showFullDetails && setShowFullDetails(true);
   };
 
   const toggleSelectAll = () => {
@@ -114,11 +114,11 @@ export default function ReportManagementPage() {
     const res = await handleRegenerate(r);
     // Type guard to narrow the union and fix the TS error
     if (res && res.success && 'isValid' in res) {
-      setSelectedReport(prev => {
+      setSelectedReport((prev: Report | null) => {
         if (!prev) return prev;
         return {
           ...prev,
-          isValid: res.isValid,
+          isValid: (res as any).isValid,
           validationErrors: (res as any).errors || []
         };
       });
@@ -242,8 +242,8 @@ export default function ReportManagementPage() {
                   onDownloadPdf={handleDownloadPdf}
                   onRegenerate={handleRegenerateWrapper}
                   onSave={handleSave}
-                  onOpenCodingModal={(idx) => { setCodingSymptomIndex(idx); onCodingOpen(); }}
-                  onOpenWhodrugModal={(idx) => { setCodingDrugIndex(idx); onWhodrugOpen(); }}
+                  onOpenCodingModal={(idx: number) => { setCodingSymptomIndex(idx); onCodingOpen(); }}
+                  onOpenWhodrugModal={(idx: number) => { setCodingDrugIndex(idx); onWhodrugOpen(); }}
                 />
               )}
             </AnimatePresence>
@@ -302,4 +302,3 @@ export default function ReportManagementPage() {
     </Flex>
   );
 }
-

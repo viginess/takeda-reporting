@@ -4,10 +4,7 @@ import {
   whodrugIng, 
   whodrugDda, 
   whodrugIna,
-  whodrugBna,
-  whodrugMan,
-  whodrugCcode,
-  whodrugSource
+  whodrugMan
 } from "../../db/whodrug/whodrug.schema.js";
 import { whodrugImports } from "../../db/whodrug/whodrug-import.schema.js";
 import { eq } from "drizzle-orm";

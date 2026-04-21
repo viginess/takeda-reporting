@@ -4,7 +4,7 @@ import { router } from '../../trpc/core/init.js';
 import { adminProcedure } from '../../trpc/core/procedures.js';
 import { db } from '../../db/core/index.js';
 import { meddraImports } from "../../db/meddra/import.schema.js";
-import { desc, eq, and } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { meddraService } from "./meddra.service.js";
 
 /**
