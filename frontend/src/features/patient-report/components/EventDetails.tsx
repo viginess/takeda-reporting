@@ -212,8 +212,6 @@ export function EventDetails({
           </Stack>
         </RadioGroup>
       </FormControl>
-
-
     </>
   );
 }
