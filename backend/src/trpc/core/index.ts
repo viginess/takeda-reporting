@@ -12,6 +12,7 @@ import { translationRouter } from "../../modules/translation/translation.router.
 import { referenceRouter } from "../../modules/meddra/reference.router.js";
 import { importRouter } from "../../modules/meddra/import.router.js";
 import { whodrugRouter } from "../../modules/whodrug/whodrug.router.js";
+import { companyRouter } from "../../modules/company/company.router.js";
 
 export const appRouter = router({
   admin: adminRouter,
@@ -24,6 +25,7 @@ export const appRouter = router({
   translation: translationRouter,
   reference: t.mergeRouters(referenceRouter, importRouter),
   whodrug: whodrugRouter,
+  company: companyRouter,
 });
 
 export type AppRouter = typeof appRouter;

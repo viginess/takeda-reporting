@@ -83,6 +83,7 @@ export async function processE2BWorkflow(reportId: string) {
       if (report.products) {
         report.products = report.products.map((p: any) => ({
           ...p,
+          companyCode: p.whodrugCode && enrichmentMapping[p.whodrugCode] ? enrichmentMapping[p.whodrugCode].companyCode : (p.companyCode || null),
           ingredients: p.whodrugCode && enrichmentMapping[p.whodrugCode] ? enrichmentMapping[p.whodrugCode].ingredients : (p.ingredients || []),
           atcs: p.whodrugCode && enrichmentMapping[p.whodrugCode] ? enrichmentMapping[p.whodrugCode].atcs : (p.atcs || [])
         }));
@@ -90,6 +91,7 @@ export async function processE2BWorkflow(reportId: string) {
       if (report.otherMedications) {
         report.otherMedications = report.otherMedications.map((p: any) => ({
           ...p,
+          companyCode: p.whodrugCode && enrichmentMapping[p.whodrugCode] ? enrichmentMapping[p.whodrugCode].companyCode : (p.companyCode || null),
           ingredients: p.whodrugCode && enrichmentMapping[p.whodrugCode] ? enrichmentMapping[p.whodrugCode].ingredients : (p.ingredients || []),
           atcs: p.whodrugCode && enrichmentMapping[p.whodrugCode] ? enrichmentMapping[p.whodrugCode].atcs : (p.atcs || [])
         }));

@@ -4,6 +4,7 @@ import {
   integer,
   index,
   primaryKey,
+  unique,
 } from "drizzle-orm/pg-core";
 
 // 1. Core Drug Dictionary (DD)
@@ -19,6 +20,7 @@ export const whodrugDd = pgTable("whodrug_dd", {
   whodrugVersion: text("whodrug_version").notNull(),
 }, (table) => {
   return {
+    versionUnique: unique().on(table.drugRecordNumber, table.seq1, table.seq2, table.whodrugVersion),
     nameIdx: index("whodrug_dd_name_idx").on(table.tradeName),
     drnSeqIdx: index("whodrug_dd_drn_seq_idx").on(table.drugRecordNumber, table.seq1),
     versionIdx: index("whodrug_dd_version_idx").on(table.whodrugVersion),
@@ -26,18 +28,19 @@ export const whodrugDd = pgTable("whodrug_dd", {
 });
 
 // 2. Ingredients (ING) - Master List & Mapping
-// According to B3 diagram, ING links to DD via DRN + Seq1
 export const whodrugIng = pgTable("whodrug_ing", {
-  id: text("id").primaryKey(), // Compound key or serial
+  id: text("id").primaryKey(), 
   drugRecordNumber: text("drug_record_number").notNull(),
   seq1: text("seq1").notNull(),
   ingredientCode: text("ingredient_code").notNull(),
-  ingredientName: text("ingredient_name"), // May be populated from external or first occurrence
+  ingredientName: text("ingredient_name"), 
   whodrugVersion: text("whodrug_version").notNull(),
 }, (table) => {
   return {
+    versionUnique: unique().on(table.drugRecordNumber, table.seq1, table.ingredientCode, table.whodrugVersion),
     drnSeqIdx: index("whodrug_ing_drn_seq_idx").on(table.drugRecordNumber, table.seq1),
     ingCodeIdx: index("whodrug_ing_code_idx").on(table.ingredientCode),
+    versionIdx: index("whodrug_ing_version_idx").on(table.whodrugVersion),
   };
 });
 
@@ -50,8 +53,10 @@ export const whodrugDda = pgTable("whodrug_dda", {
   whodrugVersion: text("whodrug_version").notNull(),
 }, (table) => {
   return {
+    versionUnique: unique().on(table.drugRecordNumber, table.seq1, table.atcCode, table.whodrugVersion),
     drnSeqIdx: index("whodrug_dda_drn_seq_idx").on(table.drugRecordNumber, table.seq1),
     atcIdx: index("whodrug_dda_atc_idx").on(table.atcCode),
+    versionIdx: index("whodrug_dda_version_idx").on(table.whodrugVersion),
   };
 });
 
@@ -65,6 +70,7 @@ export const whodrugIna = pgTable("whodrug_ina", {
   return {
     pk: primaryKey({ columns: [table.atcCode, table.whodrugVersion] }),
     atcIdx: index("whodrug_ina_atc_idx").on(table.atcCode),
+    versionIdx: index("whodrug_ina_version_idx").on(table.whodrugVersion),
   };
 });
 
@@ -76,8 +82,10 @@ export const whodrugBna = pgTable("whodrug_bna", {
   whodrugVersion: text("whodrug_version").notNull(),
 }, (table) => {
   return {
+    versionUnique: unique().on(table.drugRecordNumber, table.aliasName, table.whodrugVersion),
     drnIdx: index("whodrug_bna_drn_idx").on(table.drugRecordNumber),
     nameIdx: index("whodrug_bna_name_idx").on(table.aliasName),
+    versionIdx: index("whodrug_bna_version_idx").on(table.whodrugVersion),
   };
 });
 
@@ -89,6 +97,7 @@ export const whodrugMan = pgTable("whodrug_man", {
 }, (table) => {
   return {
     pk: primaryKey({ columns: [table.companyCode, table.whodrugVersion] }),
+    versionIdx: index("whodrug_man_version_idx").on(table.whodrugVersion),
   };
 });
 
@@ -100,6 +109,7 @@ export const whodrugCcode = pgTable("whodrug_ccode", {
 }, (table) => {
   return {
     pk: primaryKey({ columns: [table.countryCode, table.whodrugVersion] }),
+    versionIdx: index("whodrug_ccode_version_idx").on(table.whodrugVersion),
   };
 });
 
@@ -111,5 +121,6 @@ export const whodrugSource = pgTable("whodrug_source", {
 }, (table) => {
   return {
     pk: primaryKey({ columns: [table.sourceCode, table.whodrugVersion] }),
+    versionIdx: index("whodrug_source_version_idx").on(table.whodrugVersion),
   };
 });

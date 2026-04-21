@@ -1,6 +1,18 @@
 import { z } from "zod";
 import { router, publicProcedure } from '../../trpc/core/init.js';
 import { whodrugService } from "./whodrug.service.js";
+import { whodrugImportService } from "./whodrug-import.service.js";
+import { db } from "../../db/core/index.js";
+import { whodrugImports } from "../../db/whodrug/whodrug-import.schema.js";
+import { systemSettings } from "../../db/admin/settings.schema.js";
+import {
+  whodrugDd,
+  whodrugIng,
+  whodrugDda,
+  whodrugIna,
+  whodrugMan
+} from "../../db/whodrug/whodrug.schema.js";
+import { eq, desc } from "drizzle-orm";
 
 /**
  * tRPC router for WHODrug Global B3 terminology operations.
@@ -12,7 +24,8 @@ export const whodrugRouter = router({
   searchDrugs: publicProcedure
     .input(z.object({
       query: z.string().min(2),
-      limit: z.number().max(50).default(20)
+      limit: z.number().max(50).default(20),
+      version: z.string().optional()
     }))
     .query(async ({ input }) => {
       return await whodrugService.searchDrugs(input);
@@ -22,9 +35,12 @@ export const whodrugRouter = router({
    * Retrieves full details for a drug by its 8-digit regulatory code (DRN+Seq1).
    */
   getDrugDetails: publicProcedure
-    .input(z.object({ code: z.string() }))
+    .input(z.object({ 
+      code: z.string(),
+      version: z.string().optional()
+    }))
     .query(async ({ input }) => {
-      return await whodrugService.getDrugDetails(input.code);
+      return await whodrugService.getDrugDetails(input.code, input.version);
     }),
 
   /**
@@ -33,5 +49,128 @@ export const whodrugRouter = router({
   getDictionaryStats: publicProcedure
     .query(async () => {
       return await whodrugService.getDictionaryStats();
+    }),
+
+  /**
+   * Retrieves all dictionary versions successfully imported into the system.
+   */
+  getVersions: publicProcedure
+    .query(async () => {
+      return await whodrugService.getVersions();
+    }),
+
+  /**
+   * Switches the globally active WHODrug dictionary version.
+   */
+  updateActiveVersion: publicProcedure
+    .input(z.object({ version: z.string() }))
+    .mutation(async ({ input }) => {
+      const [settings] = await db.select().from(systemSettings).where(eq(systemSettings.id, 1));
+      if (!settings) throw new Error("System settings not found");
+
+      await db.update(systemSettings)
+        .set({
+          clinicalConfig: {
+            ...settings.clinicalConfig,
+            whodrugVersion: input.version
+          },
+          updatedAt: new Date()
+        })
+        .where(eq(systemSettings.id, 1));
+      
+      return { success: true };
+    }),
+
+  /**
+   * Initiates a background dictionary import process.
+   */
+  startImport: publicProcedure
+    .input(z.object({ 
+      version: z.string().optional(), 
+      zipBase64: z.string(),
+      fileName: z.string()
+    }))
+    .mutation(async ({ input }) => {
+      // 1. Detect version from filename if not provided
+      let detectedVersion = input.version;
+      if (!detectedVersion) {
+        // e.g., "whodrug_global_b3_mar_1_2025.zip" -> "Whodrug Global B3 Mar 1 2025"
+        detectedVersion = input.fileName
+          .replace(/\.zip$/i, '')
+          .replace(/_/g, ' ')
+          .replace(/\b\w/g, char => char.toUpperCase());
+      }
+
+      // Prevent duplicate imports if version already exists
+      const [existing] = await db.select()
+        .from(whodrugImports)
+        .where(eq(whodrugImports.version, detectedVersion))
+        .limit(1);
+
+      if (existing && existing.status === 'COMPLETED') {
+        throw new Error(`WHODrug Version ${detectedVersion} is already imported and available.`);
+      }
+
+      if (existing && existing.status === 'PROCESSING') {
+        throw new Error(`WHODrug Version ${detectedVersion} is currently being processed.`);
+      }
+
+      const [job] = await db.insert(whodrugImports).values({
+        version: detectedVersion,
+        fileName: input.fileName,
+        status: 'PROCESSING',
+      }).returning();
+
+      // Launch background process (non-blocking)
+      whodrugImportService.processImport(job.id, input.zipBase64);
+
+      return { jobId: job.id };
+    }),
+
+  /**
+   * Checks the progress of an ongoing dictionary import.
+   */
+  getImportStatus: publicProcedure
+    .input(z.object({ jobId: z.number() }))
+    .query(async ({ input }) => {
+      const [job] = await db.select()
+        .from(whodrugImports)
+        .where(eq(whodrugImports.id, input.jobId))
+        .limit(1);
+      return job;
+    }),
+
+  /**
+   * Lists the most recent import jobs.
+   */
+  getImportHistory: publicProcedure
+    .query(async () => {
+      return await db.select()
+        .from(whodrugImports)
+        .orderBy(desc(whodrugImports.createdAt))
+        .limit(10);
+    }),
+
+  /**
+   * Permanently deletes a dictionary version and all of its associated data.
+   */
+  deleteVersion: publicProcedure
+    .input(z.object({ version: z.string() }))
+    .mutation(async ({ input }) => {
+      const { version } = input;
+      
+      await db.transaction(async (tx) => {
+        // Delete all terms associated with this version name
+        await tx.delete(whodrugDd).where(eq(whodrugDd.whodrugVersion, version));
+        await tx.delete(whodrugIng).where(eq(whodrugIng.whodrugVersion, version));
+        await tx.delete(whodrugDda).where(eq(whodrugDda.whodrugVersion, version));
+        await tx.delete(whodrugIna).where(eq(whodrugIna.whodrugVersion, version));
+        await tx.delete(whodrugMan).where(eq(whodrugMan.whodrugVersion, version));
+        
+        // Remove from the job history table
+        await tx.delete(whodrugImports).where(eq(whodrugImports.version, version));
+      });
+      
+      return { success: true };
     }),
 });

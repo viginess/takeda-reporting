@@ -1,5 +1,6 @@
 import { db } from '../../db/core/index.js';
 import { whodrugDd, whodrugIng, whodrugDda, whodrugIna } from '../../db/whodrug/whodrug.schema.js';
+import { systemSettings } from '../../db/admin/settings.schema.js';
 import { eq, and, sql, desc } from "drizzle-orm";
 
 /**
@@ -7,11 +8,24 @@ import { eq, and, sql, desc } from "drizzle-orm";
  */
 export const whodrugService = {
   /**
+   * Gets the active WHODrug version from system settings.
+   */
+  async getActiveVersion(): Promise<string> {
+    const settings = await db.select({ clinicalConfig: systemSettings.clinicalConfig })
+      .from(systemSettings)
+      .where(eq(systemSettings.id, 1))
+      .limit(1);
+    
+    return settings[0]?.clinicalConfig?.whodrugVersion || "Global B3 March 2025";
+  },
+
+  /**
    * Searches for drugs in the WHODrug dictionary using pg_trgm similarity.
    * Optimized for ~40ms performance on 500k+ records.
    */
-  async searchDrugs(input: { query: string; limit: number }) {
-    const { query, limit } = input;
+  async searchDrugs(input: { query: string; limit: number; version?: string }) {
+    const { query, limit, version } = input;
+    const activeVersion = version || await this.getActiveVersion();
     
     // We use the % operator for trigram similarity matching
     // and similarity() for ranking the results.
@@ -23,7 +37,10 @@ export const whodrugService = {
       similarity: sql<number>`similarity(${whodrugDd.tradeName}, ${query})`
     })
     .from(whodrugDd)
-    .where(sql`${whodrugDd.tradeName} % ${query}`)
+    .where(and(
+      sql`${whodrugDd.tradeName} % ${query}`,
+      eq(whodrugDd.whodrugVersion, activeVersion)
+    ))
     .orderBy(desc(sql`similarity(${whodrugDd.tradeName}, ${query})`))
     .limit(limit);
 
@@ -41,17 +58,19 @@ export const whodrugService = {
    * Retrieves full drug details including ingredients and ATC classification.
    * @param code The 8-digit E2B code (DRN + Seq1)
    */
-  async getDrugDetails(code: string) {
+  async getDrugDetails(code: string, version?: string) {
     if (code.length < 8) return null;
     
     const drn = code.substring(0, 6);
     const seq1 = code.substring(6, 8);
+    const activeVersion = version || await this.getActiveVersion();
 
     const [drug] = await db.select()
       .from(whodrugDd)
       .where(and(
         eq(whodrugDd.drugRecordNumber, drn),
-        eq(whodrugDd.seq1, seq1)
+        eq(whodrugDd.seq1, seq1),
+        eq(whodrugDd.whodrugVersion, activeVersion)
       ))
       .limit(1);
 
@@ -65,7 +84,8 @@ export const whodrugService = {
     .from(whodrugIng)
     .where(and(
       eq(whodrugIng.drugRecordNumber, drn),
-      eq(whodrugIng.seq1, seq1)
+      eq(whodrugIng.seq1, seq1),
+      eq(whodrugIng.whodrugVersion, activeVersion)
     ));
 
     // Fetch ATC classifications
@@ -74,10 +94,14 @@ export const whodrugService = {
       description: whodrugIna.description
     })
     .from(whodrugDda)
-    .leftJoin(whodrugIna, eq(whodrugDda.atcCode, whodrugIna.atcCode))
+    .leftJoin(whodrugIna, and(
+      eq(whodrugDda.atcCode, whodrugIna.atcCode),
+      eq(whodrugDda.whodrugVersion, whodrugIna.whodrugVersion)
+    ))
     .where(and(
       eq(whodrugDda.drugRecordNumber, drn),
-      eq(whodrugDda.seq1, seq1)
+      eq(whodrugDda.seq1, seq1),
+      eq(whodrugDda.whodrugVersion, activeVersion)
     ));
 
     return {
@@ -98,6 +122,7 @@ export const whodrugService = {
    */
   async getEnrichedDrugData(codes: string[]) {
     if (!codes.length) return {};
+    const activeVersion = await this.getActiveVersion();
     
     // Group codes by DRN/Seq1
     const keys = codes.map(c => ({ 
@@ -113,7 +138,10 @@ export const whodrugService = {
       ingredientName: whodrugIng.ingredientName
     })
     .from(whodrugIng)
-    .where(sql`(${whodrugIng.drugRecordNumber}, ${whodrugIng.seq1}) IN ${sql.raw(`(${keys.map(k => `('${k.drn}', '${k.seq1}')`).join(',')})`)}`);
+    .where(and(
+      sql`(${whodrugIng.drugRecordNumber}, ${whodrugIng.seq1}) IN ${sql.raw(`(${keys.map(k => `('${k.drn}', '${k.seq1}')`).join(',')})`)}`,
+      eq(whodrugIng.whodrugVersion, activeVersion)
+    ));
 
     // 2. Fetch ATC Mapping (DDA + INA)
     // IMPORTANT: DDA stores WHODrug-prefixed ATC codes e.g. '18A09AA'
@@ -127,8 +155,14 @@ export const whodrugService = {
       atcDescription: whodrugIna.description
     })
     .from(whodrugDda)
-    .leftJoin(whodrugIna, sql`regexp_replace(${whodrugDda.atcCode}, '^\\d+', '') = ${whodrugIna.atcCode}`)
-    .where(sql`(${whodrugDda.drugRecordNumber}, ${whodrugDda.seq1}) IN ${sql.raw(`(${keys.map(k => `('${k.drn}', '${k.seq1}')`).join(',')})`)}`);
+    .leftJoin(whodrugIna, and(
+      sql`regexp_replace(${whodrugDda.atcCode}, '^\\d+', '') = ${whodrugIna.atcCode}`,
+      eq(whodrugDda.whodrugVersion, whodrugIna.whodrugVersion)
+    ))
+    .where(and(
+      sql`(${whodrugDda.drugRecordNumber}, ${whodrugDda.seq1}) IN ${sql.raw(`(${keys.map(k => `('${k.drn}', '${k.seq1}')`).join(',')})`)}`,
+      eq(whodrugDda.whodrugVersion, activeVersion)
+    ));
 
     // 3. Smart Join: Recover missing ingredient names using the Preferred Name (INN) strategy
     //
@@ -159,10 +193,28 @@ export const whodrugService = {
     }
 
     // 4. Assemble Results
-    const mapping: Record<string, { ingredients: { code: string; name: string }[], atcs: { code: string; name: string }[] }> = {};
+    const mapping: Record<string, { 
+      companyCode: string | null;
+      ingredients: { code: string; name: string }[];
+      atcs: { code: string; name: string }[];
+    }> = {};
     
     // Initialize mapping for all input codes
-    codes.forEach(c => { mapping[c] = { ingredients: [], atcs: [] }; });
+    codes.forEach(c => { mapping[c] = { companyCode: null, ingredients: [], atcs: [] }; });
+
+    // 4. Fetch Core Drug Details (including companyCode)
+    const coreResults = await db.select({
+      drn: whodrugDd.drugRecordNumber,
+      seq1: whodrugDd.seq1,
+      companyCode: whodrugDd.companyCode
+    })
+    .from(whodrugDd)
+    .where(sql`(${whodrugDd.drugRecordNumber}, ${whodrugDd.seq1}) IN ${sql.raw(`(${keys.map(k => `('${k.drn}', '${k.seq1}')`).join(',')})`)}`);
+
+    coreResults.forEach(r => {
+      const code = `${r.drn}${r.seq1}`;
+      if (mapping[code]) mapping[code].companyCode = r.companyCode;
+    });
 
     // Populate Ingredients
     ingResults.forEach(r => {
@@ -189,6 +241,15 @@ export const whodrugService = {
     });
 
     return mapping;
+  },
+
+  /**
+   * Retrieves all unique dictionary versions currently stored in the database.
+   */
+  async getVersions() {
+    const versions = await db.selectDistinct({ version: whodrugDd.whodrugVersion })
+      .from(whodrugDd);
+    return versions.map((v: any) => v.version);
   },
 
   /**

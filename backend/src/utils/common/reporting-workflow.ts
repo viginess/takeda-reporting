@@ -76,6 +76,18 @@ export async function runReportingWorkflow(params: {
       });
     }
 
+    // 6. Notify Manufacturers (only if report is valid/compliant)
+    if (e2bResult.isValid) {
+      const { companyNotificationService } = await import("../../modules/company/company.service.js");
+      await companyNotificationService.notifyManufacturersForReport({
+        reportId,
+        products: (e2bResult as any).enrichedReport?.products || row.products || [],
+        referenceId: row.referenceId || row.id,
+        pdfBuffer: buffer,
+        xmlContent: e2bResult.xmlContent || ""
+      });
+    }
+
     return { success: true, e2b: e2bResult, pdfPath };
   } catch (err: any) {
     console.error(`[Workflow] Failure for ${reporterType} ${reportId}:`, {

@@ -55,16 +55,20 @@ export const importRouter = router({
       // 2. Prevent duplicate imports if version already exists
       const [existing] = await db.select()
         .from(meddraImports)
-        .where(and(
-          eq(meddraImports.version, detectedVersion),
-          eq(meddraImports.status, "COMPLETED")
-        ))
+        .where(eq(meddraImports.version, detectedVersion))
         .limit(1);
 
-      if (existing) {
+      if (existing && existing.status === "COMPLETED") {
         throw new TRPCError({ 
           code: "CONFLICT", 
           message: `MedDRA Version ${detectedVersion} is already imported and available.` 
+        });
+      }
+
+      if (existing && existing.status === "PROCESSING") {
+        throw new TRPCError({ 
+          code: "CONFLICT", 
+          message: `MedDRA Version ${detectedVersion} is currently being processed.` 
         });
       }
 

@@ -10,10 +10,11 @@ import AdminResetPassword from '../features/auth/pages/AdminResetPassword';
 
 // Dashboard & Pages
 import DashBoard from '../features/dashboard/DashBoard';
-import ReportManagementPage from '../features/reports/ReportManagementPage';
+import ReportManagementPage from '../features/reports/pages/ReportManagementPage';
 import NotificationsPage from '../features/notifications/NotificationsPage';
 import MeddraManagementPage from '../features/meddra/pages/MeddraManagementPage';
 import WhodrugManagementPage from '../features/whodrug/WhodrugManagementPage';
+import CompanyManagementPage from '../features/company/pages/CompanyManagementPage';
 import SystemSettings from '../features/settings/pages/SystemSettings';
 
 /**
@@ -55,6 +56,7 @@ export default function AdminApp() {
             <Route path="notifications" element={<NotificationsPage />} />
             <Route path="meddra" element={<MeddraManagementPage />} />
             <Route path="whodrug" element={<WhodrugManagementPage />} />
+            <Route path="companies" element={<CompanyManagementPage />} />
             <Route path="settings" element={<SystemSettings />} />
           </Route>
         </Route>

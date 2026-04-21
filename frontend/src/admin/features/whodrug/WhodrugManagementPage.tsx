@@ -10,6 +10,14 @@ import {
   StatNumber,
   Grid,
   GridItem,
+  Badge,
+  Center,
+  Select,
+  Button,
+  useToast,
+  useDisclosure,
+  HStack,
+  Tooltip,
   Input,
   InputGroup,
   InputLeftElement,
@@ -19,45 +27,108 @@ import {
   Tbody,
   Tr,
   Th,
-  Td,
-  Badge,
-  Center,
+  Td
 } from "@chakra-ui/react";
-import { Search, Package, Database, Layers, Info } from "lucide-react";
+import { Search, Package, Database, Layers, Info, Upload, CheckCircle, History } from "lucide-react";
 import { trpc } from "../../../utils/config/trpc";
+import { WhodrugImportModal } from "./components/WhodrugImportModal";
   
 export default function WhodrugManagementPage() {
   const [query, setQuery] = useState("");
   const [selectedDrugCode, setSelectedDrugCode] = useState<string | null>(null);
+  const toast = useToast();
+  const utils = trpc.useContext();
+  const { isOpen, onOpen, onClose } = useDisclosure();
 
-  // 1. Get Dictionary Stats
+  // 1. Get Dictionary Stats & Versions
   const { data: stats, isLoading: loadingStats } = trpc.whodrug.getDictionaryStats.useQuery();
+  const { data: versions } = trpc.whodrug.getVersions.useQuery();
+  const { data: importHistory } = trpc.whodrug.getImportHistory.useQuery(undefined, {
+    refetchInterval: (query) => 
+      query.state.data?.some((h: any) => h.status === 'PROCESSING') ? 3000 : false
+  });
 
-  // 2. Search Drugs
+  const activeVersion = stats?.version || "Global B3 March 2025";
+  const [previewVersion, setPreviewVersion] = useState<string>(activeVersion);
+  
+  const isImporting = importHistory?.some((h: any) => h.status === 'PROCESSING');
+
+  // 2. Search Drugs (Filtered by Preview Version)
   const { data: searchResults, isLoading: searching } = trpc.whodrug.searchDrugs.useQuery(
-    { query, limit: 15 },
+    { query, limit: 15, version: previewVersion },
     { enabled: query.length >= 2 }
   );
 
   // 3. Get Drug Details
   const { data: drugDetails, isLoading: loadingDetails } = trpc.whodrug.getDrugDetails.useQuery(
-    { code: selectedDrugCode ?? "" },
+    { code: selectedDrugCode ?? "", version: previewVersion },
     { enabled: !!selectedDrugCode }
   );
 
+  // 4. Update Active Version
+  const updateVersion = trpc.whodrug.updateActiveVersion.useMutation({
+    onSuccess: () => {
+      utils.whodrug.getDictionaryStats.invalidate();
+      toast({
+        title: "Active Version Updated",
+        description: `The system is now using ${previewVersion}.`,
+        status: "success",
+        duration: 3000,
+      });
+    },
+    onError: (err) => {
+      toast({ title: "Failed to update version", description: err.message, status: "error" });
+    }
+  });
+
+  const deleteVersion = trpc.whodrug.deleteVersion.useMutation({
+    onSuccess: (_, { version }) => {
+      utils.whodrug.getImportHistory.invalidate();
+      utils.whodrug.getVersions.invalidate();
+      utils.whodrug.getDictionaryStats.invalidate();
+      toast({
+        title: "Version Deleted",
+        description: `Successfully removed ${version} from the database.`,
+        status: "info",
+        duration: 3000,
+      });
+    },
+    onError: (err) => {
+      toast({ title: "Delete Failed", description: err.message, status: "error" });
+    }
+  });
+
   return (
     <Box p={{ base: 4, md: 8 }} bg="#f8fafc" minH="100vh" fontFamily="'DM Sans', sans-serif">
+      <WhodrugImportModal isOpen={isOpen} onClose={onClose} />
       <VStack spacing={6} align="stretch">
         {/* Header */}
-        <Box>
-          <Flex align="center" gap={3} mb={1}>
-            <Package size={24} color="#CE0037" />
-            <Heading size={{ base: "md", md: "lg" }} color="#1e293b" letterSpacing="-0.5px">WHODrug Management</Heading>
-          </Flex>
-          <Text color="gray.500" fontSize={{ base: "xs", md: "sm" }}>
-            Monitor dictionary volume and explore regulatory drug terminology (Global B3).
-          </Text>
-        </Box>
+        <Flex justify="space-between" align="start">
+          <Box>
+            <Flex align="center" gap={3} mb={1}>
+              <Package size={24} color="#CE0037" />
+              <Heading size={{ base: "md", md: "lg" }} color="#1e293b" letterSpacing="-0.5px">WHODrug Management</Heading>
+            </Flex>
+            <Text color="gray.500" fontSize={{ base: "xs", md: "sm" }}>
+              Monitor dictionary volume and manage dictionary versions (Global B3).
+            </Text>
+          </Box>
+          <HStack spacing={3}>
+            <Tooltip label={isImporting ? "An import is already in progress" : "Import new dictionary version"}>
+              <Button 
+                leftIcon={<Upload size={16} />} 
+                onClick={onOpen} 
+                isDisabled={isImporting}
+                variant="outline"
+                colorScheme="red"
+                size="sm"
+                borderRadius="xl"
+              >
+                {isImporting ? "Importing..." : "Import Dictionary"}
+              </Button>
+            </Tooltip>
+          </HStack>
+        </Flex>
 
         {/* Stats Grid */}
         <Grid templateColumns={{ base: "repeat(1, 1fr)", md: "repeat(3, 1fr)" }} gap={4}>
@@ -70,7 +141,34 @@ export default function WhodrugManagementPage() {
           {/* Search Section */}
           <GridItem>
             <Box bg="white" p={6} borderRadius="2xl" border="1px" borderColor="gray.100" shadow="sm">
-              <Heading size="sm" mb={4} color="#1e293b">Drug Browser</Heading>
+              <Flex justify="space-between" align="center" mb={4}>
+                <Heading size="sm" color="#1e293b">Drug Browser</Heading>
+                <HStack>
+                  <Select 
+                    size="xs" 
+                    borderRadius="md" 
+                    w="200px" 
+                    value={previewVersion} 
+                    onChange={(e) => setPreviewVersion(e.target.value)}
+                  >
+                    {versions?.map(v => (
+                      <option key={v} value={v}>{v} {v === activeVersion ? "(Active)" : ""}</option>
+                    ))}
+                    {!versions?.length && <option value={activeVersion}>{activeVersion}</option>}
+                  </Select>
+                  {previewVersion !== activeVersion && (
+                    <Button 
+                      size="xs" 
+                      colorScheme="red" 
+                      leftIcon={<CheckCircle size={12} />}
+                      onClick={() => updateVersion.mutate({ version: previewVersion })}
+                      isLoading={updateVersion.isPending}
+                    >
+                      Set Active
+                    </Button>
+                  )}
+                </HStack>
+              </Flex>
               
               <InputGroup mb={6}>
                 <InputLeftElement pointerEvents="none"><Search size={18} color="#94a3b8" /></InputLeftElement>
@@ -181,6 +279,74 @@ export default function WhodrugManagementPage() {
             </Box>
           </GridItem>
         </Grid>
+
+        {/* Dictionary Import History */}
+        <Box bg="white" p={6} borderRadius="2xl" border="1px" borderColor="gray.100" shadow="sm">
+          <Flex align="center" gap={2} mb={4}>
+            <History size={18} color="#94a3b8" />
+            <Heading size="sm" color="#1e293b">Dictionary Import History</Heading>
+          </Flex>
+          
+          <Box overflowX="auto">
+            <Table variant="simple" size="sm">
+              <Thead>
+                <Tr>
+                  <Th color="gray.400" fontSize="2xs">Version</Th>
+                  <Th color="gray.400" fontSize="2xs">File Name</Th>
+                  <Th color="gray.400" fontSize="2xs">Status</Th>
+                  <Th color="gray.400" fontSize="2xs" isNumeric>Date</Th>
+                  <Th w="40px"></Th>
+                </Tr>
+              </Thead>
+              <Tbody>
+                {importHistory?.map((job: any) => (
+                  <Tr key={job.id} _hover={{ bg: "gray.50" }}>
+                    <Td fontWeight="bold" color="#1e293b">{job.version}</Td>
+                    <Td color="gray.500" fontSize="xs">{job.fileName}</Td>
+                    <Td>
+                      <Badge 
+                        colorScheme={
+                          job.status === 'COMPLETED' ? 'green' : 
+                          job.status === 'FAILED' ? 'red' : 
+                          'blue'
+                        }
+                        variant="subtle"
+                        fontSize="2xs"
+                        borderRadius="full"
+                        px={2}
+                      >
+                        {job.status}
+                      </Badge>
+                    </Td>
+                    <Td isNumeric color="gray.400" fontSize="xs">
+                      {new Date(job.createdAt!).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
+                    </Td>
+                    <Td>
+                      <Tooltip label="Delete completely">
+                        <Button
+                          size="xs"
+                          variant="ghost"
+                          colorScheme="red"
+                          onClick={() => {
+                            if (confirm(`Are you sure you want to permanently delete the dictionary: ${job.version}?`)) {
+                              deleteVersion.mutate({ version: job.version });
+                            }
+                          }}
+                          isLoading={deleteVersion.isPending}
+                        >
+                          Delete
+                        </Button>
+                      </Tooltip>
+                    </Td>
+                  </Tr>
+                ))}
+                {!importHistory?.length && (
+                  <Tr><Td colSpan={5} textAlign="center" py={10} color="gray.400">No import records found</Td></Tr>
+                )}
+              </Tbody>
+            </Table>
+          </Box>
+        </Box>
       </VStack>
     </Box>
   );

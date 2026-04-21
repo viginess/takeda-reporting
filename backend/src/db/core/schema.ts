@@ -10,3 +10,5 @@ export * from "../audit/audit.schema.js";
 export * from "../admin/settings.schema.js";
 export * from "../archive/archive.schema.js";
 export * from "../meddra/meddra.schema.js";
+export * from "../company/company.schema.js";
+export * from "../whodrug/whodrug-import.schema.js";
