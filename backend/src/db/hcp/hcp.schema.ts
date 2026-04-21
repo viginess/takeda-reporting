@@ -60,10 +60,8 @@ export const hcpReports = pgTable("hcp_reports", {
   // Meta
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => {
-  return {
-    severityIdx: index("hcp_severity_idx").on(table.severity),
-    statusIdx: index("hcp_status_idx").on(table.status),
-    createdAtIdx: index("hcp_created_at_idx").on(table.createdAt),
-  };
-});
+}, (table) => [
+  index("hcp_severity_idx").on(table.severity),
+  index("hcp_status_idx").on(table.status),
+  index("hcp_created_at_idx").on(table.createdAt),
+]);

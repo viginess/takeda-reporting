@@ -23,12 +23,10 @@ export const companies = pgTable("companies", {
   isRegistered: boolean("is_registered").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-}, (table) => {
-  return {
-    codeIdx: index("companies_code_idx").on(table.companyCode),
-    nameIdx: index("companies_name_idx").on(table.name),
-  };
-});
+}, (table) => [
+  index("companies_code_idx").on(table.companyCode),
+  index("companies_name_idx").on(table.name),
+]);
 
 /**
  * 2. Company Notifications Table
@@ -50,10 +48,8 @@ export const companyNotifications = pgTable("company_notifications", {
   lastError: text("last_error"),
   
   createdAt: timestamp("created_at").defaultNow().notNull(),
-}, (table) => {
-  return {
-    reportIdx: index("notification_report_idx").on(table.reportId),
-    companyIdx: index("notification_company_idx").on(table.companyId),
-    statusIdx: index("notification_status_idx").on(table.status),
-  };
-});
+}, (table) => [
+  index("notification_report_idx").on(table.reportId),
+  index("notification_company_idx").on(table.companyId),
+  index("notification_status_idx").on(table.status),
+]);
