@@ -208,7 +208,10 @@ export const meddraService = {
       const entries = zip.getEntries();
       
       const getFileContent = (name: string) => {
-        const entry = entries.find(e => e.entryName.toLowerCase() === name.toLowerCase());
+        const entry = entries.find(e => e.entryName.toLowerCase().endsWith(name.toLowerCase()) && !e.isDirectory);
+        if (!entry) {
+          console.warn(`[MedDRA] Warning: File ${name} not found in the ZIP package.`);
+        }
         return entry ? entry.getData().toString('utf8') : null;
       };
 

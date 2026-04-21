@@ -15,7 +15,7 @@ import {
 import { 
   FiActivity, 
 } from "react-icons/fi";
-import { trpc } from "../../../../utils/trpc";
+import { trpc } from "../../../../utils/config/trpc";
 import { MeddraBrowser } from "../components/MeddraBrowser";
 import { ImportManagementSection } from "../components/ImportManagementSection";
 

@@ -26,7 +26,7 @@ import {
   Icon
 } from '@chakra-ui/react';
 import { FiUploadCloud, FiFile, FiCheckCircle, FiXCircle, FiLoader, FiInfo } from 'react-icons/fi';
-import { trpc } from '../../../../utils/trpc';
+import { trpc } from '../../../../utils/config/trpc';
 
 interface ImportMeddraModalProps {
   isOpen: boolean;

@@ -30,12 +30,12 @@ import { PatientDetails } from '../patient-report/components/PatientDetails';
 import { ReporterDetails } from '../patient-report/components/ReporterDetails';
 import { AdditionalDetails } from '../patient-report/components/AdditionalDetails';
 import { FamilyReviewConfirm } from './components/FamilyReviewConfirm';
-import { SuccessStep } from '../../shared/components/SuccessStep';
+import { SuccessStep } from '../../shared/components/common/SuccessStep';
 import { useState } from 'react';
 import { useFormContext, useFieldArray } from 'react-hook-form';
-import { trpc } from '../../utils/trpc';
+import { trpc } from '../../utils/config/trpc';
 import { HiPlus } from 'react-icons/hi2';
-import { calculateSeverity } from '../../utils/severity';
+import { calculateSeverity } from '../../utils/common/severity';
 
 const inputStyles = {
   size: 'lg' as const,

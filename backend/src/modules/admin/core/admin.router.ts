@@ -1,0 +1,56 @@
+import { router } from '../../../trpc/core/init.js';
+import {
+  syncProfile,
+  updateAdminProfile,
+  syncPasswordChange,
+  getAdmins,
+  getMe,
+  updateAdminRole,
+  inviteAdmin,
+  toggleTwoFactor,
+} from "./profile.router.js";
+import {
+  getAllReports,
+  updateReport,
+  getDashboardStats,
+  getUrgentReports,
+  getStatusDistribution,
+  getMonthlyVolume,
+  getReportPDF,
+  getReportXML,
+  getBulkReports,
+  regenerateReportFiles,
+  revalidateAllReports,
+} from "../reports/reports.router.js";
+import {
+  getSystemSettings,
+  updateSystemSettings,
+  getSettingsAuditLogs,
+  runManualArchiving,
+} from "../settings/settings.router.js";
+
+export const adminRouter = router({
+  syncProfile,
+  getAllReports,
+  updateReport,
+  getDashboardStats,
+  getUrgentReports,
+  getStatusDistribution,
+  getMonthlyVolume,
+  getSystemSettings,
+  updateSystemSettings,
+  updateAdminProfile,
+  syncPasswordChange,
+  getSettingsAuditLogs,
+  getAdmins,
+  getReportPDF,
+  getReportXML,
+  getBulkReports,
+  getMe,
+  updateAdminRole,
+  inviteAdmin,
+  runManualArchiving,
+  toggleTwoFactor,
+  regenerateReportFiles,
+  revalidateAllReports,
+});

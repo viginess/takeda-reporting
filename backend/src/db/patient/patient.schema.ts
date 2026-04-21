@@ -59,10 +59,10 @@ export const patientReports = pgTable("patient_reports", {
   // Meta
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => {
-  return {
-    severityIdx: index("patient_severity_idx").on(table.severity),
-    statusIdx: index("patient_status_idx").on(table.status),
-    createdAtIdx: index("patient_created_at_idx").on(table.createdAt),
-  };
-});
+}, (table) => [
+
+    index("patient_severity_idx").on(table.severity),
+    index("patient_status_idx").on(table.status),
+    index("patient_created_at_idx").on(table.createdAt),
+  
+]);

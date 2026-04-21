@@ -5,13 +5,13 @@ import {
   Trash2, Check, Filter, Search, X, Clock,
 } from "lucide-react";
 
-import { trpc } from "../../../utils/trpc";
+import { trpc } from "../../../utils/config/trpc";
 import {
   Box, Flex, Text, Heading, Button, IconButton, Badge, Input,
   InputGroup, InputLeftElement, InputRightElement, SimpleGrid,
   Skeleton, VStack
 } from "@chakra-ui/react";
-import { getRelativeTime, getGroupDate } from "../../../utils/date-utils";
+import { getRelativeTime, getGroupDate } from "../../../utils/common/date-utils";
 
 
 

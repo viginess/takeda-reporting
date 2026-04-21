@@ -28,12 +28,12 @@ import { EventDetails } from "./components/EventDetails";
 import { PersonalDetails } from "./components/PersonalDetails";
 import { AdditionalDetails } from "./components/AdditionalDetails";
 import { ReviewConfirm } from "./components/ReviewConfirm";
-import { SuccessStep } from "../../shared/components/SuccessStep";
+import { SuccessStep } from "../../shared/components/common/SuccessStep";
 import { useState } from "react";
 import { useFieldArray, useFormContext } from "react-hook-form";
 
-import { trpc } from "../../utils/trpc";
-import { calculateSeverity } from "../../utils/severity";
+import { trpc } from "../../utils/config/trpc";
+import { calculateSeverity } from "../../utils/common/severity";
 import { useTranslation } from "react-i18next";
 import { HiPlus } from "react-icons/hi2";
 const inputStyles = {
@@ -122,7 +122,17 @@ function EventStep({
   return (
     <Box mt={12}>
       {fields.map((field, index) => (
-        <Box key={field.id} mb={10} position="relative" p={{ base: 4, md: 6 }} border="1px solid" borderColor="gray.100" borderRadius="xl" bg="white" shadow="sm">
+        <Box
+          key={field.id}
+          mb={10}
+          position="relative"
+          p={{ base: 4, md: 6 }}
+          border="1px solid"
+          borderColor="gray.100"
+          borderRadius="xl"
+          bg="white"
+          shadow="sm"
+        >
           {index > 0 && (
             <Flex justify="flex-end" mb={2}>
               <Button
@@ -152,11 +162,11 @@ function EventStep({
         fontWeight={600}
         borderRadius="lg"
         size="lg"
-        _hover={{ bg: '#E31C5F' }}
+        _hover={{ bg: "#E31C5F" }}
         leftIcon={<HiPlus />}
-        onClick={() => append({ name: '', seriousness: [], outcome: '' })}
+        onClick={() => append({ name: "", seriousness: [], outcome: "" })}
       >
-        {t('forms.patient.eventDetails.addAnother')}
+        {t("forms.patient.eventDetails.addAnother")}
       </Button>
     </Box>
   );
@@ -176,7 +186,12 @@ function PrevButtonTranslated() {
 function NextButtonTranslated(props: any) {
   const { t } = useTranslation();
   return (
-    <NextButton size="lg" borderRadius="lg" label={t('common.continue', 'Next')} {...props} />
+    <NextButton
+      size="lg"
+      borderRadius="lg"
+      label={t("common.continue", "Next")}
+      {...props}
+    />
   );
 }
 
@@ -206,7 +221,7 @@ function PatientForm({ onBack, countryCode, languageCode }: PatientFormProps) {
   const [additionalDetails, setAdditionalDetails] = useState("");
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [captchaChecked, setCaptchaChecked] = useState(
-    !import.meta.env.VITE_RECAPTCHA_SITE_KEY,
+    !import.meta.env.VITE_RECAPTCHA_SITE_KEY
   );
   const [reportId, setReportId] = useState<string | undefined>(undefined);
   const [accordionIndex, setAccordionIndex] = useState<number[]>([0, 1, 2, 3]);
@@ -229,7 +244,10 @@ function PatientForm({ onBack, countryCode, languageCode }: PatientFormProps) {
     onSuccess() {
       toast({
         title: t("success.title", "Report Submitted Successfully"),
-        description: t("success.description", "Your report has been successfully submitted."),
+        description: t(
+          "success.description",
+          "Your report has been successfully submitted."
+        ),
         status: "success",
         duration: 5000,
         isClosable: true,
@@ -238,7 +256,9 @@ function PatientForm({ onBack, countryCode, languageCode }: PatientFormProps) {
     onError(err) {
       toast({
         title: t("common.error"),
-        description: err.message || t("errors.submissionFailed", "Submission failed. Please try again."),
+        description:
+          err.message ||
+          t("errors.submissionFailed", "Submission failed. Please try again."),
         status: "error",
         duration: 5000,
         isClosable: true,
@@ -250,21 +270,20 @@ function PatientForm({ onBack, countryCode, languageCode }: PatientFormProps) {
     if (!params.captchaChecked || !params.agreedToTerms) {
       toast({
         title: t("common.error", "Validation Error"),
-        description: t("forms.patient.reviewConfirm.bothRequired", "Please confirm you are not a robot and agree to the terms."),
+        description: t(
+          "forms.patient.reviewConfirm.bothRequired",
+          "Please confirm you are not a robot and agree to the terms."
+        ),
         status: "error",
         duration: 3000,
         isClosable: true,
       });
       throw new Error("Validation failed");
     }
-    
+
     const result = await createPatient.mutateAsync({
       severity: calculateSeverity(params.symptoms),
-      // ── Step 1: Product ──────────────────────────────
-      // ── Step 1: Product ──────────────────────────────
       products: params.products ?? [],
-
-      // ── Step 2: Event ────────────────────────────────
       symptoms:
         params.symptoms?.map((s: any) => ({
           ...s,
@@ -272,8 +291,6 @@ function PatientForm({ onBack, countryCode, languageCode }: PatientFormProps) {
             ? s.seriousness.join(", ")
             : s.seriousness,
         })) ?? [],
-
-      // ── Step 3: Personal & HCP (nested objects) ──────
       patientDetails: {
         ...params.patientDetails,
         contactPermission: contactPermission || undefined,
@@ -285,21 +302,14 @@ function PatientForm({ onBack, countryCode, languageCode }: PatientFormProps) {
         ...params.hcpDetails,
         contactPermission: hcpContactPermission || undefined,
       },
-
-      // ── Step 4: Additional ───────────────────────────
       takingOtherMeds: takingOtherMeds || undefined,
       otherMedications: params.otherMedications ?? [],
-
       hasRelevantHistory: hasRelevantHistory || undefined,
       medicalHistory: params.medicalHistory ?? [],
-
       labTestsPerformed: labTestsPerformed || undefined,
       labTests: params.labTests ?? [],
-
       additionalDetails: additionalDetails || undefined,
       attachments: params.attachments ?? [],
-
-      // ── Step 5: Confirm ──────────────────────────────
       agreedToTerms: params.agreedToTerms,
       reporterType: "patient",
       senderTimezoneOffset: new Date().getTimezoneOffset(),
@@ -307,19 +317,12 @@ function PatientForm({ onBack, countryCode, languageCode }: PatientFormProps) {
       submissionLanguage: languageCode || "en",
       status: "new",
     });
-    // Store the real report UUID returned from Supabase
-    if (result?.data?.id)
-      setReportId(result.data.referenceId || result.data.id);
+
+    if (result?.data?.id) setReportId(result.data.referenceId || result.data.id);
   };
 
   return (
-    <Flex
-      direction="column"
-      minH="100vh"
-      bg="gray.50"
-      color="gray.800"
-      w="full"
-    >
+    <Flex direction="column" minH="100vh" bg="gray.50" color="gray.800" w="full">
       {/* Header */}
       <Flex
         as="header"
@@ -353,10 +356,10 @@ function PatientForm({ onBack, countryCode, languageCode }: PatientFormProps) {
             />
           </Link>
         )}
-        <Heading 
-          as="h1" 
-          size={{ base: "xs", sm: "sm", md: "md" }} 
-          fontWeight="600" 
+        <Heading
+          as="h1"
+          size={{ base: "xs", sm: "sm", md: "md" }}
+          fontWeight="600"
           color="gray.800"
           noOfLines={1}
           ml={2}
@@ -384,10 +387,10 @@ function PatientForm({ onBack, countryCode, languageCode }: PatientFormProps) {
             resolver={zodResolver(createPatientSchema) as any}
             onSubmit={onSubmit}
             defaultValues={{
-              // Step 1
               products: [
                 {
                   productName: "",
+                  whodrugCode: "",
                   condition: "",
                   actionTaken: "",
                   batches: [
@@ -401,7 +404,6 @@ function PatientForm({ onBack, countryCode, languageCode }: PatientFormProps) {
                   ],
                 },
               ],
-              // Step 2
               symptoms: [
                 {
                   name: "",
@@ -413,7 +415,6 @@ function PatientForm({ onBack, countryCode, languageCode }: PatientFormProps) {
                   outcome: "",
                 },
               ],
-              // Step 3
               patientDetails: {
                 name: "",
                 gender: "",
@@ -436,18 +437,20 @@ function PatientForm({ onBack, countryCode, languageCode }: PatientFormProps) {
                 zipCode: "",
                 country: "",
               },
-              // Step 4
               otherMedications: [],
               medicalHistory: [],
               labTests: [],
-              // Step 5
               agreedToTerms: false,
               captchaChecked: !import.meta.env.VITE_RECAPTCHA_SITE_KEY,
             }}
           >
             {({ FormStep }) => (
               <FormLayout spacing={8}>
-                <FormStepper colorScheme="red" mb={10} size={{ base: "sm", md: "md" }}>
+                <FormStepper
+                  colorScheme="red"
+                  mb={10}
+                  size={{ base: "sm", md: "md" }}
+                >
                   <FormStep
                     name="product"
                     title={t("forms.patient.steps.product")}
@@ -545,25 +548,45 @@ function PatientForm({ onBack, countryCode, languageCode }: PatientFormProps) {
         borderColor="gray.200"
       >
         <Text mb={4}>{t("welcome.footer")}</Text>
-        <Wrap justify="center" spacing={{ base: 2, md: 4 }} align="center" fontSize="xs">
+        <Wrap
+          justify="center"
+          spacing={{ base: 2, md: 4 }}
+          align="center"
+          fontSize="xs"
+        >
           <WrapItem>
-            <Link href="/privacy-policy" isExternal color="gray.500" _hover={{ color: '#CE0037' }}>
+            <Link
+              href="/privacy-policy"
+              isExternal
+              color="gray.500"
+              _hover={{ color: "#CE0037" }}
+            >
               Privacy Policy
             </Link>
           </WrapItem>
-          <WrapItem display={{ base: 'none', sm: 'block' }}>
+          <WrapItem display={{ base: "none", sm: "block" }}>
             <Text color="gray.300">|</Text>
           </WrapItem>
           <WrapItem>
-            <Link href="/terms-conditions" isExternal color="gray.500" _hover={{ color: '#CE0037' }}>
+            <Link
+              href="/terms-conditions"
+              isExternal
+              color="gray.500"
+              _hover={{ color: "#CE0037" }}
+            >
               Terms & Conditions
             </Link>
           </WrapItem>
-          <WrapItem display={{ base: 'none', sm: 'block' }}>
+          <WrapItem display={{ base: "none", sm: "block" }}>
             <Text color="gray.300">|</Text>
           </WrapItem>
           <WrapItem>
-            <Link href="/contact" isExternal color="gray.500" _hover={{ color: '#CE0037' }}>
+            <Link
+              href="/contact"
+              isExternal
+              color="gray.500"
+              _hover={{ color: "#CE0037" }}
+            >
               Contact
             </Link>
           </WrapItem>

@@ -57,10 +57,8 @@ export const familyReports = pgTable("family_reports", {
   lastUpdatedAt: timestamp("last_updated_at"),  // Meta
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => {
-  return {
-    severityIdx: index("family_severity_idx").on(table.severity),
-    statusIdx: index("family_status_idx").on(table.status),
-    createdAtIdx: index("family_created_at_idx").on(table.createdAt),
-  };
-});
+}, (table) => [
+  index("family_severity_idx").on(table.severity),
+  index("family_status_idx").on(table.status),
+  index("family_created_at_idx").on(table.createdAt),
+]);

@@ -1,4 +1,4 @@
-import { getSupabaseAdmin } from '../../utils/supabase.js';
+import { getSupabaseAdmin } from '../../utils/services/supabase.js';
 
 /**
  * Stores the generated Safety PDF in Supabase Storage.
@@ -30,12 +30,14 @@ export async function storeSafetyPDF(reportId: string, pdfBuffer: Buffer): Promi
 /**
  * Generates a temporary signed URL for an admin to download a private PDF file.
  */
-export async function getSignedPDFUrl(filePath: string): Promise<string> {
+export async function getSignedPDFUrl(filePath: string, downloadName?: string): Promise<string> {
   const supabase = getSupabaseAdmin();
+  const options: any = { download: downloadName || true };
   const { data, error } = await supabase.storage
     .from('reports-xml')
-    .createSignedUrl(filePath, 3600); // URL valid for 1 hour
+    .createSignedUrl(filePath, 3600, options); // URL valid for 1 hour
 
   if (error) throw error;
   return data.signedUrl;
 }
+

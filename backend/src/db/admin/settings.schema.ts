@@ -36,6 +36,7 @@ export const systemSettings = pgTable("system_settings", {
     senderId: string;
     receiverId: string;
     meddraVersion: string;
+    whodrugVersion: string;
     lockoutCooldown: string;
     
     // SMTP Configuration
@@ -55,6 +56,7 @@ export const systemSettings = pgTable("system_settings", {
     senderId: "CLINSOLUTION-DEFAULT",
     receiverId: "EVHUMAN",
     meddraVersion: "29.0",
+    whodrugVersion: "Global B3 March 2025",
     lockoutCooldown: "30 min",
 
     smtpHost: "",

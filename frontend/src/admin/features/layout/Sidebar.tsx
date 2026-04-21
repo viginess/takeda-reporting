@@ -1,15 +1,17 @@
 import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
-import { FiHome, FiSettings, FiFileText, FiBell, FiLogOut } from "react-icons/fi";
+import { FiHome, FiSettings, FiFileText, FiBell, FiLogOut, FiActivity, FiPackage, FiUsers } from "react-icons/fi";
 import { Box, Flex, Image, Text, Link } from '@chakra-ui/react';
-import { supabase } from "../../../utils/supabaseClient";
-import { trpc } from "../../../utils/trpc";
+import { supabase } from "../../../utils/config/supabaseClient";
+import { trpc } from "../../../utils/config/trpc";
 import logo from "../../../assets/logo.jpg";
 
 const navItems = [
   { icon: <FiHome size={18} />, label: "Dashboard", href: "/admin" },
   { icon: <FiFileText size={18} />, label: "Reports", href: "/admin/reports" },
   { icon: <FiBell size={18} />, label: "Notifications", href: "/admin/notifications" },
-  { icon: <FiFileText size={18} />, label: "MedDRA Codes", href: "/admin/meddra" },
+  { icon: <FiActivity size={18} />, label: "MedDRA Codes", href: "/admin/meddra" },
+  { icon: <FiPackage size={18} />, label: "WHODrug Dictionary", href: "/admin/whodrug" },
+  { icon: <FiUsers size={18} />, label: "Company Admin", href: "/admin/companies" },
   { icon: <FiSettings size={18} />, label: "Settings", href: "/admin/settings" },
 ];
 

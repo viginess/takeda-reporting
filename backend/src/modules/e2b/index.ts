@@ -1,6 +1,6 @@
-import { generateE2BR3 } from './generator.js';
-import { validateE2BR3 } from './validator.js';
-import { storeE2BR3 } from './storage.js';
+import { generateE2BR3 } from './core/generator.js';
+import { validateE2BR3 } from './validation/validator.js';
+import { storeE2BR3 } from './core/storage.js';
 import { patientReports, hcpReports, familyReports } from '../../db/core/schema.js';
 import { systemSettings } from '../../db/admin/settings.schema.js';
 import { db } from '../../db/core/index.js';
@@ -72,12 +72,38 @@ export async function processE2BWorkflow(reportId: string) {
     report.safetyReportId = safetyReportId;
     report.reportVersion = reportVersion;
 
-    // 2. Generate XML
+    // 2. Data Enrichment (Fetch WHODrug ingredients if needed)
+    const { whodrugService } = await import('../whodrug/whodrug.service.js');
+    const allProducts = [...(report.products || []), ...(report.otherMedications || [])];
+    const whoCodes = allProducts.map((p: any) => p.whodrugCode).filter(Boolean);
+    
+    if (whoCodes.length > 0) {
+      const enrichmentMapping = await whodrugService.getEnrichedDrugData(whoCodes);
+      // Enrich report products with their dictionary ingredients and ATCs
+      if (report.products) {
+        report.products = report.products.map((p: any) => ({
+          ...p,
+          companyCode: p.whodrugCode && enrichmentMapping[p.whodrugCode] ? enrichmentMapping[p.whodrugCode].companyCode : (p.companyCode || null),
+          ingredients: p.whodrugCode && enrichmentMapping[p.whodrugCode] ? enrichmentMapping[p.whodrugCode].ingredients : (p.ingredients || []),
+          atcs: p.whodrugCode && enrichmentMapping[p.whodrugCode] ? enrichmentMapping[p.whodrugCode].atcs : (p.atcs || [])
+        }));
+      }
+      if (report.otherMedications) {
+        report.otherMedications = report.otherMedications.map((p: any) => ({
+          ...p,
+          companyCode: p.whodrugCode && enrichmentMapping[p.whodrugCode] ? enrichmentMapping[p.whodrugCode].companyCode : (p.companyCode || null),
+          ingredients: p.whodrugCode && enrichmentMapping[p.whodrugCode] ? enrichmentMapping[p.whodrugCode].ingredients : (p.ingredients || []),
+          atcs: p.whodrugCode && enrichmentMapping[p.whodrugCode] ? enrichmentMapping[p.whodrugCode].atcs : (p.atcs || [])
+        }));
+      }
+    }
+
+    // 3. Generate XML
     const sysSettings = (await db.select().from(systemSettings).where(eq(systemSettings.id, 1)).limit(1))[0];
     const meddraVersion = sysSettings?.clinicalConfig?.meddraVersion || "29.0";
     
-    // 3. Validation Flow (Tier 1 & Tier 2)
-    const { preValidateFormData } = await import('./pre-validator.js');
+    // 4. Validation Flow (Tier 1 & Tier 2)
+    const { preValidateFormData } = await import('./validation/pre-validator.js');
     const preValidation = preValidateFormData(report);
     
     const xml = generateE2BR3(report, { senderId, receiverId, reportType, meddraVersion });
@@ -98,13 +124,15 @@ export async function processE2BWorkflow(reportId: string) {
     const xmlPath = await storeE2BR3(report.referenceId || reportId, xml);
     console.log(`XML Stored at path: ${xmlPath}`);
 
-    // 5. Update Report with XML Path and Validation Status
+    // 5. Update Report with Enriched Data, XML Path and Validation Status
     await db
       .update(tableToUpdate)
       .set({
         xmlUrl: xmlPath,
         isValid: finalValid,
         validationErrors: finalErrors,
+        products: report.products,
+        otherMedications: report.otherMedications,
         updatedAt: new Date(),
       } as any)
       .where(eq(tableToUpdate.id, reportId));
@@ -130,6 +158,7 @@ export async function processE2BWorkflow(reportId: string) {
       xmlContent: xml,
       isValid: finalValid,
       errors: finalErrors,
+      enrichedReport: report
     };
   } catch (error: any) {
     console.error('E2B Workflow Error:', error);

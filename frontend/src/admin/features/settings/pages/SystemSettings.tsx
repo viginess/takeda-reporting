@@ -1,21 +1,21 @@
-import { useState, useEffect } from "react";
+
 import { motion, AnimatePresence } from "framer-motion";
 import { Settings, Shield, Bell, Save, RotateCcw, Check, AlertTriangle, AlertCircle, Users, UserCircle } from "lucide-react";
 import {
   Box, Flex, Text, Heading, Button, Modal, ModalOverlay, ModalContent, ModalHeader,
-  ModalBody, ModalFooter, useDisclosure, useToast,Skeleton,
+  ModalBody, ModalFooter, Skeleton,
   VStack
 } from "@chakra-ui/react";
-import { trpc } from "../../../../utils/trpc";
-import { supabase } from "../../../../utils/supabaseClient";
 import { GeneralSection } from "../components/GeneralSection";
 import { ProfileSection } from "../components/ProfileSection";
 import { SecurityTab } from "../components/SecurityTab";
 import { NotificationsTab } from "../components/NotificationsTab";
 import { SettingsAdmins } from "../components/SettingsAdmins";
 
+import { useSystemSettings } from "../hooks/useSystemSettings";
+import { type Section } from "../types";
 
-type Section = "account" | "general" | "security" | "notifications" | "admins";
+
 
 const navSections: { id: Section; label: string; icon: any; desc: string }[] = [
   { id: "account",       label: "My Account",    icon: UserCircle, desc: "Personal profile & security" },
@@ -26,193 +26,11 @@ const navSections: { id: Section; label: string; icon: any; desc: string }[] = [
 ];
 
 export default function SystemSettings() {
-  const [active, setActive] = useState<Section>("account");
-  const [unsaved, setUnsaved] = useState(false);
-  const [saved, setSaved] = useState(false);
-  const [pendingSection, setPendingSection] = useState<Section | null>(null);
-  const { isOpen, onOpen, onClose } = useDisclosure();
-  const toast = useToast();
-  const [isMounting, setIsMounting] = useState(true);
 
-  useEffect(() => {
-    const timer = setTimeout(() => setIsMounting(false), 800);
-    return () => clearTimeout(timer);
-  }, []);
+  const settings = useSystemSettings();
+  const { state, actions, mutations } = settings;
 
-  const { data: user } = trpc.admin.getMe.useQuery();
-  const { data, isLoading, refetch } = trpc.admin.getSystemSettings.useQuery();
-  const { data: adminUsers, refetch: refetchAdmins } = trpc.admin.getAdmins.useQuery(undefined, {
-    enabled: user?.role === "super_admin",
-  });
-  const utils = trpc.useContext();
-
-  const updateSettings = trpc.admin.updateSystemSettings.useMutation({
-    onSuccess: () => { setUnsaved(false); setSaved(true); refetch(); setTimeout(() => setSaved(false), 3000); },
-    onError: (error) => { toast({ title: "Error saving settings", description: error.message, status: "error", duration: 5000, isClosable: true }); }
-  });
-
-  const runArchivingManual = trpc.admin.runManualArchiving.useMutation({
-    onSuccess: () => { toast({ title: "Archiving complete", status: "success", duration: 3000, isClosable: true }); refetch(); },
-    onError: (err) => { toast({ title: "Archiving failed", description: err.message, status: "error", duration: 5000, isClosable: true }); }
-  });
-
-  const updateAdminRole = trpc.admin.updateAdminRole.useMutation({
-    onSuccess: () => { toast({ title: "Role updated", status: "success", duration: 3000, isClosable: true }); refetchAdmins(); },
-    onError: (err) => { toast({ title: "Update failed", description: err.message, status: "error", duration: 5000, isClosable: true }); }
-  });
-
-  const inviteAdmin = trpc.admin.inviteAdmin.useMutation({
-    onSuccess: () => { toast({ title: "Invitation sent", status: "success", duration: 4000, isClosable: true }); setInviteEmail(""); refetchAdmins(); },
-    onError: (err: any) => { toast({ title: "Invitation failed", description: err.message, status: "error", duration: 5000, isClosable: true }); }
-  });
-
-  const updateAdminProfile = trpc.admin.updateAdminProfile.useMutation({
-    onSuccess: () => { utils.admin.getAdmins.invalidate(); utils.admin.getMe.invalidate(); setUnsaved(false); setSaved(true); setTimeout(() => setSaved(false), 3000); },
-    onError: (error) => { toast({ title: "Error saving profile", description: error.message, status: "error", duration: 5000, isClosable: true }); }
-  });
-
-  const toggleTwoFactor = trpc.admin.toggleTwoFactor.useMutation({
-    onSuccess: () => { utils.admin.getMe.invalidate(); },
-    onError: (err) => { toast({ title: "Failed to update 2FA", description: err.message, status: "error" }); }
-  });
-
-  // ── State ──
-  const [senderId, setSenderId] = useState("");
-  const [receiverId, setReceiverId] = useState("");
-  const [retention, setRetention] = useState("");
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [userId, setUserId] = useState<string | null>(null);
-  const [sessionTimeout, setSessionTimeout] = useState("");
-  const [maxLoginAttempts, setMaxLoginAttempts] = useState("5");
-  const [passwordExpiry, setPasswordExpiry] = useState("90 days");
-  const [meddraVersion, setMeddraVersion] = useState("29.1");
-  const [lockoutCooldown, setLockoutCooldown] = useState("30 min"); 
-  const [smtpHost, setSmtpHost] = useState("");
-  const [smtpPort, setSmtpPort] = useState("587");
-  const [smtpUser, setSmtpUser] = useState("");
-  const [smtpPass, setSmtpPass] = useState("");
-  const [smtpFrom, setSmtpFrom] = useState("");
-  const [inviteEmail, setInviteEmail] = useState("");
-  const [inviteRole, setInviteRole] = useState<"super_admin" | "admin" | "viewer">("admin");
-  const [urgentAlerts, setUrgentAlerts] = useState(false);
-  const [alertThreshold, setAlertThreshold] = useState("");
-  const [notifyOnApproval, setNotifyOnApproval] = useState(false);
-  const [userTwoFA, setUserTwoFA] = useState(false);
-  const [roleChanges, setRoleChanges] = useState<Record<string, "super_admin" | "admin" | "viewer">>({});
-
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => setUserId(user?.id || null));
-  }, []);
-
-  useEffect(() => {
-    if (data) {
-      const clinical = data.clinicalConfig || {};
-      setRetention(clinical.retention || "24 months");
-
-      setSessionTimeout(clinical.sessionTimeout || "60 min");
-      setMaxLoginAttempts(clinical.maxLoginAttempts || "5");
-      setPasswordExpiry(clinical.passwordExpiry || "90 days");
-      setMeddraVersion(clinical.meddraVersion || "29.1");
-      setLockoutCooldown(clinical.lockoutCooldown || "30 min");
-      setSenderId(clinical.senderId || "CLINSOLUTION-DEFAULT");
-      setReceiverId(clinical.receiverId || "EVHUMAN");
-
-      setSmtpHost(clinical.smtpHost || "");
-      setSmtpPort(clinical.smtpPort || "587");
-      setSmtpUser(clinical.smtpUser || "");
-      setSmtpPass(clinical.smtpPass || "");
-      setSmtpFrom(clinical.smtpFrom || "");
-
-      const notifs = data.notificationThresholds || {};
-      setUrgentAlerts(notifs.urgentAlerts !== false);
-      setAlertThreshold(notifs.alertThreshold || "All Severities");
-      setNotifyOnApproval(notifs.notifyOnApproval !== false);
-    }
-  }, [data]);
-
-  useEffect(() => {
-    if (user) { 
-      setFirstName(user.firstName || ""); 
-      setLastName(user.lastName || ""); 
-      setUserTwoFA(!!user.twoFactorEnabled);
-    }
-  }, [user]);
-
-  const track = (fn: () => void) => { fn(); setUnsaved(true); setSaved(false); };
-
-  const { data: meddraVersionsData } = trpc.reference.getMeddraVersions.useQuery();
-  const meddraVersions = meddraVersionsData || [];
-
-  const handleNavClick = (id: Section) => {
-    if (unsaved && id !== active) { setPendingSection(id); onOpen(); }
-    else setActive(id);
-  };
-
-  const handleSave = async () => {
-    await updateSettings.mutateAsync({
-      notificationThresholds: {
-        urgentAlerts, alertThreshold, notifyOnApproval,
-        emailDigest: data?.notificationThresholds.emailDigest || false,
-        digestFrequency: data?.notificationThresholds.digestFrequency || "Daily",
-        smsAlerts: data?.notificationThresholds.smsAlerts || false,
-      },
-      clinicalConfig: { retention, sessionTimeout, maxLoginAttempts, passwordExpiry, meddraVersion, lockoutCooldown, senderId, receiverId,
-        smtpHost, smtpPort, smtpUser, smtpPass, smtpFrom
-      }
-    });
-    if (userId) {
-      await updateAdminProfile.mutateAsync({ firstName, lastName });
-      if (userTwoFA !== !!user?.twoFactorEnabled) {
-          await toggleTwoFactor.mutateAsync({ enabled: userTwoFA });
-      }
-    }
-    const roleEntries = Object.entries(roleChanges);
-    if (roleEntries.length > 0) {
-      for (const [adminId, role] of roleEntries) await updateAdminRole.mutateAsync({ adminId, role });
-      setRoleChanges({});
-    }
-    setUnsaved(false); setSaved(true);
-    toast({ title: "Settings updated", description: "Your changes have been saved successfully.", status: "success", duration: 3000, isClosable: true });
-    refetch();
-    setTimeout(() => setSaved(false), 3000);
-  };
-
-  const handleDiscard = () => {
-    if (data) {
-      const clinical = data.clinicalConfig || {};
-      setRetention(clinical.retention || "24 months");
-
-      setSessionTimeout(clinical.sessionTimeout || "60 min");
-      setMaxLoginAttempts(clinical.maxLoginAttempts || "5");
-      setPasswordExpiry(clinical.passwordExpiry || "90 days");
-      setMeddraVersion(clinical.meddraVersion || "29.1");
-      setLockoutCooldown(clinical.lockoutCooldown || "30 min");
-      setSenderId(clinical.senderId || "CLINSOLUTION-DEFAULT");
-      setReceiverId(clinical.receiverId || "EVHUMAN");
-
-      setSmtpHost(clinical.smtpHost || "");
-      setSmtpPort(clinical.smtpPort || "587");
-      setSmtpUser(clinical.smtpUser || "");
-      setSmtpPass(clinical.smtpPass || "");
-      setSmtpFrom(clinical.smtpFrom || "");
-
-      const notifs = data.notificationThresholds || {};
-      setUrgentAlerts(notifs.urgentAlerts !== false);
-      setAlertThreshold(notifs.alertThreshold || "All Severities");
-      setNotifyOnApproval(notifs.notifyOnApproval !== false);
-    }
-    if (adminUsers && userId) {
-      const profile = adminUsers.find((a: any) => a.id === userId);
-      if (profile) { setFirstName(profile.firstName || ""); setLastName(profile.lastName || ""); }
-    }
-    setRoleChanges({});
-    setUnsaved(false);
-    if (pendingSection) { setActive(pendingSection); setPendingSection(null); }
-    onClose();
-  };
-
-  if (isLoading || isMounting) {
+  if (state.isLoading || state.isMounting) {
     return (
       <Flex direction="column" minH="100vh" bg="#f8fafc" p={8}>
         <Flex gap={6} flex={1}>
@@ -231,7 +49,7 @@ export default function SystemSettings() {
   }
 
   const filteredNavSections = navSections.filter(s => {
-    if (user?.role !== "super_admin" && (s.id !== "general" && s.id !== "account")) return false;
+    if (state.user?.role !== "super_admin" && (s.id !== "general" && s.id !== "account")) return false;
     return true;
   });
 
@@ -254,7 +72,7 @@ export default function SystemSettings() {
               <Text fontSize="2xs" fontWeight="bold" color="#CE0037">Admin Only</Text>
             </Flex>
             <AnimatePresence>
-              {unsaved && (
+              {state.unsaved && (
                 <Flex as={motion.div} {...({} as any)} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
                   align="center" gap={1.5} bg="yellow.50" border="1px solid" borderColor="yellow.200" borderRadius="md" px={2} py={1}>
                   <AlertCircle size={12} color="#d97706" />
@@ -263,7 +81,7 @@ export default function SystemSettings() {
               )}
             </AnimatePresence>
             <AnimatePresence>
-              {saved && (
+              {state.saved && (
                 <Flex as={motion.div} {...({} as any)} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
                   align="center" gap={1.5} bg="green.50" border="1px solid" borderColor="green.200" borderRadius="md" px={2} py={1}>
                   <Check size={12} color="#059669" />
@@ -283,27 +101,28 @@ export default function SystemSettings() {
             {filteredNavSections.map((s, i) => (
               <Flex
                 key={s.id}
-                onClick={() => handleNavClick(s.id)}
+                onClick={() => actions.handleNavClick(s.id)}
                 align="center" gap={3} p={3} px={4} cursor="pointer"
                 borderBottom={{ base: 'none', md: i < filteredNavSections.length - 1 ? "1px solid" : "none" }}
                 borderRight={{ base: i < filteredNavSections.length - 1 ? "1px solid" : "none", md: 'none' }}
                 borderColor="#f8fafc"
-                bg={active === s.id ? "red.50" : "transparent"}
-                borderLeft={{ base: 'none', md: "3px solid" }}
-                borderLeftColor={active === s.id ? "#CE0037" : "transparent"}
-                borderBottomColor={{ base: active === s.id ? "#CE0037" : "transparent", md: 'none' }}
-                borderBottomWidth={{ base: active === s.id ? "2px" : "0", md: '0' }}
+                bg={state.active === s.id ? "red.50" : "transparent"}
+                borderLeftWidth={{ base: "0", md: "3px" }}
+                borderLeftStyle="solid"
+                borderLeftColor={state.active === s.id ? "#CE0037" : "transparent"}
+                borderBottomColor={{ base: state.active === s.id ? "#CE0037" : "transparent", md: "none" }}
+                borderBottomWidth={{ base: state.active === s.id ? "2px" : "0", md: "0" }}
                 transition="all 0.15s"
-                _hover={{ bg: active === s.id ? "red.50" : "#f8fafc" }}
+                _hover={{ bg: state.active === s.id ? "red.50" : "#f8fafc" }}
                 minW={{ base: '140px', md: 'auto' }}
               >
                 <Flex w="30px" h="30px" borderRadius="md" align="center" justify="center"
-                  bg={active === s.id ? "red.50" : "#f8fafc"}
-                  border="1px solid" borderColor={active === s.id ? "red.200" : "#e2e8f0"} flexShrink={0} display={{ base: 'none', sm: 'flex' }}>
-                  <s.icon size={14} color={active === s.id ? "#CE0037" : "#94a3b8"} />
+                  bg={state.active === s.id ? "red.50" : "#f8fafc"}
+                  border="1px solid" borderColor={state.active === s.id ? "red.200" : "#e2e8f0"} flexShrink={0} display={{ base: 'none', sm: 'flex' }}>
+                  <s.icon size={14} color={state.active === s.id ? "#CE0037" : "#94a3b8"} />
                 </Flex>
                 <Box>
-                  <Text m={0} fontSize="sm" fontWeight={active === s.id ? "bold" : "medium"} color={active === s.id ? "#CE0037" : "#0f172a"}>{s.label}</Text>
+                  <Text m={0} fontSize="sm" fontWeight={state.active === s.id ? "bold" : "medium"} color={state.active === s.id ? "#CE0037" : "#0f172a"}>{s.label}</Text>
                   <Text m={0} fontSize="2xs" color="#64748b" display={{ base: 'none', md: 'block' }}>{s.desc}</Text>
                 </Box>
               </Flex>
@@ -314,83 +133,83 @@ export default function SystemSettings() {
         {/* Main Content */}
         <Box as={motion.div} {...({} as any)} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }} flex={1} minW={0}>
 
-          {active === "account" && (
+          {state.active === "account" && (
             <ProfileSection
-              personalEmail={user?.email || ""}
-              firstName={firstName} setFirstName={setFirstName}
-              lastName={lastName} setLastName={setLastName}
-              userTwoFA={userTwoFA} setUserTwoFA={setUserTwoFA}
-              track={track}
+              personalEmail={state.user?.email || ""}
+              firstName={state.firstName} setFirstName={actions.setFirstName}
+              lastName={state.lastName} setLastName={actions.setLastName}
+              userTwoFA={state.userTwoFA} setUserTwoFA={actions.setUserTwoFA}
+              track={actions.track}
             />
           )}
 
-          {active === "general" && (
+          {state.active === "general" && (
             <GeneralSection
-              retention={retention} setRetention={(v) => track(() => setRetention(v))}
-              track={track}
-              userRole={user?.role ?? undefined}
-              onRunArchiving={() => runArchivingManual.mutate()}
-              isArchiving={runArchivingManual.isPending}
-              senderId={senderId} setSenderId={setSenderId}
-              receiverId={receiverId} setReceiverId={setReceiverId}
-              meddraVersion={meddraVersion} setMeddraVersion={setMeddraVersion}
-              meddraVersions={meddraVersions}
-              smtpHost={smtpHost} setSmtpHost={setSmtpHost}
-              smtpPort={smtpPort} setSmtpPort={setSmtpPort}
-              smtpUser={smtpUser} setSmtpUser={setSmtpUser}
-              smtpPass={smtpPass} setSmtpPass={setSmtpPass}
-              smtpFrom={smtpFrom} setSmtpFrom={setSmtpFrom}
+              retention={state.retention} setRetention={(v) => actions.track(() => actions.setRetention(v))}
+              track={actions.track}
+              userRole={state.user?.role ?? undefined}
+              onRunArchiving={() => mutations.runArchivingManual.mutate()}
+              isArchiving={mutations.runArchivingManual.isPending}
+              senderId={state.senderId} setSenderId={actions.setSenderId}
+              receiverId={state.receiverId} setReceiverId={actions.setReceiverId}
+              meddraVersion={state.meddraVersion} setMeddraVersion={actions.setMeddraVersion}
+              meddraVersions={state.meddraVersions}
+              smtpHost={state.smtpHost} setSmtpHost={actions.setSmtpHost}
+              smtpPort={state.smtpPort} setSmtpPort={actions.setSmtpPort}
+              smtpUser={state.smtpUser} setSmtpUser={actions.setSmtpUser}
+              smtpPass={state.smtpPass} setSmtpPass={actions.setSmtpPass}
+              smtpFrom={state.smtpFrom} setSmtpFrom={actions.setSmtpFrom}
             />
           )}
 
-          {active === "security" && (
+          {state.active === "security" && (
             <SecurityTab
-              sessionTimeout={sessionTimeout} setSessionTimeout={setSessionTimeout}
-              maxLoginAttempts={maxLoginAttempts} setMaxLoginAttempts={setMaxLoginAttempts}
-              passwordExpiry={passwordExpiry} setPasswordExpiry={setPasswordExpiry}
-              lockoutCooldown={lockoutCooldown} setLockoutCooldown={setLockoutCooldown}
-              track={track}
+              sessionTimeout={state.sessionTimeout} setSessionTimeout={actions.setSessionTimeout}
+              maxLoginAttempts={state.maxLoginAttempts} setMaxLoginAttempts={actions.setMaxLoginAttempts}
+              passwordExpiry={state.passwordExpiry} setPasswordExpiry={actions.setPasswordExpiry}
+              lockoutCooldown={state.lockoutCooldown} setLockoutCooldown={actions.setLockoutCooldown}
+              track={actions.track}
             />
           )}
 
-          {active === "notifications" && (
+          {state.active === "notifications" && (
             <NotificationsTab
-              urgentAlerts={urgentAlerts} setUrgentAlerts={setUrgentAlerts}
-              alertThreshold={alertThreshold} setAlertThreshold={setAlertThreshold}
-              notifyOnApproval={notifyOnApproval} setNotifyOnApproval={setNotifyOnApproval}
-              track={track}
+              urgentAlerts={state.urgentAlerts} setUrgentAlerts={actions.setUrgentAlerts}
+              alertThreshold={state.alertThreshold} setAlertThreshold={actions.setAlertThreshold}
+              notifyOnApproval={state.notifyOnApproval} setNotifyOnApproval={actions.setNotifyOnApproval}
+              track={actions.track}
             />
           )}
 
-          {active === "admins" && user?.role === "super_admin" && (
+          {state.active === "admins" && state.user?.role === "super_admin" && (
             <SettingsAdmins
-              adminUsers={adminUsers || []}
-              inviteEmail={inviteEmail} setInviteEmail={setInviteEmail}
-              inviteRole={inviteRole} setInviteRole={setInviteRole}
-              roleChanges={roleChanges} setRoleChanges={setRoleChanges}
-              track={track}
+              adminUsers={state.adminUsers || []}
+              inviteEmail={state.inviteEmail} setInviteEmail={actions.setInviteEmail}
+              inviteRole={state.inviteRole} setInviteRole={actions.setInviteRole}
+              roleChanges={state.roleChanges} setRoleChanges={actions.setRoleChanges}
+              track={actions.track}
               onInvite={() => {
-                if (inviteEmail) inviteAdmin.mutate({ email: inviteEmail, role: inviteRole, redirectTo: `${window.location.origin}/admin/reset-password` });
+                if (state.inviteEmail) mutations.inviteAdmin.mutate({ email: state.inviteEmail, role: state.inviteRole, redirectTo: `${window.location.origin}/admin/reset-password` });
               }}
-              isInviting={inviteAdmin.isPending}
-              isUpdatingRole={updateAdminRole.isPending}
+              isInviting={mutations.inviteAdmin.isPending}
+              isUpdatingRole={mutations.updateAdminRole.isPending}
             />
           )}
 
           {/* Save / Reset Bar */}
           <Flex as={motion.div} {...({} as any)} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} justify="flex-end" gap={3} mt={5}>
             <Button as={motion.button} {...({} as any)} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
-              onClick={handleDiscard} variant="outline" bg="white" color="#64748b" borderColor="#e2e8f0"
+              onClick={actions.handleDiscard} variant="outline" bg="white" color="#64748b" borderColor="#e2e8f0"
               leftIcon={<RotateCcw size={14} />} size="md">
               Reset
             </Button>
             <Button as={motion.button} {...({} as any)} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
-              onClick={handleSave}
-              bg={unsaved ? "#CE0037" : "#e2e8f0"}
-              color={unsaved ? "white" : "#94a3b8"}
+              onClick={actions.handleSave}
+              bg={state.unsaved ? "#CE0037" : "#e2e8f0"}
+              color={state.unsaved ? "white" : "#94a3b8"}
               leftIcon={<Save size={14} />} size="md" transition="all 0.2s"
-              _hover={unsaved ? { bg: "#b3002f" } : {}}
-              isLoading={updateSettings.isPending || updateAdminProfile.isPending}>
+              _hover={state.unsaved ? { bg: "#b3002f" } : {}}
+              isLoading={mutations.updateSettings.isPending || mutations.updateAdminProfile.isPending}>
               Save Changes
             </Button>
           </Flex>
@@ -398,7 +217,7 @@ export default function SystemSettings() {
       </Flex>
 
       {/* Unsaved Changes Modal */}
-      <Modal isOpen={isOpen} onClose={onClose} isCentered>
+      <Modal isOpen={state.isOpen} onClose={actions.onClose} isCentered>
         <ModalOverlay bg="blackAlpha.300" />
         <ModalContent borderRadius="2xl" mx={{ base: 4, md: 0 }}>
           <ModalHeader pb={0}>
@@ -415,8 +234,8 @@ export default function SystemSettings() {
             </Text>
           </ModalBody>
           <ModalFooter gap={3}>
-            <Button variant="outline" bg="#f8fafc" color="#64748b" onClick={onClose} flex={1}>Stay & Save</Button>
-            <Button bg="#CE0037" color="white" onClick={handleDiscard} flex={1} _hover={{ bg: "#b3002f" }}>Discard Changes</Button>
+            <Button variant="outline" bg="#f8fafc" color="#64748b" onClick={actions.onClose} flex={1}>Stay & Save</Button>
+            <Button bg="#CE0037" color="white" onClick={actions.handleDiscard} flex={1} _hover={{ bg: "#b3002f" }}>Discard Changes</Button>
           </ModalFooter>
         </ModalContent>
       </Modal>

@@ -4,7 +4,7 @@ import { router } from '../../trpc/core/init.js';
 import { adminProcedure } from '../../trpc/core/procedures.js';
 import { db } from '../../db/core/index.js';
 import { meddraImports } from "../../db/meddra/import.schema.js";
-import { desc, eq, and } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { meddraService } from "./meddra.service.js";
 
 /**
@@ -55,16 +55,20 @@ export const importRouter = router({
       // 2. Prevent duplicate imports if version already exists
       const [existing] = await db.select()
         .from(meddraImports)
-        .where(and(
-          eq(meddraImports.version, detectedVersion),
-          eq(meddraImports.status, "COMPLETED")
-        ))
+        .where(eq(meddraImports.version, detectedVersion))
         .limit(1);
 
-      if (existing) {
+      if (existing && existing.status === "COMPLETED") {
         throw new TRPCError({ 
           code: "CONFLICT", 
           message: `MedDRA Version ${detectedVersion} is already imported and available.` 
+        });
+      }
+
+      if (existing && existing.status === "PROCESSING") {
+        throw new TRPCError({ 
+          code: "CONFLICT", 
+          message: `MedDRA Version ${detectedVersion} is currently being processed.` 
         });
       }
 

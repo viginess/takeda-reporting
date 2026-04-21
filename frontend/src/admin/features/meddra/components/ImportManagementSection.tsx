@@ -1,7 +1,7 @@
 import { 
   Box 
 } from "@chakra-ui/react";
-import { trpc } from "../../../../utils/trpc";
+import { trpc } from "../../../../utils/config/trpc";
 import { ImportHistoryTable } from "./ImportHistoryTable";
 import { ImportMeddraModal } from "./ImportMeddraModal";
 
