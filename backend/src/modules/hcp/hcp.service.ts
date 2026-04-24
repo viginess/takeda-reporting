@@ -56,7 +56,7 @@ export async function createHcpReport(input: any) {
   }
 
   // 3. Trigger Shared Submission Workflow (E2B, PDF, Email)
-  runReportingWorkflow({
+  await runReportingWorkflow({
     reportId: row.id,
     reporterType: "HCP",
     table: hcpReports

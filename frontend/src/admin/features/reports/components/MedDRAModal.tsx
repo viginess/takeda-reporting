@@ -2,9 +2,11 @@ import { Search, AlertCircle } from "lucide-react";
 import {
   Modal, ModalOverlay, ModalContent, ModalBody, ModalCloseButton,
   Heading, Text, Box, Badge, Flex, VStack, Input, InputGroup,
-  InputLeftElement, Skeleton, Center, useToast
+  InputLeftElement, Skeleton, Center, useToast,
+  Spinner
 } from "@chakra-ui/react";
 import type { Report, MedDRATerm } from "../types";
+import { useState } from "react";
 
 interface MedDRAModalProps {
   isOpen: boolean;
@@ -32,16 +34,35 @@ export function MedDRAModal({
   onSymptomUpdated,
 }: MedDRAModalProps) {
   const toast = useToast();
+  const [isSaving, setIsSaving] = useState(false);
+
   const symptom = codingSymptomIndex !== null
     ? selectedReport?.fullDetails?.symptoms?.[codingSymptomIndex]
     : null;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="xl">
+    <Modal isOpen={isOpen} onClose={isSaving ? () => {} : onClose} size="xl">
       <ModalOverlay backdropFilter="blur(5px)" />
-      <ModalContent borderRadius="2xl" p={2} mx={{ base: 4, md: 0 }}>
-        <ModalCloseButton mt={2} mr={2} />
-        <ModalBody p={5}>
+      <ModalContent borderRadius="2xl" p={2} mx={{ base: 4, md: 0 }} overflow="hidden">
+        {isSaving && (
+          <Box
+            position="absolute"
+            top={0} left={0} right={0} bottom={0}
+            bg="whiteAlpha.800"
+            zIndex={10}
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            backdropFilter="blur(2px)"
+          >
+            <VStack spacing={4}>
+              <Spinner size="xl" color="#CE0037" thickness="4px" />
+              <Text fontWeight="700" color="#1e293b">Applying Coding...</Text>
+            </VStack>
+          </Box>
+        )}
+        <ModalCloseButton mt={2} mr={2} isDisabled={isSaving} />
+        <ModalBody p={5} opacity={isSaving ? 0.3 : 1}>
           <Heading size="md" mb={1} color="#1e293b">Medical Coding (MedDRA)</Heading>
           <Text fontSize="sm" color="#64748b" mb={6}>Map the reported symptom to an official MedDRA term.</Text>
 
@@ -63,6 +84,7 @@ export function MedDRAModal({
               placeholder="Search MedDRA (e.g. Headache, Nausea...)"
               value={meddraQuery}
               onChange={(e) => setMeddraQuery(e.target.value.replace(/"/g, ""))}
+              isDisabled={isSaving}
               borderRadius="xl" border="2px solid" borderColor="#f1f5f9"
               _focus={{ borderColor: "#CE0037", boxShadow: "none" }}
             />
@@ -78,26 +100,46 @@ export function MedDRAModal({
               <Box
                 key={term.code || "uncoded"}
                 p={3} borderRadius="xl" border="1px solid" borderColor="#f1f5f9"
-                cursor="pointer" transition="all 0.2s" _hover={{ bg: "red.50", borderColor: "red.100" }}
+                cursor={isSaving ? "not-allowed" : "pointer"} 
+                transition="all 0.2s" 
+                _hover={!isSaving ? { bg: "red.50", borderColor: "red.100" } : {}}
                 onClick={async () => {
-                  if (codingSymptomIndex === null || !selectedReport) return;
+                  if (codingSymptomIndex === null || !selectedReport || isSaving) return;
+                  setIsSaving(true);
+                  
                   const updatedSymptoms = [...selectedReport.fullDetails.symptoms];
                   updatedSymptoms[codingSymptomIndex] = {
                     ...updatedSymptoms[codingSymptomIndex],
                     meddraCode: term.code || null,
-                    meddraTerm: term.term || "Unknown"
+                    meddraTerm: term.term || "Unknown",
+                    name: term.term || "Unknown",    // Sync display name
+                    symptom: term.term || "Unknown" // Sync display name
                   };
                   try {
-                    await updateMutation.mutateAsync({
+                    const res = await updateMutation.mutateAsync({
                       reportId: selectedReport.originalId!,
                       reporterType: selectedReport.reporterType,
                       updates: { symptoms: updatedSymptoms }
                     });
-                    toast({ title: "Symptom Coded", status: "success" });
-                    onSymptomUpdated({ ...selectedReport, fullDetails: { ...selectedReport.fullDetails, symptoms: updatedSymptoms } });
+                    
+                    toast({ title: "Symptom Coded", description: `Linked to MedDRA term: ${term.term}`, status: "success" });
+                    
+                    // Update state locally with merged data to prevent structure mismatch crash
+                    onSymptomUpdated({ 
+                      ...selectedReport, 
+                      fullDetails: { 
+                        ...selectedReport.fullDetails, 
+                        symptoms: updatedSymptoms 
+                      },
+                      // If the backend returned new validation status, include it
+                      isValid: res?.data?.isValid ?? selectedReport.isValid,
+                      validationErrors: res?.data?.validationErrors ?? selectedReport.validationErrors
+                    });
                     onClose();
                   } catch (err: any) {
                     toast({ title: "Coding Failed", description: err.message, status: "error" });
+                  } finally {
+                    setIsSaving(false);
                   }
                 }}
               >

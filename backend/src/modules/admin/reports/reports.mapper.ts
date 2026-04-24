@@ -4,7 +4,7 @@
  * This handles complex transformations including audit log formatting, 
  * severity translation, and detail extraction from JSON fields.
  */
-export function mapReportRecord(row: any, audits: any[] = []) {
+export function mapReportRecord(row: any, audits: any[] = [], notifications: any[] = []) {
   const patient = row.patientDetails || {};
   const symptomsArr = Array.isArray(row.symptoms)
     ? row.symptoms
@@ -14,6 +14,21 @@ export function mapReportRecord(row: any, audits: any[] = []) {
   const primarySymptom = symptomsArr[0] || {};
   const products = row.products || [];
   const primaryProduct = products[0] || {};
+
+  const reportNotifications = notifications
+    .filter((n) => String(n.reportId) === String(row.id))
+    .map((n) => ({
+      id: n.id,
+      companyName: n.companyName,
+      status: n.status,
+      sentAt: n.sentAt ? new Date(n.sentAt).toLocaleString("en-US", {
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }) : null,
+      error: n.error
+    }));
 
   const reportAudits = audits
     .filter((a) => a.entity === "report" && String(a.entityId) === String(row.id))
@@ -68,6 +83,7 @@ export function mapReportRecord(row: any, audits: any[] = []) {
           day: "numeric",
         }),
         field,
+        details: a.details,
         from,
         to,
       };
@@ -148,5 +164,6 @@ export function mapReportRecord(row: any, audits: any[] = []) {
       xmlUrl: row.xmlUrl || null,
       pdfUrl: row.pdfUrl || null,
     },
+    notifications: reportNotifications,
   };
 }

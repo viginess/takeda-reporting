@@ -37,10 +37,12 @@ export async function sendAdminNotificationEmail({
       transporter = nodemailer.createTransport({
         host,
         port,
-        secure: port === 465, // Use SSL for port 465, otherwise STARTTLS
+        secure: port === 465, 
         auth: { user, pass },
+        connectionTimeout: 30000, // 30 seconds
+        greetingTimeout: 30000,   // 30 seconds
         tls: {
-          rejectUnauthorized: false, // Often required for Ionos/1and1 internal relays
+          rejectUnauthorized: false, 
         },
       });
     } else {
@@ -71,9 +73,14 @@ export async function sendAdminNotificationEmail({
       console.log(`Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
     }
 
-    return true;
-  } catch (error) {
+    return { 
+      success: true, 
+      messageId: info.messageId,
+      accepted: info.accepted,
+      rejected: info.rejected
+    };
+  } catch (error: any) {
     console.error("Error sending email:", error);
-    return false;
+    return { success: false, error: error.message || "Unknown SMTP Error" };
   }
 }

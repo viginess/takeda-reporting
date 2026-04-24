@@ -390,6 +390,7 @@ function PatientForm({ onBack, countryCode, languageCode }: PatientFormProps) {
               products: [
                 {
                   productName: "",
+                  manufacturerName: "",
                   whodrugCode: "",
                   condition: "",
                   actionTaken: "",

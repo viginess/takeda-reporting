@@ -14,16 +14,13 @@ import {
  */
 export const companies = pgTable("companies", {
   id: uuid("id").defaultRandom().primaryKey(),
-  name: text("name").notNull(),
-  email: text("email").notNull(),
-  // WHODrug company code (3-digit padding ensures standard matching)
-  companyCode: text("company_code").notNull().unique(),
+  name: text("name").notNull().unique(),
+  email: text("email"), // Now optional
   // Whether the company has explicitly opted into automated notifications
   isRegistered: boolean("is_registered").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => [
-  index("companies_code_idx").on(table.companyCode),
   index("companies_name_idx").on(table.name),
 ]);
 

@@ -48,7 +48,7 @@ export function DrugSearchInput({
 
   const handleSelect = (item: any) => {
     setQuery(item.name);
-    // Emit the selected name and 8-digit regulatory code
+    // Emit the selected name, 8-digit regulatory code, and extra data (including manufacturer)
     onChange(item.name, item.code, item);
     setIsOpen(false);
   };

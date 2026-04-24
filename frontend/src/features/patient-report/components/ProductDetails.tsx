@@ -21,7 +21,6 @@ import {
   InputRightElement,
   Portal,
   VStack,
-  Badge,
 } from "@chakra-ui/react";
 import { ProductImageUpload } from "../../../shared/components/upload/ProductImageUpload";
 import { DrugSearchInput } from "../../../shared/components/whodrug/DrugSearchInput";
@@ -90,11 +89,15 @@ export function ProductDetails({
         </FormLabel>
         <DrugSearchInput
           value={watch(`${prefix}.productName`) || ""}
-          onChange={(name, code) => {
+          onChange={(name, code, extra) => {
             setValue(`${prefix}.productName`, name, { shouldValidate: true });
             if (code) {
               // User selected from dictionary — save the WHODrug code
               setValue(`${prefix}.whodrugCode`, code);
+              // Auto-fill manufacturer if available
+              if (extra?.manufacturer) {
+                setValue(`${prefix}.manufacturerName`, extra.manufacturer);
+              }
             } else {
               // User is typing free text — clear any previously saved code
               setValue(`${prefix}.whodrugCode`, "");
@@ -102,27 +105,17 @@ export function ProductDetails({
           }}
           inputStyles={inputStyles}
         />
-        {/* Visual indicator: shows green badge when a valid WHODrug code is saved */}
-        {watch(`${prefix}.whodrugCode`) ? (
-          <Flex align="center" mt={2} gap={2}>
-            <Badge
-              colorScheme="green"
-              fontSize="xs"
-              px={2}
-              py={1}
-              borderRadius="full"
-            >
-              WHODrug Coded: {watch(`${prefix}.whodrugCode`)}
-            </Badge>
-            <Text fontSize="xs" color="gray.500">
-              Ingredient & ATC data will be auto-populated
-            </Text>
-          </Flex>
-        ) : (
-          <Text fontSize="xs" color="orange.500" mt={1}>
-            Select from suggestions to enable regulatory coding
-          </Text>
-        )}
+      </FormControl>
+
+      <FormControl mb={2} isRequired>
+        <FormLabel fontWeight="500" color="gray.700">
+          {t("forms.patient.productDetails.manufacturerLabel")}
+        </FormLabel>
+        <Input
+          placeholder={t("forms.patient.productDetails.manufacturerPlaceholder")}
+          {...inputStyles}
+          {...register(`${prefix}.manufacturerName`)}
+        />
       </FormControl>
 
       <FormControl mb={6}>

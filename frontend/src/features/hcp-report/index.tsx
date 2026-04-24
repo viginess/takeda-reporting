@@ -335,6 +335,7 @@ function HcpForm({ onBack, countryCode, languageCode }: HcpFormProps) {
               products: [
                 {
                   productName: '',
+                  manufacturerName: '',
                   whodrugCode: '',
                   condition: '',
                   doseForm: '',

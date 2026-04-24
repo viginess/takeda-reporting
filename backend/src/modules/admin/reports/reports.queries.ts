@@ -1,12 +1,14 @@
-import { sql, eq } from "drizzle-orm";
+import { sql, eq, inArray } from "drizzle-orm";
 import {
   viewerProcedure,
 } from '../../../trpc/core/procedures.js';
 import { db } from '../../../db/core/index.js';
 import { auditLogs } from "../../../db/audit/audit.schema.js";
+import { companies, companyNotifications } from "../../../db/company/company.schema.js";
 import { mapReportRecord } from "./reports.mapper.js";
 
 export const getAllReports = viewerProcedure.query(async () => {
+  // ... (union select remains unchanged)
   const res = await db.execute(sql`
       SELECT 
         id, 
@@ -93,16 +95,31 @@ export const getAllReports = viewerProcedure.query(async () => {
 
   const reportIds = res.rows.map((r: any) => r.id);
   let audits: any[] = [];
+  let notifications: any[] = [];
 
   if (reportIds.length > 0) {
-    const allAudits = await db
+    // Fetch Audits
+    audits = await db
       .select()
       .from(auditLogs)
       .where(eq(auditLogs.entity, "report"));
-    audits = allAudits;
+
+    // Fetch Company Notifications
+    notifications = await db
+      .select({
+        id: companyNotifications.id,
+        reportId: companyNotifications.reportId,
+        status: companyNotifications.status,
+        sentAt: companyNotifications.sentAt,
+        error: companyNotifications.lastError,
+        companyName: companies.name
+      })
+      .from(companyNotifications)
+      .leftJoin(companies, eq(companyNotifications.companyId, companies.id))
+      .where(inArray(companyNotifications.reportId, reportIds));
   }
 
-  return res.rows.map((row: any) => mapReportRecord(row, audits));
+  return res.rows.map((row: any) => mapReportRecord(row, audits, notifications));
 });
 
 export const getDashboardStats = viewerProcedure.query(async () => {

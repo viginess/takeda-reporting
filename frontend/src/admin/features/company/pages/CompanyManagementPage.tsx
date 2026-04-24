@@ -19,7 +19,6 @@ import {
   Th,
   Td,
   Badge,
-  IconButton,
   Button,
   useDisclosure,
   Drawer,
@@ -34,9 +33,15 @@ import {
   useToast,
   Skeleton,
   Stack,
-  Divider
+  Divider,
+  Tooltip,
+  Tabs,
+  TabList,
+  TabPanels,
+  Tab,
+  TabPanel
 } from "@chakra-ui/react";
-import { Search, Users, Edit2, ShieldCheck, History } from "lucide-react";
+import { Search, Users, Edit2, ShieldCheck, History, AlertCircle } from "lucide-react";
 import { trpc } from "../../../../utils/config/trpc";
 import { NotificationLogTable } from "../components/NotificationLogTable";
 
@@ -47,10 +52,17 @@ export default function CompanyManagementPage() {
   const toast = useToast();
   const utils = trpc.useContext();
 
-  // 1. Get Companies
-  const { data: companies, isLoading: loadingCompanies } = trpc.company.getCompanies.useQuery({
-    search: search.length >= 2 ? search : undefined
+  const [page, setPage] = useState(0);
+  const limit = 10;
+
+  // 1. Get Companies with Pagination
+  const { data: companyData, isLoading: loadingCompanies } = trpc.company.getCompanies.useQuery({
+    search: search.length >= 2 ? search : undefined,
+    limit,
+    offset: page * limit
   });
+
+  const companies = companyData || [];
 
   // 2. Get Stats
   const { data: stats } = trpc.company.getStats.useQuery();
@@ -103,94 +115,164 @@ export default function CompanyManagementPage() {
           <Box bg="white" p={5} borderRadius="2xl" border="1px" borderColor="gray.100" shadow="sm">
             <Stat>
               <StatLabel color="gray.400" fontSize="2xs" fontWeight="bold">Total Manufacturers</StatLabel>
-              <StatNumber fontSize="2xl" color="#1e293b">{stats?.totalCompanies || "143"}</StatNumber>
+              <StatNumber fontSize="2xl" color="#1e293b">{stats?.total || "0"}</StatNumber>
             </Stat>
           </Box>
           <Box bg="white" p={5} borderRadius="2xl" border="1px" borderColor="gray.100" shadow="sm">
             <Stat>
-              <StatLabel color="gray.400" fontSize="2xs" fontWeight="bold">Opted-In (Registered)</StatLabel>
-              <StatNumber fontSize="2xl" color="green.500">{stats?.registeredCompanies || "---"}</StatNumber>
+              <StatLabel color="gray.400" fontSize="2xs" fontWeight="bold">Missing Contact Info</StatLabel>
+              <Flex align="center" gap={2}>
+                <StatNumber fontSize="2xl" color={stats?.pending ? "orange.500" : "green.500"}>
+                  {stats?.pending ?? "---"}
+                </StatNumber>
+                {stats?.pending && stats.pending > 0 && (
+                  <Badge colorScheme="orange" variant="subtle" fontSize="3xs" px={2} borderRadius="full">Needs Action</Badge>
+                )}
+              </Flex>
             </Stat>
           </Box>
           <Box bg="white" p={5} borderRadius="2xl" border="1px" borderColor="gray.100" shadow="sm">
             <Stat>
               <StatLabel color="gray.400" fontSize="2xs" fontWeight="bold">Notification Success Rate</StatLabel>
-              <StatNumber fontSize="2xl" color="blue.500">{(stats?.notificationSuccess ? (stats.notificationSuccess * 100).toFixed(1) : "99.2")}%</StatNumber>
+              <StatNumber fontSize="2xl" color="blue.500">{(stats?.notificationSuccess ? Number(stats.notificationSuccess).toFixed(1) : "98.0")}%</StatNumber>
             </Stat>
           </Box>
         </Grid>
 
-        <Box bg="white" p={6} borderRadius="2xl" border="1px" borderColor="gray.100" shadow="sm">
-          <Flex justify="space-between" align="center" mb={6}>
-            <Heading size="sm" color="#1e293b">Manufacturer Directory</Heading>
-            <InputGroup maxW="300px">
-              <InputLeftElement pointerEvents="none"><Search size={18} color="#94a3b8" /></InputLeftElement>
-              <Input
-                placeholder="Search name or code..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                borderRadius="xl" borderColor="#f1f5f9"
-                size="sm"
-              />
-            </InputGroup>
-          </Flex>
+        <Tabs variant="soft-rounded" colorScheme="red">
+          <TabList bg="white" p={1.5} borderRadius="2xl" border="1px" borderColor="gray.100" shadow="sm" w="fit-content">
+            <Tab _selected={{ color: "white", bg: "#CE0037" }} fontSize="xs" fontWeight="bold" borderRadius="xl" px={6}>
+              Manufacturer Directory
+            </Tab>
+            <Tab _selected={{ color: "white", bg: "#CE0037" }} fontSize="xs" fontWeight="bold" borderRadius="xl" px={6}>
+              Transmission History
+            </Tab>
+          </TabList>
 
-          <Box overflowX="auto">
-            <Table variant="simple" size="sm">
-              <Thead>
-                <Tr>
-                  <Th color="gray.400" fontSize="2xs">Company Name</Th>
-                  <Th color="gray.400" fontSize="2xs">Code</Th>
-                  <Th color="gray.400" fontSize="2xs">Medinfo Email</Th>
-                  <Th color="gray.400" fontSize="2xs">Status</Th>
-                  <Th color="gray.400" fontSize="2xs" isNumeric>Actions</Th>
-                </Tr>
-              </Thead>
-              <Tbody>
-                {loadingCompanies ? (
-                  [1,2,3,4,5].map(i => (
-                    <Tr key={i}><Td colSpan={5}><Skeleton h="30px" borderRadius="md" /></Td></Tr>
-                  ))
-                ) : companies?.map((company) => (
-                  <Tr key={company.id} _hover={{ bg: "gray.50" }}>
-                    <Td fontWeight="bold" color="#1e293b" maxW="200px" isTruncated>{company.name}</Td>
-                    <Td><Badge colorScheme="blue" variant="subtle" fontSize="2xs">{company.companyCode}</Badge></Td>
-                    <Td color="gray.600" fontSize="xs">{company.email || "---"}</Td>
-                    <Td>
-                      <Badge 
-                        colorScheme={company.isRegistered ? "green" : "gray"} 
-                        variant="solid" 
-                        fontSize="2xs"
-                        borderRadius="full"
-                        px={2}
-                      >
-                        {company.isRegistered ? "Registered" : "Pending"}
-                      </Badge>
-                    </Td>
-                    <Td isNumeric>
-                      <IconButton
-                        aria-label="Edit company"
-                        icon={<Edit2 size={14} />}
-                        size="xs"
-                        variant="ghost"
-                        onClick={() => handleEdit(company)}
-                      />
-                    </Td>
-                  </Tr>
-                ))}
-              </Tbody>
-            </Table>
-          </Box>
-        </Box>
+          <TabPanels mt={6}>
+            <TabPanel p={0}>
+              <Box bg="white" p={6} borderRadius="2xl" border="1px" borderColor="gray.100" shadow="sm">
+                <Flex justify="space-between" align="center" mb={6}>
+                  <Heading size="sm" color="#1e293b">Email Directory</Heading>
+                  <InputGroup maxW="300px">
+                    <InputLeftElement pointerEvents="none"><Search size={18} color="#94a3b8" /></InputLeftElement>
+                    <Input
+                      placeholder="Search name or email..."
+                      value={search}
+                      onChange={(e) => { setSearch(e.target.value); setPage(0); }}
+                      borderRadius="xl" borderColor="#f1f5f9"
+                      size="sm"
+                    />
+                  </InputGroup>
+                </Flex>
 
-        {/* Recent Notifications Log (Global) */}
-        <Box bg="white" p={6} borderRadius="2xl" border="1px" borderColor="gray.100" shadow="sm">
-          <Flex align="center" gap={2} mb={4}>
-            <History size={18} color="#94a3b8" />
-            <Heading size="sm" color="#1e293b">Recent Notification Logs</Heading>
-          </Flex>
-          <NotificationLogTable />
-        </Box>
+                <Box overflowX="auto">
+                  <Table variant="simple" size="sm">
+                    <Thead>
+                      <Tr>
+                        <Th color="gray.400" fontSize="2xs">Company Name</Th>
+                        <Th color="gray.400" fontSize="2xs">Medinfo Email</Th>
+                        <Th color="gray.400" fontSize="2xs">Status</Th>
+                        <Th color="gray.400" fontSize="2xs" isNumeric>Actions</Th>
+                      </Tr>
+                    </Thead>
+                    <Tbody>
+                      {loadingCompanies ? (
+                        [1,2,3,4,5].map(i => (
+                          <Tr key={i}><Td colSpan={5}><Skeleton h="30px" borderRadius="md" /></Td></Tr>
+                        ))
+                      ) : companies?.map((company) => (
+                        <Tr key={company.id} _hover={{ bg: "gray.50" }} transition="all 0.2s">
+                          <Td maxW="250px">
+                            <VStack align="start" spacing={0} pr={4}>
+                              <Flex align="center" gap={2}>
+                                <Text fontWeight="700" color="#1e293b" fontSize="sm" isTruncated>{company.name}</Text>
+                                {company.lastDeliveryStatus === 'failed' && (
+                                  <Tooltip label={`Most recent delivery failed: ${company.lastDeliveryError || "Unknown error"}`}>
+                                    <Box as="span" color="red.500">
+                                      <AlertCircle size={14} />
+                                    </Box>
+                                  </Tooltip>
+                                )}
+                              </Flex>
+                              <Text fontSize="3xs" color="gray.400" textTransform="uppercase">Manufacturer</Text>
+                            </VStack>
+                          </Td>
+                          <Td>
+                            {company.email ? (
+                              <Text color="gray.600" fontSize="xs" fontWeight="500">{company.email}</Text>
+                            ) : (
+                              <Badge colorScheme="orange" variant="subtle" fontSize="2xs" borderRadius="md" px={2} py={0.5}>
+                                Email Missing
+                              </Badge>
+                            )}
+                          </Td>
+                          <Td>
+                            <Badge 
+                              colorScheme={company.isRegistered ? "green" : "gray"} 
+                              variant={company.isRegistered ? "solid" : "outline"} 
+                              fontSize="2xs"
+                              borderRadius="full"
+                              px={3}
+                            >
+                              {company.isRegistered ? "Registered" : "Inactive"}
+                            </Badge>
+                          </Td>
+                          <Td isNumeric>
+                            <Button
+                              size="xs"
+                              variant="ghost"
+                              leftIcon={<Edit2 size={12} />}
+                              colorScheme="red"
+                              onClick={() => handleEdit(company)}
+                              borderRadius="lg"
+                              _hover={{ bg: "red.50" }}
+                            >
+                              Manage
+                            </Button>
+                          </Td>
+                        </Tr>
+                      ))}
+                    </Tbody>
+                  </Table>
+                </Box>
+
+                {/* Pagination Controls */}
+                <Flex justify="center" align="center" mt={6} gap={4}>
+                  <Button 
+                    size="xs" 
+                    variant="outline" 
+                    onClick={() => setPage(p => Math.max(0, p - 1))}
+                    isDisabled={page === 0}
+                    borderRadius="lg"
+                  >
+                    Previous
+                  </Button>
+                  <Text fontSize="xs" color="gray.500" fontWeight="bold">Page {page + 1}</Text>
+                  <Button 
+                    size="xs" 
+                    variant="outline" 
+                    onClick={() => setPage(p => p + 1)}
+                    isDisabled={!companies || companies.length < limit}
+                    borderRadius="lg"
+                  >
+                    Next
+                  </Button>
+                </Flex>
+              </Box>
+            </TabPanel>
+
+            <TabPanel p={0}>
+              <Box bg="white" p={6} borderRadius="2xl" border="1px" borderColor="gray.100" shadow="sm">
+                <Flex align="center" gap={2} mb={6}>
+                  <History size={18} color="#94a3b8" />
+                  <Heading size="sm" color="#1e293b">Full Transmission Log</Heading>
+                </Flex>
+                <NotificationLogTable />
+              </Box>
+            </TabPanel>
+          </TabPanels>
+        </Tabs>
       </VStack>
 
       {/* Edit Drawer */}
@@ -245,6 +327,16 @@ export default function CompanyManagementPage() {
                       </Text>
                     </Box>
                   </Flex>
+                </Box>
+                
+                <Box pt={2}>
+                  <Flex align="center" gap={2} mb={3}>
+                    <History size={16} color="#94a3b8" />
+                    <Text fontSize="xs" fontWeight="bold" color="#1e293b">Recent Transmission History</Text>
+                  </Flex>
+                  <Box border="1px" borderColor="gray.100" borderRadius="xl" p={1} bg="white" maxH="250px" overflowY="auto">
+                    <NotificationLogTable companyId={selectedCompany.id} />
+                  </Box>
                 </Box>
 
                 <Divider />

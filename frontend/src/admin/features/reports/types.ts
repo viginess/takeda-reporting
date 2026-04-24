@@ -29,6 +29,7 @@ export interface AuditEntry {
   by: string;          // Name or ID of the user who performed the action
   at: string;          // ISO timestamp of when it happened
   field?: string;      // The specific field that was modified (optional)
+  details?: string;    // Human-readable details about the action (optional)
   from?: string;       // The previous value (optional)
   to?: string;         // The new value (optional)
 }
@@ -53,6 +54,7 @@ export interface Report {
   fullDetails?: any;               // Flexible JSON container for extended form data
   isValid?: boolean;               // System validation flag
   validationErrors?: any[];        // Contains failed validation constraints, if any
+  notifications?: any[];           // Manufacturer delivery logs
 }
 
 /**

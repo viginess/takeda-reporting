@@ -15,6 +15,7 @@ import {
   Card, CardBody, HStack, VStack, Skeleton
 } from "@chakra-ui/react";
 import { getRelativeTime } from "../../../utils/common/date-utils";
+import { NotificationLogTable } from "../company/components/NotificationLogTable";
 
 
 
@@ -447,6 +448,33 @@ export default function AdminDashboard() {
           </Flex>
         </Card>
       </SimpleGrid>
+
+      {/* ── Global Transmission Log ── */}
+      <Card
+        as={motion.div}
+        {...({} as any)}
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.6 }}
+        borderRadius="2xl"
+        variant="outline"
+        boxShadow="sm"
+        overflow="hidden"
+        mb={6}
+      >
+        <Flex p={4} px={5} borderBottom="1px solid" borderColor="#f1f5f9" justify="space-between" align="center">
+          <HStack spacing={2}>
+            <Bell size={18} color="#CE0037" />
+            <Text fontWeight="bold" fontSize="sm" color="#0f172a">Global Transmission Log</Text>
+          </HStack>
+          <Button variant="link" color="#CE0037" size="xs" onClick={() => navigate('/admin/manufacturers')}>
+            Manage Manufacturers
+          </Button>
+        </Flex>
+        <Box p={4} overflowX="auto">
+          <NotificationLogTable />
+        </Box>
+      </Card>
     </Box>
   );
 }

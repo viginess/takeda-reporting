@@ -1,5 +1,5 @@
 import { db } from '../../db/core/index.js';
-import { whodrugDd, whodrugIng, whodrugDda, whodrugIna } from '../../db/whodrug/whodrug.schema.js';
+import { whodrugDd, whodrugIng, whodrugDda, whodrugIna, whodrugMan } from '../../db/whodrug/whodrug.schema.js';
 import { systemSettings } from '../../db/admin/settings.schema.js';
 import { eq, and, sql, desc } from "drizzle-orm";
 
@@ -16,7 +16,7 @@ export const whodrugService = {
       .where(eq(systemSettings.id, 1))
       .limit(1);
     
-    return settings[0]?.clinicalConfig?.whodrugVersion || "Global B3 March 2025";
+    return settings[0]?.clinicalConfig?.whodrugVersion || "GLOBALB3Mar25";
   },
 
   /**
@@ -34,9 +34,14 @@ export const whodrugService = {
       drn: whodrugDd.drugRecordNumber,
       seq1: whodrugDd.seq1,
       tradeName: whodrugDd.tradeName,
+      companyName: whodrugMan.companyName,
       similarity: sql<number>`similarity(${whodrugDd.tradeName}, ${query})`
     })
     .from(whodrugDd)
+    .leftJoin(whodrugMan, and(
+      eq(whodrugDd.companyCode, whodrugMan.companyCode),
+      eq(whodrugDd.whodrugVersion, whodrugMan.whodrugVersion)
+    ))
     .where(and(
       sql`${whodrugDd.tradeName} % ${query}`,
       eq(whodrugDd.whodrugVersion, activeVersion)
@@ -48,6 +53,7 @@ export const whodrugService = {
       rid: r.rid,
       code: `${r.drn}${r.seq1}`,
       name: r.tradeName,
+      manufacturer: r.companyName,
       drn: r.drn,
       seq1: r.seq1,
       similarity: r.similarity
@@ -261,7 +267,7 @@ export const whodrugService = {
     const [atcCount] = await db.select({ count: sql<number>`count(*)` }).from(whodrugDda);
 
     return {
-      version: "WHODrug Global B3 March 2025",
+      version: "GLOBALB3Mar25",
       type: "B3 (Enhanced Format)",
       counts: {
         medicinalProducts: Number(ddCount.count),

@@ -17,6 +17,7 @@ const batchSchema = z.object({
 
 const productSchema = z.object({
   productName: z.string().min(1, "Product name is required"),
+  manufacturerName: z.string().optional(),
   conditions: z.array(conditionSchema).optional(),
   batches: z.array(batchSchema).min(1, "At least one batch is required"),
   doseForm: z.string().optional(),

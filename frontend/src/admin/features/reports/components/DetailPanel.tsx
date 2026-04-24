@@ -5,8 +5,9 @@ import {
 } from "lucide-react";
 import {
   Box, Flex, Text, Button, Badge, Input, SimpleGrid, VStack,
-  IconButton as ChakraIconButton, IconButton
+  IconButton as ChakraIconButton, IconButton, useToast
 } from "@chakra-ui/react";
+import { trpc } from "../../../../utils/config/trpc";
 import type { Report, Status, Severity } from "../types";
 import { statusCfg, severityCfg, statusOptions, severityOptions } from "../types";
 import { StatusBadge, SeverityDot } from "./ComparisonBadges";
@@ -22,6 +23,7 @@ interface DetailPanelProps {
   saved: boolean;
   showAudit: boolean;
   showFullDetails: boolean;
+  showNotifications: boolean;
   downloadingXml: boolean;
   downloadingPdf: boolean;
   isRegenerating: boolean;
@@ -33,6 +35,7 @@ interface DetailPanelProps {
   onFullDetailsChange: (d: any) => void;
   onSetShowAudit: (v: boolean | ((p: boolean) => boolean)) => void;
   onSetShowFullDetails: (v: boolean | ((p: boolean) => boolean)) => void;
+  onSetShowNotifications: (v: boolean | ((p: boolean) => boolean)) => void;
   onDownloadXml: (r: Report) => void;
   onDownloadPdf: (r: Report) => void;
   onRegenerate: (r: Report) => void;
@@ -49,6 +52,7 @@ export function DetailPanel({
   saved,
   showAudit,
   showFullDetails,
+  showNotifications,
   downloadingXml,
   downloadingPdf,
   isRegenerating,
@@ -60,6 +64,7 @@ export function DetailPanel({
   onFullDetailsChange,
   onSetShowAudit,
   onSetShowFullDetails,
+  onSetShowNotifications,
   onDownloadXml,
   onDownloadPdf,
   onRegenerate,
@@ -67,6 +72,15 @@ export function DetailPanel({
   onOpenCodingModal,
   onOpenWhodrugModal,
 }: DetailPanelProps) {
+  const toast = useToast();
+  const utils = trpc.useUtils();
+  const resendMutation = trpc.company.resendNotification.useMutation({
+    onSuccess: () => {
+      // @ts-ignore - refreshing the main list which contains this report
+      utils.admin.getAllReports.invalidate();
+      toast({ title: "Email Resent Successfully", status: "success", position: 'top' });
+    }
+  });
   return (
     <Flex
       as={motion.div as any}
@@ -337,6 +351,108 @@ export function DetailPanel({
             </AnimatePresence>
           </Box>
         )}
+
+        {/* Transmission Diagnostic */}
+        {!report.notifications?.length && !report.isValid && (
+          <Box bg="orange.50" borderRadius="xl" border="1px dashed" borderColor="orange.200" p={3} mb={4}>
+            <Flex gap={2}>
+              <Box color="orange.500" mt={0.5}><AlertCircle size={14} /></Box>
+              <Box>
+                <Text fontSize="2xs" fontWeight="bold" color="orange.800">Dispatch Suspended</Text>
+                <Text fontSize="3xs" color="orange.700">
+                  This report contains validation errors. Manufacturer notifications are only triggered for compliant reports.
+                </Text>
+              </Box>
+            </Flex>
+          </Box>
+        )}
+
+        {/* Manufacturer Notifications */}
+        <Box bg="#f8fafc" borderRadius="xl" border="1px solid" borderColor="#e2e8f0" mb={4} overflow="hidden">
+          <Button onClick={() => onSetShowNotifications(v => !v)} variant="ghost" w="full"
+            justifyContent="space-between" p={3} px={4} h="auto" _hover={{ bg: "#f1f5f9" }}>
+            <Flex align="center" gap={2}>
+              <RefreshCw size={13} color="#3182ce" />
+              <Text fontSize="sm" fontWeight="bold" color="#0f172a">Manufacturer Notifications</Text>
+              <Badge bg="blue.50" color="blue.600" border="1px solid" borderColor="blue.100" borderRadius="full" px={2} py={0.5} fontSize="2xs">
+                {report.notifications?.length || 0}
+              </Badge>
+            </Flex>
+            <Box as={motion.div as any} animate={{ rotate: showNotifications ? 180 : 0 }} transition={{ duration: 0.2 } as any}>
+              <ChevronDown size={14} color="#94a3b8" />
+            </Box>
+          </Button>
+          <AnimatePresence>
+            {showNotifications && (
+              <Box as={motion.div as any} initial={{ height: 0 }} animate={{ height: "auto" }}
+                exit={{ height: 0 }} overflow="hidden">
+                <Box borderTop="1px solid" borderColor="#f1f5f9" p={3}>
+                  {report.notifications && report.notifications.length > 0 ? (
+                    <VStack align="stretch" spacing={2.5}>
+                      {report.notifications.map((n: any) => (
+                        <Flex key={n.id} align="center" justify="space-between" bg="white" p={3} borderRadius="xl" border="1px solid" borderColor="#f1f5f9">
+                          <Box flex={1} pr={4}>
+                            <Text fontSize="xs" fontWeight="bold" color="#0f172a">{n.companyName}</Text>
+                            <Text fontSize="2xs" color="#94a3b8">{n.sentAt ? `Sent: ${n.sentAt}` : n.status?.toLowerCase() === 'failed' ? 'Failed transmission' : "Status pending"}</Text>
+                            
+                            {n.status?.toLowerCase() === 'failed' && (n.error || n.lastError) && (() => {
+                              const errorStr = n.error || n.lastError || "";
+                              
+                                return (
+                                  <Box mt={2} p={3} bg="red.50" borderRadius="xl" border="1px solid" borderColor="red.100" w="full">
+                                    <VStack align="stretch" spacing={2} w="full">
+                                      {errorStr.split('\n').map((line: string, i: number) => {
+                                        const [label, ...rest] = line.split(': ');
+                                        const content = rest.join(': ');
+                                        if (label && content) {
+                                          return (
+                                            <Box key={i}>
+                                              <Text as="span" fontSize="3xs" fontWeight="extrabold" color="red.700" textTransform="uppercase">{label}: </Text>
+                                              <Text as="span" fontSize="2xs" color="red.600" fontWeight="600">{content}</Text>
+                                            </Box>
+                                          );
+                                        }
+                                        // If it's a wrapped line from a long reason
+                                        return <Text key={i} fontSize="2xs" color="red.600" fontWeight="600" pl={4}>{line}</Text>;
+                                      })}
+                                      
+                                      <Button 
+                                        size="xs" 
+                                        colorScheme="red" 
+                                        variant="solid" 
+                                        leftIcon={<RefreshCw size={10} />}
+                                        isLoading={resendMutation.isPending}
+                                        onClick={() => resendMutation.mutate({ notificationId: n.id })}
+                                        mt={1}
+                                        borderRadius="md"
+                                        fontSize="2xs"
+                                        h="24px"
+                                      >
+                                        Retry Transmission
+                                      </Button>
+                                    </VStack>
+                                  </Box>
+                                );
+                            })()}
+                          </Box>
+                          <Badge 
+                            colorScheme={n.status?.toLowerCase() === 'sent' ? 'green' : n.status?.toLowerCase() === 'failed' ? 'red' : 'blue'}
+                            variant="subtle" fontSize="2xs" px={2} borderRadius="full"
+                            textTransform="uppercase"
+                          >
+                            {n.status}
+                          </Badge>
+                        </Flex>
+                      ))}
+                    </VStack>
+                  ) : (
+                    <Text fontSize="xs" color="#94a3b8" textAlign="center" py={4}>No notification logs found for this report.</Text>
+                  )}
+                </Box>
+              </Box>
+            )}
+          </AnimatePresence>
+        </Box>
 
         {/* Audit Trail */}
         <Box bg="#f8fafc" borderRadius="xl" border="1px solid" borderColor="#e2e8f0" overflow="hidden">

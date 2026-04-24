@@ -29,6 +29,7 @@ export default function ReportManagementPage() {
   const [fullDetailsEdit, setFullDetailsEdit] = useState<any>({});
   const [showAudit, setShowAudit] = useState(false);
   const [showFullDetails, setShowFullDetails] = useState(true);
+  const [showNotifications, setShowNotifications] = useState(true);
   const [isMounting, setIsMounting] = useState(true);
 
   // Responsive logic
@@ -227,6 +228,7 @@ export default function ReportManagementPage() {
                   saved={saved}
                   showAudit={showAudit}
                   showFullDetails={showFullDetails}
+                  showNotifications={showNotifications}
                   downloadingXml={downloadingXml}
                   downloadingPdf={downloadingPdf}
                   isRegenerating={regenerateMutation.isPending}
@@ -238,6 +240,7 @@ export default function ReportManagementPage() {
                   onFullDetailsChange={setFullDetailsEdit}
                   onSetShowAudit={setShowAudit}
                   onSetShowFullDetails={setShowFullDetails}
+                  onSetShowNotifications={setShowNotifications}
                   onDownloadXml={handleDownloadXml}
                   onDownloadPdf={handleDownloadPdf}
                   onRegenerate={handleRegenerateWrapper}

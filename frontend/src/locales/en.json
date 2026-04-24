@@ -97,6 +97,8 @@
         "productNameLabel": "Please tell us which product",
         "productNamePlaceholder": "Enter product name",
         "productNameRequired": "Product name is required",
+        "manufacturerLabel": "Manufacturer",
+        "manufacturerPlaceholder": "Enter manufacturer name",
         "conditionLabel": "What condition are you treating?",
         "conditionsLabel": "Condition(s)",
         "batchNum": "Batch {{num}}",

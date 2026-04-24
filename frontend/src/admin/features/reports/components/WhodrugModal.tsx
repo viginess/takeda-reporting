@@ -33,18 +33,35 @@ export function WhodrugModal({
   onProductUpdated,
 }: WhodrugModalProps) {
   const toast = useToast();
-  const [codingCode, setCodingCode] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
   
   const product = codingProductIndex !== null
     ? selectedReport?.fullDetails?.products?.[codingProductIndex]
     : null;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="xl">
+    <Modal isOpen={isOpen} onClose={isSaving ? () => {} : onClose} size="xl">
       <ModalOverlay backdropFilter="blur(5px)" />
-      <ModalContent borderRadius="2xl" p={2} mx={{ base: 4, md: 0 }}>
-        <ModalCloseButton mt={2} mr={2} />
-        <ModalBody p={5}>
+      <ModalContent borderRadius="2xl" p={2} mx={{ base: 4, md: 0 }} overflow="hidden">
+        {isSaving && (
+          <Box
+            position="absolute"
+            top={0} left={0} right={0} bottom={0}
+            bg="whiteAlpha.800"
+            zIndex={10}
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            backdropFilter="blur(2px)"
+          >
+            <VStack spacing={4}>
+              <Spinner size="xl" color="#CE0037" thickness="4px" />
+              <Text fontWeight="700" color="#1e293b">Applying Coding...</Text>
+            </VStack>
+          </Box>
+        )}
+        <ModalCloseButton mt={2} mr={2} isDisabled={isSaving} />
+        <ModalBody p={5} opacity={isSaving ? 0.3 : 1}>
           <Heading size="md" mb={1} color="#1e293b">Regulatory Coding (WHODrug)</Heading>
           <Text fontSize="sm" color="#64748b" mb={6}>Map the reported product to an official WHODrug Global B3 record.</Text>
 
@@ -66,6 +83,7 @@ export function WhodrugModal({
               placeholder="Search WHODrug (e.g. Tylenol, Paracetamol...)"
               value={whodrugQuery}
               onChange={(e) => setWhodrugQuery(e.target.value)}
+              isDisabled={isSaving}
               borderRadius="xl" border="2px solid" borderColor="#f1f5f9"
               _focus={{ borderColor: "#CE0037", boxShadow: "none" }}
             />
@@ -81,33 +99,46 @@ export function WhodrugModal({
               <Box
                 key={drug.rid}
                 p={3} borderRadius="xl" border="1px solid" borderColor="#f1f5f9"
-                cursor="pointer" transition="all 0.2s" _hover={{ bg: "red.50", borderColor: "red.100" }}
+                cursor={isSaving ? "not-allowed" : "pointer"} 
+                transition="all 0.2s" 
+                _hover={!isSaving ? { bg: "red.50", borderColor: "red.100" } : {}}
                 onClick={async () => {
-                  if (codingProductIndex === null || !selectedReport) return;
-                  if (codingCode) return; // Prevent double clicks
-                  setCodingCode(drug.code);
-                  
+                  if (codingProductIndex === null || !selectedReport || isSaving) return;
+                  setIsSaving(true);
                   const updatedProducts = [...selectedReport.fullDetails.products];
                   updatedProducts[codingProductIndex] = {
                     ...updatedProducts[codingProductIndex],
                     whodrugCode: drug.code,
                     whodrugName: drug.name,
-                    // Note: The backend workflow handles ingredient enrichment 
-                    // when generating the final report PDF/XML based on the code.
+                    productName: drug.name, // Sync display name
+                    name: drug.name,        // Sync display name
                   };
                   try {
-                    await updateMutation.mutateAsync({
+                    const res = await updateMutation.mutateAsync({
                       reportId: selectedReport.originalId!,
                       reporterType: selectedReport.reporterType,
                       updates: { products: updatedProducts }
                     });
-                    toast({ title: "Product Mapped", status: "success" });
-                    onProductUpdated({ ...selectedReport, fullDetails: { ...selectedReport.fullDetails, products: updatedProducts } });
+                    
+                    toast({ title: "Product Mapped", description: `Linked to official record: ${drug.name}`, status: "success" });
+                    
+                    // Update state locally with merged data to prevent structure mismatch crash
+                    onProductUpdated({ 
+                      ...selectedReport, 
+                      drug: drug.name, // Update primary heading
+                      fullDetails: { 
+                        ...selectedReport.fullDetails, 
+                        products: updatedProducts 
+                      },
+                      // If the backend returned new validation status, include it
+                      isValid: res?.data?.isValid ?? selectedReport.isValid,
+                      validationErrors: res?.data?.validationErrors ?? selectedReport.validationErrors
+                    });
                     onClose();
                   } catch (err: any) {
                     toast({ title: "Mapping Failed", description: err.message, status: "error" });
                   } finally {
-                    setCodingCode(null);
+                    setIsSaving(false);
                   }
                 }}
               >
@@ -119,7 +150,6 @@ export function WhodrugModal({
                     </Flex>
                   </Box>
                   <Flex align="center" gap={3}>
-                    {codingCode === drug.code && <Spinner size="xs" color="#CE0037" thickness="2px" />}
                     <Text fontSize="2xs" color="gray.400">Match {(drug.similarity * 100).toFixed(0)}%</Text>
                     <Badge colorScheme="red" variant="outline" fontSize="2xs">{drug.code}</Badge>
                   </Flex>

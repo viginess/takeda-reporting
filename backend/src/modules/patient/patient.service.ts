@@ -60,8 +60,7 @@ export async function createPatientReport(input: any) {
   }
 
   // 3. Trigger Shared Submission Workflow (E2B, PDF, Email)
-  // We don't await this to keep the API response snappy
-  runReportingWorkflow({
+  await runReportingWorkflow({
     reportId: row.id,
     reporterType: "Patient",
     table: patientReports
