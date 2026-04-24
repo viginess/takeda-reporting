@@ -78,7 +78,7 @@ class InboxMonitorService {
             const repMatches = text.match(/REP-[A-Z0-9]{6}/gi);
           
             if (repMatches) {
-              const uniqueMatches = Array.from(new Set(repMatches.map(m => m.toUpperCase())));
+              const uniqueMatches = Array.from(new Set(repMatches.map((m: string) => m.toUpperCase())));
               
               for (const referenceId of uniqueMatches) {
                 // 1. Find the report ID (UUID)
