@@ -159,9 +159,10 @@ export const meddraService = {
         lltCode: meddraLlt.lltCode,
         lltName: meddraLlt.lltName,
         ptCode: meddraLlt.ptCode,
-        meddraVersion: meddraLlt.meddraVersion,
+        meddraVersion: dictionaryVersions.name,
       })
       .from(meddraLlt)
+      .innerJoin(dictionaryVersions, eq(meddraLlt.versionId, dictionaryVersions.id))
       .where(whereClause ?? sql`TRUE`)
       .limit(input.pageSize)
       .offset(offset)
