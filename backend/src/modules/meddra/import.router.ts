@@ -5,7 +5,7 @@ import { adminProcedure } from '../../trpc/core/procedures.js';
 import { db } from '../../db/core/index.js';
 import { meddraImports } from "../../db/meddra/import.schema.js";
 import { desc, eq } from "drizzle-orm";
-import { meddraService } from "./meddra.service.js";
+import { meddraImportService } from "./meddra-import.service.js";
 
 /**
  * Router handling MedDRA ZIP imports and job tracking 
@@ -84,7 +84,7 @@ export const importRouter = router({
       }
 
       // Background processing via Service
-      meddraService.processMeddraImport(importJob.id, input.zipBase64).catch(err => {
+      meddraImportService.processMeddraImport(importJob.id, input.zipBase64).catch(err => {
         console.error("Background MedDRA Import failed early:", err);
       });
 

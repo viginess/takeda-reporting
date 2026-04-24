@@ -5,9 +5,12 @@ import {
   timestamp,
   jsonb,
 } from "drizzle-orm/pg-core";
+import { dictionaryVersions } from "../shared/dictionary.schema.js";
 
 export const systemSettings = pgTable("system_settings", {
   id: integer("id").primaryKey().default(1), // Singleton: Always 1
+  activeMeddraVersionId: integer("active_meddra_version_id").references(() => dictionaryVersions.id),
+  activeWhodrugVersionId: integer("active_whodrug_version_id").references(() => dictionaryVersions.id),
   
   // Storing granular settings in JSONB fields as requested/planned
   notificationThresholds: jsonb("notification_thresholds").$type<{

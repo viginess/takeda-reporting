@@ -1,38 +1,33 @@
 import { db } from '../../db/core/index.js';
 import { 
   meddraLlt, 
-  meddraSoc, 
-  meddraHlgt, 
-  meddraHlt, 
-  meddraPt, 
   meddraMdhier 
 } from "../../db/meddra/meddra.schema.js";
-import { meddraImports } from "../../db/meddra/import.schema.js";
 import { systemSettings } from "../../db/admin/settings.schema.js";
+import { dictionaryVersions } from "../../db/shared/dictionary.schema.js";
 import { eq, ilike, or, and, sql, desc, asc, SQL } from "drizzle-orm";
-import AdmZip from "adm-zip";
 
 /**
  * Service for handling MedDRA terminology operations and imports.
  */
 export const meddraService = {
   /**
-   * Gets the active MedDRA version from system settings.
+   * Gets the active MedDRA version ID from system settings.
    */
-  async getActiveVersion(): Promise<string> {
-    const settings = await db.select({ clinicalConfig: systemSettings.clinicalConfig })
+  async getActiveVersionId(): Promise<number> {
+    const settings = await db.select({ activeMeddraVersionId: systemSettings.activeMeddraVersionId })
       .from(systemSettings)
       .where(eq(systemSettings.id, 1))
       .limit(1);
     
-    return settings[0]?.clinicalConfig?.meddraVersion || "29.0";
+    return settings[0]?.activeMeddraVersionId || 1; // Fallback to ID 1
   },
 
   /**
    * Searches MedDRA LLTs and retrieves their Primary SOC hierarchy.
    */
   async searchMeddra(input: { query: string; limit: number }) {
-    const activeVersion = await this.getActiveVersion();
+    const activeVersionId = await this.getActiveVersionId();
     const searchTerm = `%${input.query}%`;
 
     const results = await db.select({
@@ -49,7 +44,7 @@ export const meddraService = {
       meddraMdhier, 
       and(
         eq(meddraLlt.ptCode, meddraMdhier.ptCode),
-        eq(meddraLlt.meddraVersion, meddraMdhier.meddraVersion),
+        eq(meddraLlt.versionId, meddraMdhier.versionId),
         eq(meddraMdhier.primarySocFg, 'Y')
       )
     )
@@ -59,7 +54,7 @@ export const meddraService = {
           ilike(meddraLlt.lltName, searchTerm),
           sql`${meddraLlt.lltCode}::text LIKE ${searchTerm}`
         ),
-        eq(meddraLlt.meddraVersion, activeVersion)
+        eq(meddraLlt.versionId, activeVersionId)
       )
     )
     .limit(input.limit)
@@ -85,7 +80,7 @@ export const meddraService = {
    * Gets a specific MedDRA term by its 8-digit code.
    */
   async getTermByCode(codeString: string) {
-    const activeVersion = await this.getActiveVersion();
+    const activeVersionId = await this.getActiveVersionId();
     const code = parseInt(codeString);
 
     const result = await db.select({
@@ -101,14 +96,14 @@ export const meddraService = {
       meddraMdhier, 
       and(
         eq(meddraLlt.ptCode, meddraMdhier.ptCode),
-        eq(meddraLlt.meddraVersion, meddraMdhier.meddraVersion),
+        eq(meddraLlt.versionId, meddraMdhier.versionId),
         eq(meddraMdhier.primarySocFg, 'Y')
       )
     )
     .where(
       and(
         eq(meddraLlt.lltCode, code),
-        eq(meddraLlt.meddraVersion, activeVersion)
+        eq(meddraLlt.versionId, activeVersionId)
       )
     )
     .limit(1);
@@ -136,14 +131,15 @@ export const meddraService = {
     page: number;
     pageSize: number;
     search?: string;
+    versionId?: number;
     version?: string;
     sortBy: "lltCode" | "lltName";
     sortOrder: "asc" | "desc";
   }) {
-    const activeVersion = input.version || await this.getActiveVersion();
+    const activeVersionId = input.versionId || await this.getActiveVersionId();
     const offset = (input.page - 1) * input.pageSize;
     
-    let whereClause: SQL | undefined = eq(meddraLlt.meddraVersion, activeVersion);
+    let whereClause: SQL | undefined = eq(meddraLlt.versionId, activeVersionId);
     if (input.search) {
       const searchTerm = `%${input.search}%`;
       whereClause = and(
@@ -181,131 +177,12 @@ export const meddraService = {
   },
 
   /**
-   * Retrieves a list of all unique MedDRA versions available in the database.
+   * Retrieves a list of all unique MedDRA versions from the lookup table.
    */
   async getVersions() {
-    const versions = await db.selectDistinct({ version: meddraLlt.meddraVersion })
-      .from(meddraLlt);
-    return versions.map((v: any) => v.version);
-  },
-
-  /**
-   * Processes a MedDRA ZIP import in the background.
-   */
-  async processMeddraImport(jobId: number, zipBase64: string) {
-    const [importJob] = await db.select()
-      .from(meddraImports)
-      .where(eq(meddraImports.id, jobId))
-      .limit(1);
-
-    if (!importJob) return;
-
-    const meddraVersionString = importJob.version;
-
-    try {
-      const zipBuffer = Buffer.from(zipBase64, 'base64');
-      const zip = new AdmZip(zipBuffer);
-      const entries = zip.getEntries();
-      
-      const getFileContent = (name: string) => {
-        const entry = entries.find(e => e.entryName.toLowerCase().endsWith(name.toLowerCase()) && !e.isDirectory);
-        if (!entry) {
-          console.warn(`[MedDRA] Warning: File ${name} not found in the ZIP package.`);
-        }
-        return entry ? entry.getData().toString('utf8') : null;
-      };
-
-      const parse = (content: string | null) => {
-        if (!content) return [];
-        return content.split(/\r?\n/)
-          .filter(line => line.trim())
-          .map(line => line.split('$|').map(s => s.trim()));
-      };
-
-      await db.transaction(async (tx) => {
-        // 1. SOC
-        const socs = parse(getFileContent('soc.asc')).map(p => ({
-          socCode: parseInt(p[0]),
-          socName: p[1] || "",
-          socAbbrev: p[2] || "",
-          meddraVersion: meddraVersionString
-        }));
-        if (socs.length) await tx.insert(meddraSoc).values(socs).onConflictDoNothing();
-
-        // 2. HLGT
-        const hlgts = parse(getFileContent('hlgt.asc')).map(p => ({
-          hlgtCode: parseInt(p[0]),
-          hlgtName: p[1] || "",
-          meddraVersion: meddraVersionString
-        }));
-        if (hlgts.length) await tx.insert(meddraHlgt).values(hlgts).onConflictDoNothing();
-
-        // 3. HLT
-        const hlts = parse(getFileContent('hlt.asc')).map(p => ({
-          hltCode: parseInt(p[0]),
-          hltName: p[1] || "",
-          meddraVersion: meddraVersionString
-        }));
-        if (hlts.length) await tx.insert(meddraHlt).values(hlts).onConflictDoNothing();
-
-        // 4. PT
-        const pts = parse(getFileContent('pt.asc')).map(p => ({
-          ptCode: parseInt(p[0]),
-          ptName: p[1] || "",
-          ptSocCode: p[2] ? parseInt(p[2]) : null,
-          meddraVersion: meddraVersionString
-        }));
-        if (pts.length) await tx.insert(meddraPt).values(pts).onConflictDoNothing();
-
-        // 5. LLT
-        const llts = parse(getFileContent('llt.asc')).map(p => ({
-          lltCode: parseInt(p[0]),
-          lltName: p[1] || "",
-          ptCode: parseInt(p[2]),
-          lltCurrency: p[3] || "",
-          meddraVersion: meddraVersionString
-        }));
-        if (llts.length) {
-          for (let i = 0; i < llts.length; i += 1000) {
-            await tx.insert(meddraLlt).values(llts.slice(i, i + 1000)).onConflictDoNothing();
-          }
-        }
-
-        // 6. Hierarchy (mdhier)
-        const hiers = parse(getFileContent('mdhier.asc')).map(p => ({
-          ptCode: parseInt(p[0]),
-          hltCode: parseInt(p[1]),
-          hlgtCode: parseInt(p[2]),
-          socCode: parseInt(p[3]),
-          ptName: p[4] || "",
-          hltName: p[5] || "",
-          hlgtName: p[6] || "",
-          socName: p[7] || "",
-          socAbbrev: p[8] || "",
-          ptSocCode: p[9] ? parseInt(p[9]) : null,
-          primarySocFg: p[10] || "",
-          meddraVersion: meddraVersionString
-        }));
-        if (hiers.length) {
-          for (let i = 0; i < hiers.length; i += 1000) {
-            await tx.insert(meddraMdhier).values(hiers.slice(i, i + 1000)).onConflictDoNothing();
-          }
-        }
-      });
-
-      await db.update(meddraImports)
-        .set({ status: 'COMPLETED', updatedAt: new Date() })
-        .where(eq(meddraImports.id, jobId));
-
-    } catch (error: any) {
-      console.error("MedDRA Import Failed:", error);
-      await db.update(meddraImports)
-        .set({ 
-          status: 'FAILED', 
-          errorLog: error.message,
-          updatedAt: new Date() 
-        })
-        .where(eq(meddraImports.id, jobId));
-    }
+    const versions = await db.select({ name: dictionaryVersions.name })
+      .from(dictionaryVersions)
+      .where(eq(dictionaryVersions.type, 'meddra'));
+    return versions.map(v => v.name);
   }
 };

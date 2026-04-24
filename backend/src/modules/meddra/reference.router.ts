@@ -1,6 +1,9 @@
 import { z } from "zod";
 import { router, publicProcedure } from '../../trpc/core/init.js';
 import { meddraService } from "./meddra.service.js";
+import { db } from "../../db/core/index.js";
+import { dictionaryVersions } from "../../db/shared/dictionary.schema.js";
+import { eq, and } from "drizzle-orm";
 
 /**
  * Router handling MedDRA browsing and searching (Phase 1).
@@ -39,12 +42,20 @@ export const referenceRouter = router({
       page: z.number().min(1).default(1),
       pageSize: z.number().min(1).max(100).default(20),
       search: z.string().optional(),
+      versionId: z.number().optional(),
       version: z.string().optional(),
       sortBy: z.enum(["lltCode", "lltName"]).default("lltName"),
       sortOrder: z.enum(["asc", "desc"]).default("asc"),
     }))
     .query(async ({ input }) => {
-      return await meddraService.getPaginatedList(input);
+      let versionId = input.versionId;
+      if (!versionId && input.version) {
+        const [v] = await db.select({ id: dictionaryVersions.id })
+          .from(dictionaryVersions)
+          .where(and(eq(dictionaryVersions.name, input.version), eq(dictionaryVersions.type, 'meddra')));
+        if (v) versionId = v.id;
+      }
+      return await meddraService.getPaginatedList({ ...input, versionId });
     }),
 
   /**

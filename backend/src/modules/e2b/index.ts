@@ -6,6 +6,7 @@ import { systemSettings } from '../../db/admin/settings.schema.js';
 import { db } from '../../db/core/index.js';
 import { eq } from 'drizzle-orm';
 import { auditLogs } from '../../db/core/schema.js';
+import { dictionaryVersions } from '../../db/shared/dictionary.schema.js';
 /**
  * Main orchestrator for the E2B XML workflow.
  * Generates, validates, stores, and updates the report record.
@@ -98,15 +99,29 @@ export async function processE2BWorkflow(reportId: string) {
       }
     }
 
-    // 3. Generate XML
-    const sysSettings = (await db.select().from(systemSettings).where(eq(systemSettings.id, 1)).limit(1))[0];
-    const meddraVersion = sysSettings?.clinicalConfig?.meddraVersion || "29.0";
+    // 3. Resolve Dictionary Versions for XML (Regulatory Requirement)
+    const [sysSettings] = await db.select({
+      meddraId: systemSettings.activeMeddraVersionId,
+      whodrugId: systemSettings.activeWhodrugVersionId
+    }).from(systemSettings).where(eq(systemSettings.id, 1)).limit(1);
+
+    let meddraVersion = "29.0";
+    let whodrugVersion = "WHODrug Global B3 Mar 2025";
+
+    if (sysSettings?.meddraId) {
+      const [v] = await db.select({ name: dictionaryVersions.name }).from(dictionaryVersions).where(eq(dictionaryVersions.id, sysSettings.meddraId));
+      if (v) meddraVersion = v.name;
+    }
+    if (sysSettings?.whodrugId) {
+      const [v] = await db.select({ name: dictionaryVersions.name }).from(dictionaryVersions).where(eq(dictionaryVersions.id, sysSettings.whodrugId));
+      if (v) whodrugVersion = v.name;
+    }
     
     // 4. Validation Flow (Tier 1 & Tier 2)
     const { preValidateFormData } = await import('./validation/pre-validator.js');
     const preValidation = preValidateFormData(report);
     
-    const xml = generateE2BR3(report, { senderId, receiverId, reportType, meddraVersion });
+    const xml = generateE2BR3(report, { senderId, receiverId, reportType, meddraVersion, whodrugVersion });
     console.log('XML Generated');
 
     const schemaValidation = await validateE2BR3(xml);

@@ -12,7 +12,8 @@ import {
   whodrugIna,
   whodrugMan
 } from "../../db/whodrug/whodrug.schema.js";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and } from "drizzle-orm";
+import { dictionaryVersions } from "../../db/shared/dictionary.schema.js";
 
 /**
  * tRPC router for WHODrug Global B3 terminology operations.
@@ -25,10 +26,19 @@ export const whodrugRouter = router({
     .input(z.object({
       query: z.string().min(2),
       limit: z.number().max(50).default(20),
-      version: z.string().optional()
+      versionId: z.number().optional(),
+      version: z.string().optional() // Keep for backward compatibility
     }))
     .query(async ({ input }) => {
-      return await whodrugService.searchDrugs(input);
+      let versionId = input.versionId;
+      if (!versionId && input.version) {
+        // Resolve string to ID
+        const [v] = await db.select({ id: dictionaryVersions.id })
+          .from(dictionaryVersions)
+          .where(and(eq(dictionaryVersions.name, input.version), eq(dictionaryVersions.type, 'whodrug')));
+        if (v) versionId = v.id;
+      }
+      return await whodrugService.searchDrugs({ ...input, versionId });
     }),
 
   /**
@@ -37,10 +47,18 @@ export const whodrugRouter = router({
   getDrugDetails: publicProcedure
     .input(z.object({ 
       code: z.string(),
+      versionId: z.number().optional(),
       version: z.string().optional()
     }))
     .query(async ({ input }) => {
-      return await whodrugService.getDrugDetails(input.code, input.version);
+      let versionId = input.versionId;
+      if (!versionId && input.version) {
+        const [v] = await db.select({ id: dictionaryVersions.id })
+          .from(dictionaryVersions)
+          .where(and(eq(dictionaryVersions.name, input.version), eq(dictionaryVersions.type, 'whodrug')));
+        if (v) versionId = v.id;
+      }
+      return await whodrugService.getDrugDetails(input.code, versionId);
     }),
 
   /**
@@ -63,13 +81,22 @@ export const whodrugRouter = router({
    * Switches the globally active WHODrug dictionary version.
    */
   updateActiveVersion: publicProcedure
-    .input(z.object({ version: z.string() }))
+    .input(z.object({ version: z.string(), versionId: z.number().optional() }))
     .mutation(async ({ input }) => {
       const [settings] = await db.select().from(systemSettings).where(eq(systemSettings.id, 1));
       if (!settings) throw new Error("System settings not found");
 
+      let vId = input.versionId;
+      if (!vId) {
+        const [v] = await db.select({ id: dictionaryVersions.id })
+          .from(dictionaryVersions)
+          .where(and(eq(dictionaryVersions.name, input.version), eq(dictionaryVersions.type, 'whodrug')));
+        vId = v?.id;
+      }
+
       await db.update(systemSettings)
         .set({
+          activeWhodrugVersionId: vId,
           clinicalConfig: {
             ...settings.clinicalConfig,
             whodrugVersion: input.version
@@ -159,15 +186,22 @@ export const whodrugRouter = router({
     .mutation(async ({ input }) => {
       const { version } = input;
       
+      const [v] = await db.select({ id: dictionaryVersions.id })
+        .from(dictionaryVersions)
+        .where(and(eq(dictionaryVersions.name, version), eq(dictionaryVersions.type, 'whodrug')));
+      
+      if (!v) return { success: false, error: "Version not found" };
+
       await db.transaction(async (tx) => {
-        // Delete all terms associated with this version name
-        await tx.delete(whodrugDd).where(eq(whodrugDd.whodrugVersion, version));
-        await tx.delete(whodrugIng).where(eq(whodrugIng.whodrugVersion, version));
-        await tx.delete(whodrugDda).where(eq(whodrugDda.whodrugVersion, version));
-        await tx.delete(whodrugIna).where(eq(whodrugIna.whodrugVersion, version));
-        await tx.delete(whodrugMan).where(eq(whodrugMan.whodrugVersion, version));
+        // Delete all terms associated with this versionId
+        await tx.delete(whodrugDd).where(eq(whodrugDd.versionId, v.id));
+        await tx.delete(whodrugIng).where(eq(whodrugIng.versionId, v.id));
+        await tx.delete(whodrugDda).where(eq(whodrugDda.versionId, v.id));
+        await tx.delete(whodrugIna).where(eq(whodrugIna.versionId, v.id));
+        await tx.delete(whodrugMan).where(eq(whodrugMan.versionId, v.id));
         
-        // Remove from the job history table
+        // Remove from lookup table and job history
+        await tx.delete(dictionaryVersions).where(eq(dictionaryVersions.id, v.id));
         await tx.delete(whodrugImports).where(eq(whodrugImports.version, version));
       });
       

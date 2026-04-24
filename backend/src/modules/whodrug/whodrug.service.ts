@@ -8,24 +8,24 @@ import { eq, and, sql, desc } from "drizzle-orm";
  */
 export const whodrugService = {
   /**
-   * Gets the active WHODrug version from system settings.
+   * Gets the active WHODrug version ID from system settings.
    */
-  async getActiveVersion(): Promise<string> {
-    const settings = await db.select({ clinicalConfig: systemSettings.clinicalConfig })
+  async getActiveVersionId(): Promise<number> {
+    const settings = await db.select({ activeWhodrugVersionId: systemSettings.activeWhodrugVersionId })
       .from(systemSettings)
       .where(eq(systemSettings.id, 1))
       .limit(1);
     
-    return settings[0]?.clinicalConfig?.whodrugVersion || "GLOBALB3Mar25";
+    return settings[0]?.activeWhodrugVersionId || 1; // Fallback to ID 1
   },
 
   /**
    * Searches for drugs in the WHODrug dictionary using pg_trgm similarity.
    * Optimized for ~40ms performance on 500k+ records.
    */
-  async searchDrugs(input: { query: string; limit: number; version?: string }) {
-    const { query, limit, version } = input;
-    const activeVersion = version || await this.getActiveVersion();
+  async searchDrugs(input: { query: string; limit: number; versionId?: number }) {
+    const { query, limit, versionId } = input;
+    const activeVersionId = versionId || await this.getActiveVersionId();
     
     // We use the % operator for trigram similarity matching
     // and similarity() for ranking the results.
@@ -40,11 +40,11 @@ export const whodrugService = {
     .from(whodrugDd)
     .leftJoin(whodrugMan, and(
       eq(whodrugDd.companyCode, whodrugMan.companyCode),
-      eq(whodrugDd.whodrugVersion, whodrugMan.whodrugVersion)
+      eq(whodrugDd.versionId, whodrugMan.versionId)
     ))
     .where(and(
       sql`${whodrugDd.tradeName} % ${query}`,
-      eq(whodrugDd.whodrugVersion, activeVersion)
+      eq(whodrugDd.versionId, activeVersionId)
     ))
     .orderBy(desc(sql`similarity(${whodrugDd.tradeName}, ${query})`))
     .limit(limit);
@@ -64,19 +64,19 @@ export const whodrugService = {
    * Retrieves full drug details including ingredients and ATC classification.
    * @param code The 8-digit E2B code (DRN + Seq1)
    */
-  async getDrugDetails(code: string, version?: string) {
+  async getDrugDetails(code: string, versionId?: number) {
     if (code.length < 8) return null;
     
     const drn = code.substring(0, 6);
     const seq1 = code.substring(6, 8);
-    const activeVersion = version || await this.getActiveVersion();
+    const activeVersionId = versionId || await this.getActiveVersionId();
 
     const [drug] = await db.select()
       .from(whodrugDd)
       .where(and(
         eq(whodrugDd.drugRecordNumber, drn),
         eq(whodrugDd.seq1, seq1),
-        eq(whodrugDd.whodrugVersion, activeVersion)
+        eq(whodrugDd.versionId, activeVersionId)
       ))
       .limit(1);
 
@@ -91,7 +91,7 @@ export const whodrugService = {
     .where(and(
       eq(whodrugIng.drugRecordNumber, drn),
       eq(whodrugIng.seq1, seq1),
-      eq(whodrugIng.whodrugVersion, activeVersion)
+      eq(whodrugIng.versionId, activeVersionId)
     ));
 
     // Fetch ATC classifications
@@ -102,12 +102,12 @@ export const whodrugService = {
     .from(whodrugDda)
     .leftJoin(whodrugIna, and(
       eq(whodrugDda.atcCode, whodrugIna.atcCode),
-      eq(whodrugDda.whodrugVersion, whodrugIna.whodrugVersion)
+      eq(whodrugDda.versionId, whodrugIna.versionId)
     ))
     .where(and(
       eq(whodrugDda.drugRecordNumber, drn),
       eq(whodrugDda.seq1, seq1),
-      eq(whodrugDda.whodrugVersion, activeVersion)
+      eq(whodrugDda.versionId, activeVersionId)
     ));
 
     return {
@@ -128,7 +128,7 @@ export const whodrugService = {
    */
   async getEnrichedDrugData(codes: string[]) {
     if (!codes.length) return {};
-    const activeVersion = await this.getActiveVersion();
+    const activeVersionId = await this.getActiveVersionId();
     
     // Group codes by DRN/Seq1
     const keys = codes.map(c => ({ 
@@ -146,7 +146,7 @@ export const whodrugService = {
     .from(whodrugIng)
     .where(and(
       sql`(${whodrugIng.drugRecordNumber}, ${whodrugIng.seq1}) IN ${sql.raw(`(${keys.map(k => `('${k.drn}', '${k.seq1}')`).join(',')})`)}`,
-      eq(whodrugIng.whodrugVersion, activeVersion)
+      eq(whodrugIng.versionId, activeVersionId)
     ));
 
     // 2. Fetch ATC Mapping (DDA + INA)
@@ -163,11 +163,11 @@ export const whodrugService = {
     .from(whodrugDda)
     .leftJoin(whodrugIna, and(
       sql`regexp_replace(${whodrugDda.atcCode}, '^\\d+', '') = ${whodrugIna.atcCode}`,
-      eq(whodrugDda.whodrugVersion, whodrugIna.whodrugVersion)
+      eq(whodrugDda.versionId, whodrugIna.versionId)
     ))
     .where(and(
       sql`(${whodrugDda.drugRecordNumber}, ${whodrugDda.seq1}) IN ${sql.raw(`(${keys.map(k => `('${k.drn}', '${k.seq1}')`).join(',')})`)}`,
-      eq(whodrugDda.whodrugVersion, activeVersion)
+      eq(whodrugDda.versionId, activeVersionId)
     ));
 
     // 3. Smart Join: Recover missing ingredient names using the Preferred Name (INN) strategy

@@ -34,7 +34,13 @@ const OID = {
  * 4. ROUTING RULE: Symptoms with results (testValue) route to F.r (Labs), others to E.i (Reactions).
  * 5. DRUG LOGIC: Suspect drugs (Category 1) require mandatory causality cross-references.
  */
-export function generateE2BR3(report: SafetyReport, options: { senderId: string, receiverId: string, reportType?: 'Patient' | 'HCP' | 'Family', meddraVersion?: string }): string {
+export function generateE2BR3(report: SafetyReport, options: { 
+  senderId: string, 
+  receiverId: string, 
+  reportType?: 'Patient' | 'HCP' | 'Family', 
+  meddraVersion?: string,
+  whodrugVersion?: string
+}): string {
   const now = new Date();
   const messageDate = report.createdAt ? new Date(report.createdAt) : now;
   const prefix = (report as any).countryCode || 'US';
@@ -309,7 +315,7 @@ export function generateE2BR3(report: SafetyReport, options: { senderId: string,
       matKind.ele('code', { 
         code: d.whodrugCode, 
         codeSystem: '2.16.840.1.113883.6.294', 
-        codeSystemVersion: 'WHODrug Global B3 Mar 2025',
+        codeSystemVersion: options.whodrugVersion || 'WHODrug Global B3 Mar 2025',
         displayName: d.productName || d.product
       }).up();
     } else {
@@ -332,7 +338,7 @@ export function generateE2BR3(report: SafetyReport, options: { senderId: string,
                 .ele('code', { 
                   code: ing.code, 
                   codeSystem: '2.16.840.1.113883.6.294', 
-                  codeSystemVersion: 'WHODrug Global B3 Mar 2025',
+                  codeSystemVersion: options.whodrugVersion || 'WHODrug Global B3 Mar 2025',
                   displayName: ing.name 
                 }).up()
                 .ele('name').txt(ing.name).up()

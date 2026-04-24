@@ -7,7 +7,8 @@ import {
   whodrugMan
 } from "../../db/whodrug/whodrug.schema.js";
 import { whodrugImports } from "../../db/whodrug/whodrug-import.schema.js";
-import { eq } from "drizzle-orm";
+import { dictionaryVersions } from "../../db/shared/dictionary.schema.js";
+import { eq, and } from "drizzle-orm";
 import AdmZip from "adm-zip";
 
 /**
@@ -27,10 +28,29 @@ export const whodrugImportService = {
 
     if (!importJob) return;
 
-    const version = importJob.version;
+    const versionOrName = importJob.version;
+    
+    // Resolve or create versionId in lookup table
+    let versionEntry = await db.select()
+      .from(dictionaryVersions)
+      .where(and(
+        eq(dictionaryVersions.name, versionOrName),
+        eq(dictionaryVersions.type, 'whodrug')
+      ))
+      .limit(1);
+    
+    let versionId: number;
+    if (versionEntry.length === 0) {
+      const inserted = await db.insert(dictionaryVersions)
+        .values({ name: versionOrName, type: 'whodrug' })
+        .returning({ id: dictionaryVersions.id });
+      versionId = inserted[0].id;
+    } else {
+      versionId = versionEntry[0].id;
+    }
 
     try {
-      console.log(`[WHODrug] Starting import for version: ${version}`);
+      console.log(`[WHODrug] Starting import for version: ${versionOrName}`);
       const zipBuffer = Buffer.from(zipBase64, 'base64');
       const zip = new AdmZip(zipBuffer);
       const entries = zip.getEntries();
@@ -60,7 +80,7 @@ export const whodrugImportService = {
         const mans = parse(getFileContent('man.txt')).map(p => ({
           companyCode: p[0],
           companyName: p[1] || "Unknown",
-          whodrugVersion: version
+          versionId: versionId
         }));
         if (mans.length) await tx.insert(whodrugMan).values(mans).onConflictDoNothing();
 
@@ -70,7 +90,7 @@ export const whodrugImportService = {
           atcCode: p[0],
           description: p[1] || "",
           level: parseInt(p[2]) || 0,
-          whodrugVersion: version
+          versionId: versionId
         }));
         if (inas.length) await tx.insert(whodrugIna).values(inas).onConflictDoNothing();
 
@@ -78,7 +98,7 @@ export const whodrugImportService = {
         console.log("[WHODrug] Importing Medicinal Products (DD)...");
         const ddLines = parse(getFileContent('dd.txt'));
         const dds = ddLines.map(p => ({
-          rid: `${p[0]}${p[1]}${p[2]}${version}`, // Generate a unique RID for this version
+          rid: `${p[0]}${p[1]}${p[2]}${versionId}`, // Generate a unique RID for this version
           drugRecordNumber: p[0],
           seq1: p[1],
           seq2: p[2],
@@ -86,7 +106,7 @@ export const whodrugImportService = {
           companyCode: p[4] || null,
           countryCode: p[5] || null,
           sourceCode: p[6] || null,
-          whodrugVersion: version
+          versionId: versionId
         }));
         
         for (let i = 0; i < dds.length; i += 1000) {
@@ -98,12 +118,12 @@ export const whodrugImportService = {
         console.log("[WHODrug] Importing Ingredient Mapping (ING)...");
         const ingLines = parse(getFileContent('ing.txt'));
         const ings = ingLines.map(p => ({
-          id: `${p[0]}${p[1]}${p[2]}${version}`,
+          id: `${p[0]}${p[1]}${p[2]}${versionId}`,
           drugRecordNumber: p[0],
           seq1: p[1],
           ingredientCode: p[2],
           ingredientName: p[3] || null,
-          whodrugVersion: version
+          versionId: versionId
         }));
 
         for (let i = 0; i < ings.length; i += 1000) {
@@ -114,11 +134,11 @@ export const whodrugImportService = {
         console.log("[WHODrug] Importing ATC Mapping (DDA)...");
         const ddaLines = parse(getFileContent('dda.txt'));
         const ddas = ddaLines.map(p => ({
-          id: `${p[0]}${p[1]}${p[2]}${version}`,
+          id: `${p[0]}${p[1]}${p[2]}${versionId}`,
           drugRecordNumber: p[0],
           seq1: p[1],
           atcCode: p[2],
-          whodrugVersion: version
+          versionId: versionId
         }));
 
         for (let i = 0; i < ddas.length; i += 1000) {
@@ -126,7 +146,7 @@ export const whodrugImportService = {
         }
       });
 
-      console.log(`[WHODrug] Import COMPLETED for version: ${version}`);
+      console.log(`[WHODrug] Import COMPLETED for version: ${versionOrName}`);
       await db.update(whodrugImports)
         .set({ status: 'COMPLETED', updatedAt: new Date() })
         .where(eq(whodrugImports.id, jobId));
