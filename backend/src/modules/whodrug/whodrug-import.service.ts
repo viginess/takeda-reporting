@@ -4,7 +4,9 @@ import {
   whodrugIng, 
   whodrugDda, 
   whodrugIna,
-  whodrugMan
+  whodrugMan,
+  whodrugCcode,
+  whodrugSource
 } from "../../db/whodrug/whodrug.schema.js";
 import { whodrugImports } from "../../db/whodrug/whodrug-import.schema.js";
 import { dictionaryVersions } from "../../db/shared/dictionary.schema.js";
@@ -75,7 +77,25 @@ export const whodrugImportService = {
       };
 
       await db.transaction(async (tx) => {
-        // 1. MAN.txt (Manufacturers)
+        // 1. CCODE.txt (Countries)
+        console.log("[WHODrug] Importing Country Codes...");
+        const ccodes = parse(getFileContent('ccode.txt')).map(p => ({
+          countryCode: p[0],
+          countryName: p[1] || "Unknown",
+          versionId: versionId
+        }));
+        if (ccodes.length) await tx.insert(whodrugCcode).values(ccodes).onConflictDoNothing();
+
+        // 2. DDSOURCE.txt (Sources)
+        console.log("[WHODrug] Importing Data Sources...");
+        const sources = parse(getFileContent('ddsource.txt')).map(p => ({
+          sourceCode: p[0],
+          sourceName: p[1] || "Unknown",
+          versionId: versionId
+        }));
+        if (sources.length) await tx.insert(whodrugSource).values(sources).onConflictDoNothing();
+
+        // 3. MAN.txt (Manufacturers)
         console.log("[WHODrug] Importing Manufacturers...");
         const mans = parse(getFileContent('man.txt')).map(p => ({
           companyCode: p[0],
@@ -84,7 +104,18 @@ export const whodrugImportService = {
         }));
         if (mans.length) await tx.insert(whodrugMan).values(mans).onConflictDoNothing();
 
-        // 2. INA.txt (ATC Classifications)
+        // 4. Build Lookup Maps for IDs
+        const [ccRes, srcRes, manRes] = await Promise.all([
+          tx.select({ id: whodrugCcode.id, code: whodrugCcode.countryCode }).from(whodrugCcode).where(eq(whodrugCcode.versionId, versionId)),
+          tx.select({ id: whodrugSource.id, code: whodrugSource.sourceCode }).from(whodrugSource).where(eq(whodrugSource.versionId, versionId)),
+          tx.select({ id: whodrugMan.id, code: whodrugMan.companyCode }).from(whodrugMan).where(eq(whodrugMan.versionId, versionId))
+        ]);
+
+        const countryMap = new Map(ccRes.map(r => [r.code, r.id]));
+        const sourceMap = new Map(srcRes.map(r => [r.code, r.id]));
+        const companyMap = new Map(manRes.map(r => [r.code, r.id]));
+
+        // 5. INA.txt (ATC Classifications)
         console.log("[WHODrug] Importing ATC Classifications...");
         const inas = parse(getFileContent('ina.txt')).map(p => ({
           atcCode: p[0],
@@ -94,35 +125,34 @@ export const whodrugImportService = {
         }));
         if (inas.length) await tx.insert(whodrugIna).values(inas).onConflictDoNothing();
 
-        // 3. DD.txt (Core Medicinal Products) - CHUNKED
+        // 6. DD.txt (Core Medicinal Products) - CHUNKED
         console.log("[WHODrug] Importing Medicinal Products (DD)...");
         const ddLines = parse(getFileContent('dd.txt'));
         const dds = ddLines.map(p => ({
-          rid: `${p[0]}${p[1]}${p[2]}${versionId}`, // Generate a unique RID for this version
           drugRecordNumber: p[0],
           seq1: p[1],
           seq2: p[2],
           tradeName: p[3] || "N/A",
-          companyCode: p[4] || null,
-          countryCode: p[5] || null,
-          sourceCode: p[6] || null,
+          companyId: companyMap.get(p[4]) || null,
+          countryId: countryMap.get(p[5]) || null,
+          sourceId: sourceMap.get(p[6]) || null,
           versionId: versionId
         }));
         
         for (let i = 0; i < dds.length; i += 1000) {
           await tx.insert(whodrugDd).values(dds.slice(i, i + 1000)).onConflictDoNothing();
-          await db.update(whodrugImports).set({ processedRows: i + dds.length / 10 }).where(eq(whodrugImports.id, jobId));
+          if (i % 10000 === 0) {
+            await db.update(whodrugImports).set({ processedRows: i }).where(eq(whodrugImports.id, jobId));
+          }
         }
 
-        // 4. ING.txt (Ingredient Mapping) - CHUNKED
+        // 7. ING.txt (Ingredient Mapping) - CHUNKED
         console.log("[WHODrug] Importing Ingredient Mapping (ING)...");
         const ingLines = parse(getFileContent('ing.txt'));
         const ings = ingLines.map(p => ({
-          id: `${p[0]}${p[1]}${p[2]}${versionId}`,
           drugRecordNumber: p[0],
           seq1: p[1],
           ingredientCode: p[2],
-          ingredientName: p[3] || null,
           versionId: versionId
         }));
 
@@ -130,11 +160,10 @@ export const whodrugImportService = {
           await tx.insert(whodrugIng).values(ings.slice(i, i + 1000)).onConflictDoNothing();
         }
 
-        // 5. DDA.txt (ATC Mapping) - CHUNKED
+        // 8. DDA.txt (ATC Mapping) - CHUNKED
         console.log("[WHODrug] Importing ATC Mapping (DDA)...");
         const ddaLines = parse(getFileContent('dda.txt'));
         const ddas = ddaLines.map(p => ({
-          id: `${p[0]}${p[1]}${p[2]}${versionId}`,
           drugRecordNumber: p[0],
           seq1: p[1],
           atcCode: p[2],

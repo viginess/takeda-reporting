@@ -1,7 +1,8 @@
 import { db } from '../../db/core/index.js';
 import { whodrugDd, whodrugIng, whodrugDda, whodrugIna, whodrugMan } from '../../db/whodrug/whodrug.schema.js';
 import { systemSettings } from '../../db/admin/settings.schema.js';
-import { eq, and, sql, desc } from "drizzle-orm";
+import { dictionaryVersions } from '../../db/shared/dictionary.schema.js';
+import { eq, and, sql, desc, asc } from "drizzle-orm";
 
 /**
  * Service for handling WHODrug Global B3 terminology operations.
@@ -38,10 +39,7 @@ export const whodrugService = {
       similarity: sql<number>`similarity(${whodrugDd.tradeName}, ${query})`
     })
     .from(whodrugDd)
-    .leftJoin(whodrugMan, and(
-      eq(whodrugDd.companyCode, whodrugMan.companyCode),
-      eq(whodrugDd.versionId, whodrugMan.versionId)
-    ))
+    .leftJoin(whodrugMan, eq(whodrugDd.companyId, whodrugMan.id))
     .where(and(
       sql`${whodrugDd.tradeName} % ${query}`,
       eq(whodrugDd.versionId, activeVersionId)
@@ -85,7 +83,7 @@ export const whodrugService = {
     // Fetch related ingredients via the compound key (DRN+Seq1)
     const ingredients = await db.select({
       code: whodrugIng.ingredientCode,
-      name: whodrugIng.ingredientName
+      name: sql<string | null>`NULL` // Ingredient names are no longer stored in mapping table
     })
     .from(whodrugIng)
     .where(and(
@@ -141,7 +139,7 @@ export const whodrugService = {
       drn: whodrugIng.drugRecordNumber,
       seq1: whodrugIng.seq1,
       ingredientCode: whodrugIng.ingredientCode,
-      ingredientName: whodrugIng.ingredientName
+      ingredientName: sql<string | null>`NULL`
     })
     .from(whodrugIng)
     .where(and(
@@ -208,13 +206,14 @@ export const whodrugService = {
     // Initialize mapping for all input codes
     codes.forEach(c => { mapping[c] = { companyCode: null, ingredients: [], atcs: [] }; });
 
-    // 4. Fetch Core Drug Details (including companyCode)
+    // 4. Fetch Core Drug Details (joining to get companyCode string from metadata)
     const coreResults = await db.select({
       drn: whodrugDd.drugRecordNumber,
       seq1: whodrugDd.seq1,
-      companyCode: whodrugDd.companyCode
+      companyCode: whodrugMan.companyCode
     })
     .from(whodrugDd)
+    .leftJoin(whodrugMan, eq(whodrugDd.companyId, whodrugMan.id))
     .where(sql`(${whodrugDd.drugRecordNumber}, ${whodrugDd.seq1}) IN ${sql.raw(`(${keys.map(k => `('${k.drn}', '${k.seq1}')`).join(',')})`)}`);
 
     coreResults.forEach(r => {
@@ -249,13 +248,11 @@ export const whodrugService = {
     return mapping;
   },
 
-  /**
-   * Retrieves all unique dictionary versions currently stored in the database.
-   */
   async getVersions() {
-    const versions = await db.selectDistinct({ version: whodrugDd.whodrugVersion })
-      .from(whodrugDd);
-    return versions.map((v: any) => v.version);
+    const versions = await db.select({ name: dictionaryVersions.name })
+      .from(dictionaryVersions)
+      .where(eq(dictionaryVersions.type, 'whodrug'));
+    return versions.map(v => v.name);
   },
 
   /**
