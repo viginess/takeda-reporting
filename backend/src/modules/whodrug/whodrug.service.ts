@@ -2,7 +2,7 @@ import { db } from '../../db/core/index.js';
 import { whodrugDd, whodrugIng, whodrugDda, whodrugIna, whodrugMan } from '../../db/whodrug/whodrug.schema.js';
 import { systemSettings } from '../../db/admin/settings.schema.js';
 import { dictionaryVersions } from '../../db/shared/dictionary.schema.js';
-import { eq, and, sql, desc, asc } from "drizzle-orm";
+import { eq, and, sql, desc } from "drizzle-orm";
 
 /**
  * Service for handling WHODrug Global B3 terminology operations.

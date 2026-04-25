@@ -243,7 +243,7 @@ export default function WhodrugManagementPage() {
                     <Box bg="#f8fafc" p={3} borderRadius="xl" border="1px" borderColor="gray.100">
                       <Text fontWeight="bold" color="#0f172a">{drugDetails.tradeName}</Text>
                       <Text fontSize="xs" color="gray.500">Record ID (RID): {drugDetails.rid}</Text>
-                      <Text fontSize="xs" color="gray.500">Source: {drugDetails.sourceCode || "N/A"}</Text>
+                      <Text fontSize="xs" color="gray.500">Source: {drugDetails.sourceId || "N/A"}</Text>
                     </Box>
                   </Box>
 
