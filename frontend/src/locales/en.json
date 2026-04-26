@@ -128,7 +128,7 @@
         "batchNumberPlaceholder": "Enter batch number",
         "batchNumberRequired": "Batch number is required",
         "expiryDateLabel": "Expiry date",
-        "expiryDatePlaceholder": "e.g. 24 February 2024",
+        "expiryDatePlaceholder": "e.g. 24 February 2026",
         "actionTakenLabel": "What was the action taken for the drug due to the event?",
         "actionTakenPlaceholder": "Select option",
         "actions": {

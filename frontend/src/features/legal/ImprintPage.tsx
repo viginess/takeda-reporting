@@ -61,7 +61,7 @@ const ImprintPage = () => {
 
             {/* Footer */}
             <Box as="footer" py={5} px={6} textAlign="center" fontSize="sm" color="gray.600" bg="white" borderTop="1px solid" borderColor="gray.200">
-                <Text>© 2024 Clin Solutions L.L.C. All rights reserved.</Text>
+                <Text>© 2026 Clin Solutions L.L.C. All rights reserved.</Text>
             </Box>
         </Flex>
     );
