@@ -177,16 +177,20 @@ export const companyNotificationService = {
     
     const result = await sendAdminNotificationEmail({
       to: company.email,
-      subject: `RESEND: ADVERSE EVENT NOTIFICATION: Safety Report ${referenceId}`,
+      subject: `ADVERSE EVENT NOTIFICATION: Safety Report ${referenceId}`,
       html: `
         <div style="font-family: sans-serif; line-height: 1.5;">
-          <h2>Safety Report Notification (RESUBMISSION)</h2>
+          <h2>Safety Report Notification</h2>
           <p>Dear ${company.name} Pharmacovigilance Team,</p>
-          <p>This is a <b>resubmission</b> of a previous safety report notification that may have had delivery issues.</p>
+          <p>This is an automated notification of a safety report involving one or more of your products.</p>
           <hr />
           <p><b>Reference ID:</b> ${referenceId}</p>
+          <p><b>Transmission Type:</b> Initial E2B R3 Submission</p>
           <hr />
-          <p>Please find the updated E2B XML and Safety PDF attached.</p>
+          <p>The attached E2B XML and Safety PDF contain the full details of the event for your review and regulatory processing.</p>
+          <p>Please acknowledge receipt of this notification.</p>
+          <br />
+          <p><i>This is an automated message from the Viginess Reporting System.</i></p>
         </div>
       `,
       attachments: [
