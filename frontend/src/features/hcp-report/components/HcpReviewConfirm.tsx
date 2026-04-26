@@ -56,8 +56,8 @@ interface HcpReviewConfirmProps {
   setAccordionIndex: (val: number[]) => void;
   agreedToTerms: boolean;
   setAgreedToTerms: (val: boolean) => void;
-  captchaChecked: boolean;
-  setCaptchaChecked: (val: boolean) => void;
+  captchaToken: string | null;
+  setCaptchaToken: (val: string | null) => void;
   onBack?: () => void;
   primaryButtonStyles: any;
 }
@@ -67,8 +67,8 @@ export function HcpReviewConfirm({
   setAccordionIndex,
   agreedToTerms,
   setAgreedToTerms,
-  captchaChecked,
-  setCaptchaChecked,
+  captchaToken,
+  setCaptchaToken,
   onBack,
 }: HcpReviewConfirmProps) {
   const { t } = useTranslation();
@@ -333,18 +333,18 @@ export function HcpReviewConfirm({
       </Accordion>
 
       {/* reCAPTCHA */}
-      <input type="hidden" {...register('captchaChecked', { required: true, validate: (v: any) => v === true })} />
+      <input type="hidden" {...register('captchaToken', { required: true, validate: (v: any) => !!v })} />
       {import.meta.env.VITE_RECAPTCHA_SITE_KEY ? (
         <Box mb={6}>
           <ReCAPTCHA
             sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
             onChange={(token) => {
-              setCaptchaChecked(!!token);
-              setValue('captchaChecked', !!token, { shouldValidate: true });
+              setCaptchaToken(token);
+              setValue('captchaToken', token, { shouldValidate: true });
             }}
             onExpired={() => {
-              setCaptchaChecked(false);
-              setValue('captchaChecked', false, { shouldValidate: true });
+              setCaptchaToken(null);
+              setValue('captchaToken', null, { shouldValidate: true });
             }}
           />
         </Box>
@@ -398,11 +398,11 @@ export function HcpReviewConfirm({
         </Checkbox>
       </Box>
 
-      {(!agreedToTerms || !captchaChecked) && (
+      {(!agreedToTerms || !captchaToken) && (
         <Text fontSize="xs" color="red.400" mb={2}>
-          {!captchaChecked && !agreedToTerms
+          {!captchaToken && !agreedToTerms
             ? t('forms.hcp.reviewConfirm.terms.captchaError')
-            : !captchaChecked
+            : !captchaToken
             ? t('forms.hcp.reviewConfirm.terms.captchaOnly')
             : t('forms.hcp.reviewConfirm.terms.termsOnly')}
         </Text>

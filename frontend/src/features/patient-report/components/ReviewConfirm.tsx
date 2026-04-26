@@ -39,8 +39,8 @@ interface ReviewConfirmProps {
   setAccordionIndex: (val: number[]) => void;
   agreedToTerms: boolean;
   setAgreedToTerms: (val: boolean) => void;
-  captchaChecked: boolean;
-  setCaptchaChecked: (val: boolean) => void;
+  captchaToken: string | null;
+  setCaptchaToken: (val: string | null) => void;
   onBack?: () => void;
   primaryButtonStyles: any;
 }
@@ -50,8 +50,8 @@ export function ReviewConfirm({
   setAccordionIndex,
   agreedToTerms,
   setAgreedToTerms,
-  captchaChecked,
-  setCaptchaChecked,
+  captchaToken,
+  setCaptchaToken,
 }: ReviewConfirmProps) {
   const { t } = useTranslation();
   const { setStep } = useStepperContext();
@@ -254,18 +254,18 @@ export function ReviewConfirm({
       </Accordion>
 
       {/* reCAPTCHA */}
-      <input type="hidden" {...register('captchaChecked', { required: true, validate: (v: any) => v === true })} />
+      <input type="hidden" {...register('captchaToken', { required: true, validate: (v: any) => !!v })} />
       {import.meta.env.VITE_RECAPTCHA_SITE_KEY ? (
         <Box mb={6}>
           <ReCAPTCHA
             sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
             onChange={(token) => {
-              setCaptchaChecked(!!token);
-              setValue('captchaChecked', !!token, { shouldValidate: true });
+              setCaptchaToken(token);
+              setValue('captchaToken', token, { shouldValidate: true });
             }}
             onExpired={() => {
-              setCaptchaChecked(false);
-              setValue('captchaChecked', false, { shouldValidate: true });
+              setCaptchaToken(null);
+              setValue('captchaToken', null, { shouldValidate: true });
             }}
           />
         </Box>
@@ -305,11 +305,11 @@ export function ReviewConfirm({
         </Checkbox>
       </Box>
 
-      {(!agreedToTerms || !captchaChecked) && (
+      {(!agreedToTerms || !captchaToken) && (
         <Text fontSize="xs" color="red.400" mb={2}>
-          {!captchaChecked && !agreedToTerms
+          {!captchaToken && !agreedToTerms
             ? t('forms.patient.reviewConfirm.bothRequired')
-            : !captchaChecked
+            : !captchaToken
             ? t('forms.patient.reviewConfirm.captchaRobot')
             : t('forms.patient.reviewConfirm.termsAgreement')}
         </Text>

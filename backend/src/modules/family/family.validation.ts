@@ -142,6 +142,7 @@ export const createFamilySchema = z.object({
   submissionLanguage: z.string().optional().default("en"),
   severity: z.string().optional(),
   senderTimezoneOffset: z.number().optional(),
+  captchaToken: z.string().optional(),
 });
 
 export const updateFamilySchema = createFamilySchema.partial();

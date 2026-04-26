@@ -220,8 +220,8 @@ function PatientForm({ onBack, countryCode, languageCode }: PatientFormProps) {
   const { t } = useTranslation();
   const [additionalDetails, setAdditionalDetails] = useState("");
   const [agreedToTerms, setAgreedToTerms] = useState(false);
-  const [captchaChecked, setCaptchaChecked] = useState(
-    !import.meta.env.VITE_RECAPTCHA_SITE_KEY
+  const [captchaToken, setCaptchaToken] = useState<string | null>(
+    !import.meta.env.VITE_RECAPTCHA_SITE_KEY ? 'bypass' : null
   );
   const [reportId, setReportId] = useState<string | undefined>(undefined);
   const [accordionIndex, setAccordionIndex] = useState<number[]>([0, 1, 2, 3]);
@@ -267,7 +267,7 @@ function PatientForm({ onBack, countryCode, languageCode }: PatientFormProps) {
   });
 
   const onSubmit = async (params: any) => {
-    if (!params.captchaChecked || !params.agreedToTerms) {
+    if (!params.captchaToken || !params.agreedToTerms) {
       toast({
         title: t("common.error", "Validation Error"),
         description: t(
@@ -311,6 +311,7 @@ function PatientForm({ onBack, countryCode, languageCode }: PatientFormProps) {
       additionalDetails: additionalDetails || undefined,
       attachments: params.attachments ?? [],
       agreedToTerms: params.agreedToTerms,
+      captchaToken: params.captchaToken,
       reporterType: "patient",
       senderTimezoneOffset: new Date().getTimezoneOffset(),
       countryCode: countryCode,
@@ -442,7 +443,7 @@ function PatientForm({ onBack, countryCode, languageCode }: PatientFormProps) {
               medicalHistory: [],
               labTests: [],
               agreedToTerms: false,
-              captchaChecked: !import.meta.env.VITE_RECAPTCHA_SITE_KEY,
+              captchaToken: !import.meta.env.VITE_RECAPTCHA_SITE_KEY ? 'bypass' : null,
             }}
           >
             {({ FormStep }) => (
@@ -513,8 +514,8 @@ function PatientForm({ onBack, countryCode, languageCode }: PatientFormProps) {
                         setAccordionIndex={setAccordionIndex}
                         agreedToTerms={agreedToTerms}
                         setAgreedToTerms={setAgreedToTerms}
-                        captchaChecked={captchaChecked}
-                        setCaptchaChecked={setCaptchaChecked}
+                        captchaToken={captchaToken}
+                        setCaptchaToken={setCaptchaToken}
                         onBack={onBack}
                         primaryButtonStyles={primaryButtonStyles}
                       />

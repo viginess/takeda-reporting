@@ -147,6 +147,7 @@ export const createHcpSchema = z.object({
   submissionLanguage: z.string().optional().default("en"),
   severity: z.string().optional(),
   senderTimezoneOffset: z.number().optional(),
+  captchaToken: z.string().optional(),
 });
 
 export const updateHcpSchema = createHcpSchema.partial();

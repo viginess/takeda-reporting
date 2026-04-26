@@ -193,7 +193,9 @@ function HcpForm({ onBack, countryCode, languageCode }: HcpFormProps) {
   const { t } = useTranslation();
   const [additionalDetails, setAdditionalDetails] = useState('');
   const [agreedToTerms, setAgreedToTerms] = useState(false);
-  const [captchaChecked, setCaptchaChecked] = useState(!import.meta.env.VITE_RECAPTCHA_SITE_KEY);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(
+    !import.meta.env.VITE_RECAPTCHA_SITE_KEY ? 'bypass' : null
+  );
   const [accordionIndex, setAccordionIndex] = useState<number[]>([0, 1, 2, 3]);
 
   // Step state
@@ -229,7 +231,7 @@ function HcpForm({ onBack, countryCode, languageCode }: HcpFormProps) {
 
   const onSubmit = async (params: any) => {
     try {
-      if (!params.captchaChecked || !params.agreedToTerms) {
+      if (!params.captchaToken || !params.agreedToTerms) {
         toast({
           title: t("common.error", 'Validation Error'),
           description: t("forms.hcp.reviewConfirm.bothRequired", 'Please confirm you are not a robot and agree to the terms to submit.'),
@@ -265,6 +267,7 @@ function HcpForm({ onBack, countryCode, languageCode }: HcpFormProps) {
         labTestsPerformed: labTestsPerformed || undefined,
         additionalDetails: additionalDetails || undefined,
         agreedToTerms: params.agreedToTerms,
+        captchaToken: params.captchaToken,
         reporterType: "hcp",
         senderTimezoneOffset: new Date().getTimezoneOffset(),
         countryCode: countryCode,
@@ -374,7 +377,7 @@ function HcpForm({ onBack, countryCode, languageCode }: HcpFormProps) {
               medicalHistory: [],
               labTests: [],
               agreedToTerms: false,
-              captchaChecked: !import.meta.env.VITE_RECAPTCHA_SITE_KEY,
+              captchaToken: !import.meta.env.VITE_RECAPTCHA_SITE_KEY ? 'bypass' : null,
             }}
           >
             {({ FormStep }) => (
@@ -435,8 +438,8 @@ function HcpForm({ onBack, countryCode, languageCode }: HcpFormProps) {
                         setAccordionIndex={setAccordionIndex}
                         agreedToTerms={agreedToTerms}
                         setAgreedToTerms={setAgreedToTerms}
-                        captchaChecked={captchaChecked}
-                        setCaptchaChecked={setCaptchaChecked}
+                        captchaToken={captchaToken}
+                        setCaptchaToken={setCaptchaToken}
                         onBack={onBack}
                         primaryButtonStyles={primaryButtonStyles}
                       />

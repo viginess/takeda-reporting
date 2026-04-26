@@ -157,6 +157,7 @@ export const createPatientSchema = z.object({
   submissionLanguage: z.string().optional().default("en"),
   severity: z.string().optional(),
   senderTimezoneOffset: z.number().optional(),
+  captchaToken: z.string().optional(),
 });
 
 export type CreatePatientInput = z.infer<typeof createPatientSchema>;

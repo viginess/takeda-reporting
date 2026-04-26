@@ -216,7 +216,9 @@ function FamilyForm({ onBack, countryCode, languageCode }: FamilyFormProps) {
   const { t } = useTranslation();
   const [additionalDetails, setAdditionalDetails] = useState('');
   const [agreedToTerms, setAgreedToTerms] = useState(false);
-  const [captchaChecked, setCaptchaChecked] = useState(!import.meta.env.VITE_RECAPTCHA_SITE_KEY);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(
+    !import.meta.env.VITE_RECAPTCHA_SITE_KEY ? 'bypass' : null
+  );
   const [accordionIndex, setAccordionIndex] = useState<number[]>([0, 1, 2, 3]);
 
   // Step state
@@ -253,7 +255,7 @@ function FamilyForm({ onBack, countryCode, languageCode }: FamilyFormProps) {
 
   const onSubmit = async (params: any) => {
     try {
-      if (!params.captchaChecked || !params.agreedToTerms) {
+      if (!params.captchaToken || !params.agreedToTerms) {
         toast({
           title: t('common.error', 'Validation Error'),
           description: t('forms.family.reviewConfirm.bothRequired', 'Please confirm you are not a robot and agree to the terms to submit.'),
@@ -284,6 +286,7 @@ function FamilyForm({ onBack, countryCode, languageCode }: FamilyFormProps) {
         labTestsPerformed: labTestsPerformed || undefined,
         additionalDetails: additionalDetails || undefined,
         agreedToTerms: params.agreedToTerms,
+        captchaToken: params.captchaToken,
         senderTimezoneOffset: new Date().getTimezoneOffset(),
         countryCode: countryCode,
         reporterType: "family",
@@ -373,7 +376,7 @@ function FamilyForm({ onBack, countryCode, languageCode }: FamilyFormProps) {
               medicalHistory: [],
               labTests: [],
               agreedToTerms: false,
-              captchaChecked: !import.meta.env.VITE_RECAPTCHA_SITE_KEY,
+              captchaToken: !import.meta.env.VITE_RECAPTCHA_SITE_KEY ? 'bypass' : null,
             }}
           >
             {({ FormStep }) => (
@@ -436,8 +439,8 @@ function FamilyForm({ onBack, countryCode, languageCode }: FamilyFormProps) {
                         setAccordionIndex={setAccordionIndex}
                         agreedToTerms={agreedToTerms}
                         setAgreedToTerms={setAgreedToTerms}
-                        captchaChecked={captchaChecked}
-                        setCaptchaChecked={setCaptchaChecked}
+                        captchaToken={captchaToken}
+                        setCaptchaToken={setCaptchaToken}
                         onBack={onBack}
                         primaryButtonStyles={primaryButtonStyles}
                       />
