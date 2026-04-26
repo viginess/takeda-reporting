@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+# Block admin/private routes
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /internal
+
+Sitemap: https://sideeffects.viginess.com/sitemap.xml

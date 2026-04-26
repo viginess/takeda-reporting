@@ -15,6 +15,7 @@ import {
   Wrap,
   WrapItem,
 } from '@chakra-ui/react';
+import { Helmet } from 'react-helmet-async';
 import { useState } from 'react';
 
 import logo from '../../assets/logo.jpg';
@@ -64,6 +65,10 @@ function WelcomePage() {
       color="gray.800"
       fontFamily="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
     >
+      <Helmet>
+        <title>Clin Solutions L.L.C. Pharmaceuticals – Patient Safety Reporting Platform</title>
+        <meta name="description" content="Report and track adverse events securely with Clin Solutions L.L.C. Pharmaceuticals." />
+      </Helmet>
       {/* Header */}
       <Flex
         as="header"
@@ -414,4 +419,4 @@ function WelcomePage() {
   );
 }
 
-export default WelcomePage;
+export default WelcomePage;

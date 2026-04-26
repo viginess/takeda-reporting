@@ -12,6 +12,7 @@ import {
   Wrap,
   WrapItem,
 } from '@chakra-ui/react';
+import { Helmet } from 'react-helmet-async';
 import { useTranslation } from 'react-i18next';
 import {
   FormLayout,
@@ -294,6 +295,10 @@ function HcpForm({ onBack, countryCode, languageCode }: HcpFormProps) {
       fontFamily="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
       w="full"
     >
+      <Helmet>
+        <title>{t('forms.hcp.title')} | Clin Solutions L.L.C. Pharmaceuticals</title>
+        <meta name="description" content="Secure portal for healthcare professionals to report adverse events and patient safety observations." />
+      </Helmet>
       {/* Header */}
       <Flex
         as="header"

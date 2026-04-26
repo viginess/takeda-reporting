@@ -42,6 +42,9 @@ function App() {
           <Routes>
             {/* Public/Reporter Routes */}
             <Route path="/" element={<WelcomePage />} />
+            <Route path="/patient-reporting" element={<WelcomePage />} />
+            <Route path="/hcp-reporting" element={<WelcomePage />} />
+            <Route path="/family-reporting" element={<WelcomePage />} />
             <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
             <Route path="/terms-conditions" element={<TermsConditionsPage />} />
             <Route path="/imprint" element={<ImprintPage />} />

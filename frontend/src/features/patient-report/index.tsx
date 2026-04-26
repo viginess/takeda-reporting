@@ -12,6 +12,7 @@ import {
   Wrap,
   WrapItem,
 } from "@chakra-ui/react";
+import { Helmet } from "react-helmet-async";
 import {
   FormLayout,
   FormStepper,
@@ -324,6 +325,10 @@ function PatientForm({ onBack, countryCode, languageCode }: PatientFormProps) {
 
   return (
     <Flex direction="column" minH="100vh" bg="gray.50" color="gray.800" w="full">
+      <Helmet>
+        <title>{t("forms.patient.title")} | Clin Solutions L.L.C. Pharmaceuticals</title>
+        <meta name="description" content="Submit a patient adverse event report securely. Help improve drug safety by reporting side effects." />
+      </Helmet>
       {/* Header */}
       <Flex
         as="header"

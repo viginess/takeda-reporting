@@ -12,6 +12,7 @@ import {
   Wrap,
   WrapItem,
 } from '@chakra-ui/react';
+import { Helmet } from 'react-helmet-async';
 import { useTranslation } from 'react-i18next';
 import {
   FormLayout,
@@ -314,6 +315,10 @@ function FamilyForm({ onBack, countryCode, languageCode }: FamilyFormProps) {
       fontFamily="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
       w="full"
     >
+      <Helmet>
+        <title>{t('forms.family.title')} | Clin Solutions L.L.C. Pharmaceuticals</title>
+        <meta name="description" content="Report adverse events observed in family members or others. Help ensure drug safety for everyone." />
+      </Helmet>
       {/* Header */}
       <Flex
         as="header"
