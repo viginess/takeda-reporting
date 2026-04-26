@@ -73,18 +73,21 @@ export const companyNotificationService = {
           company.isRegistered = true;
         }
 
-        // 4. Skip if no email or not registered for automated notifications
-        if (!company.email || !company.isRegistered) {
-          console.log(`[Notification] Company ${company.name} lacks verified email. Notification skipped.`);
-          continue;
-        }
-
-        // 5. Create a pending notification record
+        // 4. Create a pending notification record
         const [notification] = await db.insert(companyNotifications).values({
           reportId,
           companyId: company.id,
           status: 'pending'
         }).returning();
+
+        // 5. Skip if no email or not registered for automated notifications
+        if (!company.email || !company.isRegistered) {
+          console.log(`[Notification] Company ${company.name} lacks verified email. Notification skipped.`);
+          await db.update(companyNotifications)
+            .set({ status: 'failed', lastError: 'Missing contact email or not registered. Please add email and retry.' })
+            .where(eq(companyNotifications.id, notification.id));
+          continue;
+        }
 
         // 6. Dispatch Email
         const result = await sendEmail({

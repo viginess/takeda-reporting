@@ -14,6 +14,7 @@ export const companyRouter = router({
   getCompanies: publicProcedure
     .input(z.object({
       search: z.string().optional(),
+      missingEmailOnly: z.boolean().optional(),
       limit: z.number().default(100),
       offset: z.number().default(0)
     }))
@@ -44,13 +45,22 @@ export const companyRouter = router({
         eq(sql`ln.row_number`, 1)
       ));
       
+      const conditions = [];
       if (input.search) {
         const searchTerm = `%${input.search}%`;
-        // @ts-ignore
-        queryBody = queryBody.where(or(
+        conditions.push(or(
           ilike(companies.name, searchTerm),
           ilike(companies.email, searchTerm)
         ));
+      }
+      
+      if (input.missingEmailOnly) {
+        conditions.push(or(sql`${companies.email} IS NULL`, eq(companies.email, '')));
+      }
+
+      if (conditions.length > 0) {
+        // @ts-ignore
+        queryBody = queryBody.where(and(...conditions));
       }
 
       return await queryBody
@@ -168,5 +178,66 @@ export const companyRouter = router({
       const { inboxMonitorService } = await import("../notifications/inbox-monitor.service.js");
       await inboxMonitorService.scanForBounces();
       return { success: true };
+    }),
+
+  /**
+   * Scans for and resends any missed reports for a specific company
+   */
+  resendMissedReports: publicProcedure
+    .input(z.object({ companyId: z.string().uuid() }))
+    .mutation(async ({ input }) => {
+      const { db } = await import("../../db/core/index.js");
+      const { companies, companyNotifications } = await import("../../db/company/company.schema.js");
+      const { patientReports } = await import("../../db/patient/patient.schema.js");
+      const { hcpReports } = await import("../../db/hcp/hcp.schema.js");
+      const { familyReports } = await import("../../db/family/family.schema.js");
+      const { eq, and } = await import("drizzle-orm");
+
+      const [company] = await db.select().from(companies).where(eq(companies.id, input.companyId));
+      if (!company || !company.email) throw new Error("Company not found or missing email.");
+
+      const pReports = await db.select({ id: patientReports.id, products: patientReports.products }).from(patientReports);
+      const hReports = await db.select({ id: hcpReports.id, products: hcpReports.products }).from(hcpReports);
+      const fReports = await db.select({ id: familyReports.id, products: familyReports.products }).from(familyReports);
+
+      const allReports = [...pReports, ...hReports, ...fReports];
+      let resentCount = 0;
+
+      for (const report of allReports) {
+        if (!report.products || !Array.isArray(report.products)) continue;
+
+        const isManufacturer = report.products.some((p: any) => 
+          p.manufacturerName && p.manufacturerName.toLowerCase() === company.name.toLowerCase()
+        );
+
+        if (isManufacturer) {
+          let [notif] = await db.select()
+            .from(companyNotifications)
+            .where(and(
+              eq(companyNotifications.reportId, report.id),
+              eq(companyNotifications.companyId, company.id)
+            ));
+
+          if (!notif) {
+            [notif] = await db.insert(companyNotifications).values({
+              reportId: report.id,
+              companyId: company.id,
+              status: 'pending'
+            }).returning();
+          }
+
+          if (notif.status !== 'sent') {
+            const { companyNotificationService } = await import("./company.service.js");
+            try {
+              await companyNotificationService.resendNotification(notif.id);
+              resentCount++;
+            } catch (err) {
+              console.error("Failed to resend:", err);
+            }
+          }
+        }
+      }
+
+      return { success: true, count: resentCount };
     }),
 });

@@ -47,6 +47,7 @@ import { NotificationLogTable } from "../components/NotificationLogTable";
 
 export default function CompanyManagementPage() {
   const [search, setSearch] = useState("");
+  const [showMissingOnly, setShowMissingOnly] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<any>(null);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const toast = useToast();
@@ -58,6 +59,7 @@ export default function CompanyManagementPage() {
   // 1. Get Companies with Pagination
   const { data: companyData, isLoading: loadingCompanies } = trpc.company.getCompanies.useQuery({
     search: search.length >= 2 ? search : undefined,
+    missingEmailOnly: showMissingOnly ? true : undefined,
     limit,
     offset: page * limit
   });
@@ -76,6 +78,18 @@ export default function CompanyManagementPage() {
     },
     onError: (err: any) => {
       toast({ title: "Update Failed", description: err.message, status: "error" });
+    }
+  });
+
+  // 4. Resend Missed Mutation
+  const resendMissedMutation = trpc.company.resendMissedReports.useMutation({
+    onSuccess: (res) => {
+      utils.company.getNotificationLogs.invalidate();
+      utils.company.getCompanies.invalidate();
+      toast({ title: `Scanned successfully`, description: `Sent ${res.count} missed reports.`, status: "success" });
+    },
+    onError: (err: any) => {
+      toast({ title: "Failed to send missed reports", description: err.message, status: "error" });
     }
   });
 
@@ -118,9 +132,25 @@ export default function CompanyManagementPage() {
               <StatNumber fontSize="2xl" color="#1e293b">{stats?.total || "0"}</StatNumber>
             </Stat>
           </Box>
-          <Box bg="white" p={5} borderRadius="2xl" border="1px" borderColor="gray.100" shadow="sm">
+          <Box 
+            bg={showMissingOnly ? "orange.50" : "white"} 
+            p={5} 
+            borderRadius="2xl" 
+            border="1px" 
+            borderColor={showMissingOnly ? "orange.300" : "gray.100"} 
+            shadow="sm"
+            cursor="pointer"
+            onClick={() => {
+              setShowMissingOnly(!showMissingOnly);
+              setPage(0);
+            }}
+            transition="all 0.2s"
+            _hover={{ shadow: "md", borderColor: "orange.200" }}
+          >
             <Stat>
-              <StatLabel color="gray.400" fontSize="2xs" fontWeight="bold">Missing Contact Info</StatLabel>
+              <StatLabel color={showMissingOnly ? "orange.600" : "gray.400"} fontSize="2xs" fontWeight="bold">
+                Missing Contact Info {showMissingOnly && "(Active Filter)"}
+              </StatLabel>
               <Flex align="center" gap={2}>
                 <StatNumber fontSize="2xl" color={stats?.pending ? "orange.500" : "green.500"}>
                   {stats?.pending ?? "---"}
@@ -340,6 +370,29 @@ export default function CompanyManagementPage() {
                 </Box>
 
                 <Divider />
+
+                <Box pt={2}>
+                  <Button 
+                    w="full" 
+                    variant="outline" 
+                    colorScheme="blue" 
+                    leftIcon={<History size={16} />}
+                    isLoading={resendMissedMutation.isPending}
+                    onClick={() => {
+                      if (!selectedCompany.email) {
+                        toast({ title: "Please save an email first", status: "warning" });
+                        return;
+                      }
+                      resendMissedMutation.mutate({ companyId: selectedCompany.id });
+                    }}
+                    borderRadius="xl"
+                  >
+                    Scan & Send Missed Reports
+                  </Button>
+                  <Text mt={1} fontSize="2xs" color="gray.400" textAlign="center">
+                    Automatically finds and sends any previous safety reports that were skipped due to missing email.
+                  </Text>
+                </Box>
 
                 <Stack direction="row" spacing={3} pt={4}>
                   <Button flex={1} variant="outline" onClick={onClose} borderRadius="xl">Cancel</Button>

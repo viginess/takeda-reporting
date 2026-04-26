@@ -10,10 +10,17 @@ import { convert } from 'html-to-text';
  * When a bounce is detected, it parses the report ID and updates the dashboard status to 'failed'.
  */
 class InboxMonitorService {
-  private client: ImapFlow;
+  private isScanning = false;
 
-  constructor() {
-    this.client = new ImapFlow({
+  async scanForBounces() {
+    if (this.isScanning) {
+      console.log('[InboxMonitor] Scan already in progress. Skipping duplicate trigger.');
+      return;
+    }
+    this.isScanning = true;
+    console.log('[InboxMonitor] Starting bounce scan...');
+
+    const client = new ImapFlow({
       host: 'imap.ionos.com',
       port: 993,
       secure: true,
@@ -23,13 +30,10 @@ class InboxMonitorService {
       },
       logger: false
     });
-  }
 
-  async scanForBounces() {
-    console.log('[InboxMonitor] Starting bounce scan...');
     try {
-      await this.client.connect();
-      const lock = await this.client.getMailboxLock('INBOX');
+      await client.connect();
+      const lock = await client.getMailboxLock('INBOX');
 
       try {
         const sinceDate = new Date();
@@ -37,7 +41,7 @@ class InboxMonitorService {
 
         console.log(`[InboxMonitor] Deep Scanning ALL emails since ${sinceDate.toLocaleDateString()}...`);
 
-        const uids = await this.client.search({
+        const uids = await client.search({
           since: sinceDate
         });
 
@@ -51,7 +55,7 @@ class InboxMonitorService {
         let matchCount = 0;
 
         for (const uid of uids) {
-          const content = await this.client.fetchOne(uid, { source: true, envelope: true });
+          const content = await client.fetchOne(uid, { source: true, envelope: true });
           if (!content || !content.source) continue;
           
           const subject = (content.envelope?.subject || "").toLowerCase();
@@ -127,7 +131,7 @@ class InboxMonitorService {
             }
           }
           // Mark as seen
-          await this.client.messageFlagsAdd(uid, ['\\Seen']);
+          await client.messageFlagsAdd(uid, ['\\Seen']);
         }
         console.log(`[InboxMonitor] Scan complete. Updated ${matchCount} reports.`);
       } finally {
@@ -136,7 +140,8 @@ class InboxMonitorService {
     } catch (err) {
       console.error('[InboxMonitor] Error during scan:', err);
     } finally {
-      await this.client.logout();
+      await client.logout();
+      this.isScanning = false;
     }
   }
 }
