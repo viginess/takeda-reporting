@@ -1,0 +1,3306 @@
+{
+  "id": "558e75ec-486b-4918-82eb-b74df4ef2a0c",
+  "prevId": "b20ae3b2-5223-4c64-bca1-d530a0afab5a",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.admins": {
+      "name": "admins",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "role": {
+          "name": "role",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'admin'"
+        },
+        "first_name": {
+          "name": "first_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_name": {
+          "name": "last_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "failed_login_attempts": {
+          "name": "failed_login_attempts",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "locked_at": {
+          "name": "locked_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "password_changed_at": {
+          "name": "password_changed_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "two_factor_enabled": {
+          "name": "two_factor_enabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "last_login_at": {
+          "name": "last_login_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_active_at": {
+          "name": "last_active_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "admins_email_unique": {
+          "name": "admins_email_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "email"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.system_settings": {
+      "name": "system_settings",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "default": 1
+        },
+        "active_meddra_version_id": {
+          "name": "active_meddra_version_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "active_whodrug_version_id": {
+          "name": "active_whodrug_version_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "notification_thresholds": {
+          "name": "notification_thresholds",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{\"urgentAlerts\":true,\"alertThreshold\":\"All Severities\",\"notifyOnApproval\":true,\"emailDigest\":true,\"digestFrequency\":\"Daily\",\"smsAlerts\":false}'::jsonb"
+        },
+        "clinical_config": {
+          "name": "clinical_config",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{\"timezone\":\"UTC+05:30 (IST)\",\"retention\":\"24 months\",\"twoFA\":false,\"sessionTimeout\":\"60 min\",\"maxLoginAttempts\":\"5\",\"passwordExpiry\":\"90 days\",\"senderId\":\"CLINSOLUTION-DEFAULT\",\"receiverId\":\"EVHUMAN\",\"meddraVersion\":\"29.0\",\"whodrugVersion\":\"Global B3 March 2025\",\"lockoutCooldown\":\"30 min\",\"smtpHost\":\"\",\"smtpPort\":\"587\",\"smtpUser\":\"\",\"smtpPass\":\"\",\"smtpFrom\":\"info@viginess.com\"}'::jsonb"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "updated_by": {
+          "name": "updated_by",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "system_settings_active_meddra_version_id_dictionary_versions_id_fk": {
+          "name": "system_settings_active_meddra_version_id_dictionary_versions_id_fk",
+          "tableFrom": "system_settings",
+          "tableTo": "dictionary_versions",
+          "columnsFrom": [
+            "active_meddra_version_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "system_settings_active_whodrug_version_id_dictionary_versions_id_fk": {
+          "name": "system_settings_active_whodrug_version_id_dictionary_versions_id_fk",
+          "tableFrom": "system_settings",
+          "tableTo": "dictionary_versions",
+          "columnsFrom": [
+            "active_whodrug_version_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.archived_reports": {
+      "name": "archived_reports",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "reference_id": {
+          "name": "reference_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "reporter_type": {
+          "name": "reporter_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "storage_path": {
+          "name": "storage_path",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "archived_at": {
+          "name": "archived_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.audit_logs": {
+      "name": "audit_logs",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "entity": {
+          "name": "entity",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "entity_id": {
+          "name": "entity_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "report_id": {
+          "name": "report_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "changed_by": {
+          "name": "changed_by",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "action": {
+          "name": "action",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "old_value": {
+          "name": "old_value",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "new_value": {
+          "name": "new_value",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "changed_at": {
+          "name": "changed_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.companies": {
+      "name": "companies",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_registered": {
+          "name": "is_registered",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "companies_name_idx": {
+          "name": "companies_name_idx",
+          "columns": [
+            {
+              "expression": "name",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "companies_name_unique": {
+          "name": "companies_name_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "name"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.company_notifications": {
+      "name": "company_notifications",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "report_id": {
+          "name": "report_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "company_id": {
+          "name": "company_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'pending'"
+        },
+        "sent_at": {
+          "name": "sent_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "bounced_at": {
+          "name": "bounced_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_error": {
+          "name": "last_error",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "notification_report_idx": {
+          "name": "notification_report_idx",
+          "columns": [
+            {
+              "expression": "report_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "notification_company_idx": {
+          "name": "notification_company_idx",
+          "columns": [
+            {
+              "expression": "company_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "notification_status_idx": {
+          "name": "notification_status_idx",
+          "columns": [
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "company_notifications_company_id_companies_id_fk": {
+          "name": "company_notifications_company_id_companies_id_fk",
+          "tableFrom": "company_notifications",
+          "tableTo": "companies",
+          "columnsFrom": [
+            "company_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.patient_reports": {
+      "name": "patient_reports",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "reference_id": {
+          "name": "reference_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "products": {
+          "name": "products",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "symptoms": {
+          "name": "symptoms",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "patient_details": {
+          "name": "patient_details",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "hcp_details": {
+          "name": "hcp_details",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "taking_other_meds": {
+          "name": "taking_other_meds",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "other_medications": {
+          "name": "other_medications",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "has_relevant_history": {
+          "name": "has_relevant_history",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "medical_history": {
+          "name": "medical_history",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "lab_tests_performed": {
+          "name": "lab_tests_performed",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "lab_tests": {
+          "name": "lab_tests",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "additional_details": {
+          "name": "additional_details",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "attachments": {
+          "name": "attachments",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "agreed_to_terms": {
+          "name": "agreed_to_terms",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "reporter_type": {
+          "name": "reporter_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'new'"
+        },
+        "severity": {
+          "name": "severity",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'info'"
+        },
+        "admin_notes": {
+          "name": "admin_notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "xml_url": {
+          "name": "xml_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "pdf_url": {
+          "name": "pdf_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "meddra_version": {
+          "name": "meddra_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "safety_report_id": {
+          "name": "safety_report_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "country_code": {
+          "name": "country_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "submission_language": {
+          "name": "submission_language",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'en'"
+        },
+        "report_version": {
+          "name": "report_version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 1
+        },
+        "sender_timezone_offset": {
+          "name": "sender_timezone_offset",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_valid": {
+          "name": "is_valid",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": true
+        },
+        "validation_errors": {
+          "name": "validation_errors",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_updated_at": {
+          "name": "last_updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "patient_severity_idx": {
+          "name": "patient_severity_idx",
+          "columns": [
+            {
+              "expression": "severity",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "patient_status_idx": {
+          "name": "patient_status_idx",
+          "columns": [
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "patient_created_at_idx": {
+          "name": "patient_created_at_idx",
+          "columns": [
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.hcp_reports": {
+      "name": "hcp_reports",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "reference_id": {
+          "name": "reference_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "products": {
+          "name": "products",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "symptoms": {
+          "name": "symptoms",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "patient_details": {
+          "name": "patient_details",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "reporter_details": {
+          "name": "reporter_details",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "taking_other_meds": {
+          "name": "taking_other_meds",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "other_medications": {
+          "name": "other_medications",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "has_relevant_history": {
+          "name": "has_relevant_history",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "medical_history": {
+          "name": "medical_history",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "lab_tests_performed": {
+          "name": "lab_tests_performed",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "lab_tests": {
+          "name": "lab_tests",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "additional_details": {
+          "name": "additional_details",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "attachments": {
+          "name": "attachments",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "agreed_to_terms": {
+          "name": "agreed_to_terms",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "reporter_type": {
+          "name": "reporter_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'new'"
+        },
+        "severity": {
+          "name": "severity",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'info'"
+        },
+        "admin_notes": {
+          "name": "admin_notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "xml_url": {
+          "name": "xml_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "pdf_url": {
+          "name": "pdf_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "meddra_version": {
+          "name": "meddra_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "safety_report_id": {
+          "name": "safety_report_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "country_code": {
+          "name": "country_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "submission_language": {
+          "name": "submission_language",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'en'"
+        },
+        "report_version": {
+          "name": "report_version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 1
+        },
+        "sender_timezone_offset": {
+          "name": "sender_timezone_offset",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_valid": {
+          "name": "is_valid",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": true
+        },
+        "validation_errors": {
+          "name": "validation_errors",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_updated_at": {
+          "name": "last_updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "hcp_severity_idx": {
+          "name": "hcp_severity_idx",
+          "columns": [
+            {
+              "expression": "severity",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "hcp_status_idx": {
+          "name": "hcp_status_idx",
+          "columns": [
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "hcp_created_at_idx": {
+          "name": "hcp_created_at_idx",
+          "columns": [
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.family_reports": {
+      "name": "family_reports",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "reference_id": {
+          "name": "reference_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "products": {
+          "name": "products",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "symptoms": {
+          "name": "symptoms",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "patient_details": {
+          "name": "patient_details",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "hcp_details": {
+          "name": "hcp_details",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "taking_other_meds": {
+          "name": "taking_other_meds",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "other_medications": {
+          "name": "other_medications",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "has_relevant_history": {
+          "name": "has_relevant_history",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "medical_history": {
+          "name": "medical_history",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "lab_tests_performed": {
+          "name": "lab_tests_performed",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "lab_tests": {
+          "name": "lab_tests",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "additional_details": {
+          "name": "additional_details",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "attachments": {
+          "name": "attachments",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "agreed_to_terms": {
+          "name": "agreed_to_terms",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "reporter_type": {
+          "name": "reporter_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'new'"
+        },
+        "severity": {
+          "name": "severity",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'info'"
+        },
+        "admin_notes": {
+          "name": "admin_notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "xml_url": {
+          "name": "xml_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "pdf_url": {
+          "name": "pdf_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "meddra_version": {
+          "name": "meddra_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "safety_report_id": {
+          "name": "safety_report_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "country_code": {
+          "name": "country_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "submission_language": {
+          "name": "submission_language",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'en'"
+        },
+        "report_version": {
+          "name": "report_version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 1
+        },
+        "sender_timezone_offset": {
+          "name": "sender_timezone_offset",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_valid": {
+          "name": "is_valid",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": true
+        },
+        "validation_errors": {
+          "name": "validation_errors",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_updated_at": {
+          "name": "last_updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "family_severity_idx": {
+          "name": "family_severity_idx",
+          "columns": [
+            {
+              "expression": "severity",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "family_status_idx": {
+          "name": "family_status_idx",
+          "columns": [
+            {
+              "expression": "status",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "family_created_at_idx": {
+          "name": "family_created_at_idx",
+          "columns": [
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.notifications": {
+      "name": "notifications",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "desc": {
+          "name": "desc",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "time": {
+          "name": "time",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "date": {
+          "name": "date",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "read": {
+          "name": "read",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "report_id": {
+          "name": "report_id",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "classification_reason": {
+          "name": "classification_reason",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.meddra_hlgt": {
+      "name": "meddra_hlgt",
+      "schema": "",
+      "columns": {
+        "hlgt_code": {
+          "name": "hlgt_code",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "version_id": {
+          "name": "version_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "hlgt_name": {
+          "name": "hlgt_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "meddra_version": {
+          "name": "meddra_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "meddra_hlgt_name_idx": {
+          "name": "meddra_hlgt_name_idx",
+          "columns": [
+            {
+              "expression": "hlgt_name",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "meddra_hlgt_version_id_dictionary_versions_id_fk": {
+          "name": "meddra_hlgt_version_id_dictionary_versions_id_fk",
+          "tableFrom": "meddra_hlgt",
+          "tableTo": "dictionary_versions",
+          "columnsFrom": [
+            "version_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.meddra_hlgt_hlt": {
+      "name": "meddra_hlgt_hlt",
+      "schema": "",
+      "columns": {
+        "hlgt_code": {
+          "name": "hlgt_code",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "hlt_code": {
+          "name": "hlt_code",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "version_id": {
+          "name": "version_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "meddra_version": {
+          "name": "meddra_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "meddra_hlgt_hlt_version_id_dictionary_versions_id_fk": {
+          "name": "meddra_hlgt_hlt_version_id_dictionary_versions_id_fk",
+          "tableFrom": "meddra_hlgt_hlt",
+          "tableTo": "dictionary_versions",
+          "columnsFrom": [
+            "version_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "meddra_hlgt_hlt_hlgt_code_hlt_code_version_id_pk": {
+          "name": "meddra_hlgt_hlt_hlgt_code_hlt_code_version_id_pk",
+          "columns": [
+            "hlgt_code",
+            "hlt_code",
+            "version_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.meddra_hlt": {
+      "name": "meddra_hlt",
+      "schema": "",
+      "columns": {
+        "hlt_code": {
+          "name": "hlt_code",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "version_id": {
+          "name": "version_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "hlt_name": {
+          "name": "hlt_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "meddra_version": {
+          "name": "meddra_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "meddra_hlt_name_idx": {
+          "name": "meddra_hlt_name_idx",
+          "columns": [
+            {
+              "expression": "hlt_name",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "meddra_hlt_version_id_dictionary_versions_id_fk": {
+          "name": "meddra_hlt_version_id_dictionary_versions_id_fk",
+          "tableFrom": "meddra_hlt",
+          "tableTo": "dictionary_versions",
+          "columnsFrom": [
+            "version_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.meddra_hlt_pt": {
+      "name": "meddra_hlt_pt",
+      "schema": "",
+      "columns": {
+        "hlt_code": {
+          "name": "hlt_code",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "pt_code": {
+          "name": "pt_code",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "version_id": {
+          "name": "version_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "meddra_version": {
+          "name": "meddra_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "meddra_hlt_pt_version_id_dictionary_versions_id_fk": {
+          "name": "meddra_hlt_pt_version_id_dictionary_versions_id_fk",
+          "tableFrom": "meddra_hlt_pt",
+          "tableTo": "dictionary_versions",
+          "columnsFrom": [
+            "version_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "meddra_hlt_pt_hlt_code_pt_code_version_id_pk": {
+          "name": "meddra_hlt_pt_hlt_code_pt_code_version_id_pk",
+          "columns": [
+            "hlt_code",
+            "pt_code",
+            "version_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.meddra_llt": {
+      "name": "meddra_llt",
+      "schema": "",
+      "columns": {
+        "llt_code": {
+          "name": "llt_code",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "version_id": {
+          "name": "version_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "llt_name": {
+          "name": "llt_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "pt_code": {
+          "name": "pt_code",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "llt_currency": {
+          "name": "llt_currency",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "meddra_version": {
+          "name": "meddra_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "meddra_llt_name_idx": {
+          "name": "meddra_llt_name_idx",
+          "columns": [
+            {
+              "expression": "llt_name",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "meddra_llt_pt_idx": {
+          "name": "meddra_llt_pt_idx",
+          "columns": [
+            {
+              "expression": "pt_code",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "meddra_llt_version_id_dictionary_versions_id_fk": {
+          "name": "meddra_llt_version_id_dictionary_versions_id_fk",
+          "tableFrom": "meddra_llt",
+          "tableTo": "dictionary_versions",
+          "columnsFrom": [
+            "version_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.meddra_mdhier": {
+      "name": "meddra_mdhier",
+      "schema": "",
+      "columns": {
+        "pt_code": {
+          "name": "pt_code",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "hlt_code": {
+          "name": "hlt_code",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "hlgt_code": {
+          "name": "hlgt_code",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "soc_code": {
+          "name": "soc_code",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "version_id": {
+          "name": "version_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "pt_name": {
+          "name": "pt_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "hlt_name": {
+          "name": "hlt_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "hlgt_name": {
+          "name": "hlgt_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "soc_name": {
+          "name": "soc_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "soc_abbrev": {
+          "name": "soc_abbrev",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "pt_soc_code": {
+          "name": "pt_soc_code",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "primary_soc_fg": {
+          "name": "primary_soc_fg",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "meddra_version": {
+          "name": "meddra_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "meddra_hier_pt_name_idx": {
+          "name": "meddra_hier_pt_name_idx",
+          "columns": [
+            {
+              "expression": "pt_name",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "meddra_hier_pt_code_idx": {
+          "name": "meddra_hier_pt_code_idx",
+          "columns": [
+            {
+              "expression": "pt_code",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "meddra_mdhier_version_id_dictionary_versions_id_fk": {
+          "name": "meddra_mdhier_version_id_dictionary_versions_id_fk",
+          "tableFrom": "meddra_mdhier",
+          "tableTo": "dictionary_versions",
+          "columnsFrom": [
+            "version_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "meddra_mdhier_pt_code_hlt_code_hlgt_code_soc_code_version_id_pk": {
+          "name": "meddra_mdhier_pt_code_hlt_code_hlgt_code_soc_code_version_id_pk",
+          "columns": [
+            "pt_code",
+            "hlt_code",
+            "hlgt_code",
+            "soc_code",
+            "version_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.meddra_pt": {
+      "name": "meddra_pt",
+      "schema": "",
+      "columns": {
+        "pt_code": {
+          "name": "pt_code",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "version_id": {
+          "name": "version_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "pt_name": {
+          "name": "pt_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "pt_soc_code": {
+          "name": "pt_soc_code",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "meddra_version": {
+          "name": "meddra_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "meddra_pt_name_idx": {
+          "name": "meddra_pt_name_idx",
+          "columns": [
+            {
+              "expression": "pt_name",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "meddra_pt_version_id_dictionary_versions_id_fk": {
+          "name": "meddra_pt_version_id_dictionary_versions_id_fk",
+          "tableFrom": "meddra_pt",
+          "tableTo": "dictionary_versions",
+          "columnsFrom": [
+            "version_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.meddra_smq_content": {
+      "name": "meddra_smq_content",
+      "schema": "",
+      "columns": {
+        "smq_code": {
+          "name": "smq_code",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "term_code": {
+          "name": "term_code",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "version_id": {
+          "name": "version_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "term_level": {
+          "name": "term_level",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "term_scope": {
+          "name": "term_scope",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "term_category": {
+          "name": "term_category",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "term_weight": {
+          "name": "term_weight",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "term_status": {
+          "name": "term_status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "meddra_version": {
+          "name": "meddra_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "meddra_smq_content_version_id_dictionary_versions_id_fk": {
+          "name": "meddra_smq_content_version_id_dictionary_versions_id_fk",
+          "tableFrom": "meddra_smq_content",
+          "tableTo": "dictionary_versions",
+          "columnsFrom": [
+            "version_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "meddra_smq_content_smq_code_term_code_version_id_pk": {
+          "name": "meddra_smq_content_smq_code_term_code_version_id_pk",
+          "columns": [
+            "smq_code",
+            "term_code",
+            "version_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.meddra_smq_list": {
+      "name": "meddra_smq_list",
+      "schema": "",
+      "columns": {
+        "smq_code": {
+          "name": "smq_code",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "version_id": {
+          "name": "version_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "smq_name": {
+          "name": "smq_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "smq_level": {
+          "name": "smq_level",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "smq_description": {
+          "name": "smq_description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "smq_source": {
+          "name": "smq_source",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "smq_note": {
+          "name": "smq_note",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "meddra_version": {
+          "name": "meddra_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "smq_algorithm": {
+          "name": "smq_algorithm",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "meddra_smq_name_idx": {
+          "name": "meddra_smq_name_idx",
+          "columns": [
+            {
+              "expression": "smq_name",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "meddra_smq_list_version_id_dictionary_versions_id_fk": {
+          "name": "meddra_smq_list_version_id_dictionary_versions_id_fk",
+          "tableFrom": "meddra_smq_list",
+          "tableTo": "dictionary_versions",
+          "columnsFrom": [
+            "version_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.meddra_soc": {
+      "name": "meddra_soc",
+      "schema": "",
+      "columns": {
+        "soc_code": {
+          "name": "soc_code",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "version_id": {
+          "name": "version_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "soc_name": {
+          "name": "soc_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "soc_abbrev": {
+          "name": "soc_abbrev",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "meddra_version": {
+          "name": "meddra_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "meddra_soc_name_idx": {
+          "name": "meddra_soc_name_idx",
+          "columns": [
+            {
+              "expression": "soc_name",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "meddra_soc_version_id_dictionary_versions_id_fk": {
+          "name": "meddra_soc_version_id_dictionary_versions_id_fk",
+          "tableFrom": "meddra_soc",
+          "tableTo": "dictionary_versions",
+          "columnsFrom": [
+            "version_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.meddra_soc_hlgt": {
+      "name": "meddra_soc_hlgt",
+      "schema": "",
+      "columns": {
+        "soc_code": {
+          "name": "soc_code",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "hlgt_code": {
+          "name": "hlgt_code",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "version_id": {
+          "name": "version_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "meddra_version": {
+          "name": "meddra_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "meddra_soc_hlgt_version_id_dictionary_versions_id_fk": {
+          "name": "meddra_soc_hlgt_version_id_dictionary_versions_id_fk",
+          "tableFrom": "meddra_soc_hlgt",
+          "tableTo": "dictionary_versions",
+          "columnsFrom": [
+            "version_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "meddra_soc_hlgt_soc_code_hlgt_code_version_id_pk": {
+          "name": "meddra_soc_hlgt_soc_code_hlgt_code_version_id_pk",
+          "columns": [
+            "soc_code",
+            "hlgt_code",
+            "version_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.meddra_soc_intl_order": {
+      "name": "meddra_soc_intl_order",
+      "schema": "",
+      "columns": {
+        "soc_code": {
+          "name": "soc_code",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "intl_ord_code": {
+          "name": "intl_ord_code",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "version_id": {
+          "name": "version_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "meddra_version": {
+          "name": "meddra_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "meddra_soc_intl_order_version_id_dictionary_versions_id_fk": {
+          "name": "meddra_soc_intl_order_version_id_dictionary_versions_id_fk",
+          "tableFrom": "meddra_soc_intl_order",
+          "tableTo": "dictionary_versions",
+          "columnsFrom": [
+            "version_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "meddra_soc_intl_order_soc_code_version_id_pk": {
+          "name": "meddra_soc_intl_order_soc_code_version_id_pk",
+          "columns": [
+            "soc_code",
+            "version_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.whodrug_imports": {
+      "name": "whodrug_imports",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "version": {
+          "name": "version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "file_name": {
+          "name": "file_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'PENDING'"
+        },
+        "total_rows": {
+          "name": "total_rows",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "processed_rows": {
+          "name": "processed_rows",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "error_log": {
+          "name": "error_log",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "metadata": {
+          "name": "metadata",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.meddra_imports": {
+      "name": "meddra_imports",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "version": {
+          "name": "version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "file_name": {
+          "name": "file_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'PENDING'"
+        },
+        "total_rows": {
+          "name": "total_rows",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "processed_rows": {
+          "name": "processed_rows",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "error_log": {
+          "name": "error_log",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "metadata": {
+          "name": "metadata",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.dictionary_versions": {
+      "name": "dictionary_versions",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "is_active": {
+          "name": "is_active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.whodrug_bna": {
+      "name": "whodrug_bna",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "version_id": {
+          "name": "version_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "drug_record_number": {
+          "name": "drug_record_number",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "alias_name": {
+          "name": "alias_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "whodrug_bna_drn_idx": {
+          "name": "whodrug_bna_drn_idx",
+          "columns": [
+            {
+              "expression": "drug_record_number",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "whodrug_bna_name_idx": {
+          "name": "whodrug_bna_name_idx",
+          "columns": [
+            {
+              "expression": "alias_name",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "whodrug_bna_version_id_dictionary_versions_id_fk": {
+          "name": "whodrug_bna_version_id_dictionary_versions_id_fk",
+          "tableFrom": "whodrug_bna",
+          "tableTo": "dictionary_versions",
+          "columnsFrom": [
+            "version_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "whodrug_bna_drug_record_number_alias_name_version_id_unique": {
+          "name": "whodrug_bna_drug_record_number_alias_name_version_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "drug_record_number",
+            "alias_name",
+            "version_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.whodrug_ccode": {
+      "name": "whodrug_ccode",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "version_id": {
+          "name": "version_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "country_code": {
+          "name": "country_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "country_name": {
+          "name": "country_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "whodrug_ccode_version_id_dictionary_versions_id_fk": {
+          "name": "whodrug_ccode_version_id_dictionary_versions_id_fk",
+          "tableFrom": "whodrug_ccode",
+          "tableTo": "dictionary_versions",
+          "columnsFrom": [
+            "version_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "whodrug_ccode_unq": {
+          "name": "whodrug_ccode_unq",
+          "nullsNotDistinct": false,
+          "columns": [
+            "country_code",
+            "version_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.whodrug_dd": {
+      "name": "whodrug_dd",
+      "schema": "",
+      "columns": {
+        "rid": {
+          "name": "rid",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "version_id": {
+          "name": "version_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "drug_record_number": {
+          "name": "drug_record_number",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "seq1": {
+          "name": "seq1",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "seq2": {
+          "name": "seq2",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "trade_name": {
+          "name": "trade_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "company_id": {
+          "name": "company_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "country_id": {
+          "name": "country_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "source_id": {
+          "name": "source_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "whodrug_dd_name_idx": {
+          "name": "whodrug_dd_name_idx",
+          "columns": [
+            {
+              "expression": "trade_name",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "whodrug_dd_drn_seq_idx": {
+          "name": "whodrug_dd_drn_seq_idx",
+          "columns": [
+            {
+              "expression": "drug_record_number",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "seq1",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "whodrug_dd_company_idx": {
+          "name": "whodrug_dd_company_idx",
+          "columns": [
+            {
+              "expression": "company_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "whodrug_dd_country_idx": {
+          "name": "whodrug_dd_country_idx",
+          "columns": [
+            {
+              "expression": "country_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "whodrug_dd_source_idx": {
+          "name": "whodrug_dd_source_idx",
+          "columns": [
+            {
+              "expression": "source_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "whodrug_dd_version_id_dictionary_versions_id_fk": {
+          "name": "whodrug_dd_version_id_dictionary_versions_id_fk",
+          "tableFrom": "whodrug_dd",
+          "tableTo": "dictionary_versions",
+          "columnsFrom": [
+            "version_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "whodrug_dd_drug_record_number_seq1_seq2_version_id_unique": {
+          "name": "whodrug_dd_drug_record_number_seq1_seq2_version_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "drug_record_number",
+            "seq1",
+            "seq2",
+            "version_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.whodrug_dda": {
+      "name": "whodrug_dda",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "version_id": {
+          "name": "version_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "drug_record_number": {
+          "name": "drug_record_number",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "seq1": {
+          "name": "seq1",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "atc_code": {
+          "name": "atc_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "whodrug_dda_drn_seq_idx": {
+          "name": "whodrug_dda_drn_seq_idx",
+          "columns": [
+            {
+              "expression": "drug_record_number",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "seq1",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "whodrug_dda_atc_idx": {
+          "name": "whodrug_dda_atc_idx",
+          "columns": [
+            {
+              "expression": "atc_code",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "whodrug_dda_version_id_dictionary_versions_id_fk": {
+          "name": "whodrug_dda_version_id_dictionary_versions_id_fk",
+          "tableFrom": "whodrug_dda",
+          "tableTo": "dictionary_versions",
+          "columnsFrom": [
+            "version_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "whodrug_dda_drug_record_number_seq1_atc_code_version_id_unique": {
+          "name": "whodrug_dda_drug_record_number_seq1_atc_code_version_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "drug_record_number",
+            "seq1",
+            "atc_code",
+            "version_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.whodrug_ina": {
+      "name": "whodrug_ina",
+      "schema": "",
+      "columns": {
+        "version_id": {
+          "name": "version_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "atc_code": {
+          "name": "atc_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "level": {
+          "name": "level",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "whodrug_ina_atc_idx": {
+          "name": "whodrug_ina_atc_idx",
+          "columns": [
+            {
+              "expression": "atc_code",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "whodrug_ina_version_id_dictionary_versions_id_fk": {
+          "name": "whodrug_ina_version_id_dictionary_versions_id_fk",
+          "tableFrom": "whodrug_ina",
+          "tableTo": "dictionary_versions",
+          "columnsFrom": [
+            "version_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "whodrug_ina_atc_code_version_id_pk": {
+          "name": "whodrug_ina_atc_code_version_id_pk",
+          "columns": [
+            "atc_code",
+            "version_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.whodrug_ing": {
+      "name": "whodrug_ing",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "version_id": {
+          "name": "version_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "drug_record_number": {
+          "name": "drug_record_number",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "seq1": {
+          "name": "seq1",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ingredient_code": {
+          "name": "ingredient_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "whodrug_ing_drn_seq_idx": {
+          "name": "whodrug_ing_drn_seq_idx",
+          "columns": [
+            {
+              "expression": "drug_record_number",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "seq1",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "whodrug_ing_code_idx": {
+          "name": "whodrug_ing_code_idx",
+          "columns": [
+            {
+              "expression": "ingredient_code",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "whodrug_ing_version_id_dictionary_versions_id_fk": {
+          "name": "whodrug_ing_version_id_dictionary_versions_id_fk",
+          "tableFrom": "whodrug_ing",
+          "tableTo": "dictionary_versions",
+          "columnsFrom": [
+            "version_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "whodrug_ing_drug_record_number_seq1_ingredient_code_version_id_unique": {
+          "name": "whodrug_ing_drug_record_number_seq1_ingredient_code_version_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "drug_record_number",
+            "seq1",
+            "ingredient_code",
+            "version_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.whodrug_man": {
+      "name": "whodrug_man",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "version_id": {
+          "name": "version_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "company_code": {
+          "name": "company_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "company_name": {
+          "name": "company_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "whodrug_man_version_id_dictionary_versions_id_fk": {
+          "name": "whodrug_man_version_id_dictionary_versions_id_fk",
+          "tableFrom": "whodrug_man",
+          "tableTo": "dictionary_versions",
+          "columnsFrom": [
+            "version_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "whodrug_man_unq": {
+          "name": "whodrug_man_unq",
+          "nullsNotDistinct": false,
+          "columns": [
+            "company_code",
+            "version_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.whodrug_source": {
+      "name": "whodrug_source",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "version_id": {
+          "name": "version_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "source_code": {
+          "name": "source_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source_name": {
+          "name": "source_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "whodrug_source_version_id_dictionary_versions_id_fk": {
+          "name": "whodrug_source_version_id_dictionary_versions_id_fk",
+          "tableFrom": "whodrug_source",
+          "tableTo": "dictionary_versions",
+          "columnsFrom": [
+            "version_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "whodrug_source_unq": {
+          "name": "whodrug_source_unq",
+          "nullsNotDistinct": false,
+          "columns": [
+            "source_code",
+            "version_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {
+    "public.admin_role": {
+      "name": "admin_role",
+      "schema": "public",
+      "values": [
+        "super_admin",
+        "admin",
+        "viewer"
+      ]
+    },
+    "public.severity": {
+      "name": "severity",
+      "schema": "public",
+      "values": [
+        "info",
+        "warning",
+        "urgent"
+      ]
+    },
+    "public.status": {
+      "name": "status",
+      "schema": "public",
+      "values": [
+        "new",
+        "under_review",
+        "approved",
+        "closed"
+      ]
+    }
+  },
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

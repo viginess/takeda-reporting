@@ -1,11 +1,14 @@
 import { sql, eq, inArray } from "drizzle-orm";
+import { z } from "zod";
 import {
   viewerProcedure,
 } from '../../../trpc/core/procedures.js';
 import { db } from '../../../db/core/index.js';
+import { archivedReports } from "../../../db/archive/archive.schema.js";
 import { auditLogs } from "../../../db/audit/audit.schema.js";
 import { companies, companyNotifications } from "../../../db/company/company.schema.js";
 import { mapReportRecord } from "./reports.mapper.js";
+import { getReportFromArchive } from "../../../jobs/archive-storage.js";
 
 export const getAllReports = viewerProcedure.query(async () => {
   // ... (union select remains unchanged)
@@ -275,3 +278,16 @@ export const getMonthlyVolume = viewerProcedure.query(async () => {
     Family: Number(row.family),
   }));
 });
+
+export const getArchivedReports = viewerProcedure.query(async () => {
+  return await db
+    .select()
+    .from(archivedReports)
+    .orderBy(sql`archived_at DESC`);
+});
+
+export const getArchivedReportDetails = viewerProcedure
+  .input(z.object({ storagePath: z.string() }))
+  .query(async ({ input }) => {
+    return await getReportFromArchive(input.storagePath);
+  });

@@ -77,19 +77,19 @@ graph TD
 
     F["Frontend Forms\nPatient / HCP / Family"]:::ui -->|"tRPC (Zod)"| B["Node.js Backend"]
     B -->|"1. Save Data"| DB[("Supabase Postgres")]:::api
-    
+
     B -->|"2. Pre-Validate"| PVAL{Business Logic?}
     PVAL -->|Fail| DB
-    
+
     PVAL -->|Pass| G{"Gen & Validate"}:::api
-    
+
     G -->|"3. E2B R3 XML Gen"| XML["HL7 v3 XML"]:::xml
     G -->|"4. XSD Check (Tier 2)"| SVAL{"ICH Compliant?"}
-    
+
     SVAL -->|Fail| DB
     SVAL -->|Pass| PDF["Safety PDF"]:::pdf
     SVAL -->|Pass| DB
-    
+
     subgraph "Administrative Correction UI"
     A["Report Editor"]:::ui -->|Update & Re-Validate| B
     end
@@ -104,14 +104,15 @@ clinsol-reporting/
 │   │   ├── app/            # Main App component & Providers
 │   │   ├── features/       # Domain modules (Patient, HCP, Family)
 │   │   ├── shared/         # Reusable UI components
+│   │   ├── translations/   # i18n config & locale JSON files
 │   │   └── utils/          # tRPC client & helper utilities
 ├── backend/                # Node.js API
 │   ├── src/
 │   │   ├── db/             # Database schemas & Migration config
+│   │   ├── jobs/           # Background tasks & Archive Storage logic
 │   │   ├── modules/        # API Routers & Business Logic
 │   │   ├── trpc/           # tRPC setup & Rate Limit middleware
 │   │   └── server.ts       # HTTP Server entry point
-│   └── test-rate-limit.ts  # Verification utility
 └── README.md               # Root Documentation Documentation
 ```
 

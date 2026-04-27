@@ -48,7 +48,16 @@ export function useSystemSettings() {
   });
 
   const runArchivingManual = trpc.admin.runManualArchiving.useMutation({
-    onSuccess: () => { toast({ title: "Archiving complete", status: "success", duration: 3000, isClosable: true }); refetch(); },
+    onSuccess: (data) => { 
+      toast({ 
+        title: "Archiving complete", 
+        description: data.count > 0 ? `Successfully moved ${data.count} closed reports to the archive.` : "No closed reports were found to archive.",
+        status: "success", 
+        duration: 4000, 
+        isClosable: true 
+      }); 
+      refetch(); 
+    },
     onError: (err) => { toast({ title: "Archiving failed", description: err.message, status: "error", duration: 5000, isClosable: true }); }
   });
 

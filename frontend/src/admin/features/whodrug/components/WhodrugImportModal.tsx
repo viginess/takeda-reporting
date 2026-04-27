@@ -95,7 +95,7 @@ export function WhodrugImportModal({ isOpen, onClose }: WhodrugImportModalProps)
   const { data: history } = trpc.whodrug.getImportHistory.useQuery();
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="xl">
+    <Modal isOpen={isOpen} onClose={onClose} size={{ base: "full", md: "xl" }}>
       <ModalOverlay bg="blackAlpha.300" backdropFilter="blur(2px)" />
       <ModalContent borderRadius="2xl" border="1px" borderColor="gray.100">
         <ModalHeader borderBottom="1px" borderColor="gray.50">

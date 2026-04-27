@@ -101,7 +101,8 @@ export function NotificationLogTable({ companyId }: NotificationLogTableProps) {
           Check for Bounces
         </Button>
       </Flex>
-      <Table variant="simple" size="sm">
+      <Box overflowX="auto">
+        <Table variant="simple" size="sm">
       <Thead>
         <Tr>
           <Th color="gray.400" fontSize="2xs" px={2}>Report ID</Th>
@@ -173,9 +174,10 @@ export function NotificationLogTable({ companyId }: NotificationLogTableProps) {
         })}
       </Tbody>
     </Table>
+    </Box>
 
     {/* Technical Error Drawer */}
-    <Drawer isOpen={isOpen} placement="right" onClose={onClose} size="md">
+    <Drawer isOpen={isOpen} placement="right" onClose={onClose} size={{ base: "full", md: "md" }}>
       <DrawerOverlay bg="blackAlpha.300" backdropFilter="blur(5px)" />
       <DrawerContent borderRadius="2xl 0 0 2xl" borderLeft="1px solid" borderColor="gray.100">
         <DrawerCloseButton borderRadius="full" m={2} />

@@ -25,7 +25,7 @@ import HcpForm from '../hcp-report';
 import { countries } from '../../utils/common/countries';
 import { languages } from '../../utils/common/languages';
 import { useTranslation } from 'react-i18next';
-import { useLanguageLoader } from '../../i18n/loader';
+import { useLanguageLoader } from '../../translations/i18n/loader';
 import { ChevronLeft } from 'lucide-react';
 
 type Step = 'select' | 'audience' | 'patient' | 'family' | 'hcp';

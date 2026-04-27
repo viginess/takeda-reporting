@@ -1,4 +1,4 @@
-import { eq, lt, and, ne } from "drizzle-orm";
+import { eq, lt, and, or } from "drizzle-orm";
 import { db } from '../db/core/index.js';
 import { 
   systemSettings, 
@@ -8,82 +8,86 @@ import {
   archivedReports, 
   auditLogs 
 } from '../db/core/schema.js';
+import { uploadReportToArchive } from "./archive-storage.js";
 
 /**
  * Parses retention period string (e.g., "6 months", "24 months") into a Date object.
- * Returns the cutoff date (anything older than this should be archived).
  */
 function calculateCutoff(retentionString: string): Date {
   const now = new Date();
   const match = retentionString.match(/(\d+)\s+month/i);
-  const months = match ? parseInt(match[1]) : 6; // Default to 6 if parsing fails
+  const months = match ? parseInt(match[1]) : 6;
   
   const cutoff = new Date(now);
   cutoff.setMonth(now.getMonth() - months);
   return cutoff;
 }
 
-export async function runArchiver() {
+export async function runArchiver(force: boolean = false): Promise<number> {
+  console.log(`[Archiver] Starting job. Force mode: ${force}`);
   
   try {
-    // 1. Get retention setting
     const [settings] = await db.select().from(systemSettings).where(eq(systemSettings.id, 1));
-    if (!settings?.clinicalConfig?.retention) {
-      return;
-    }
+    const retentionSetting = settings?.clinicalConfig?.retention || "24 months";
+    const cutoff = calculateCutoff(retentionSetting);
 
-    const cutoff = calculateCutoff(settings.clinicalConfig.retention);
-
-    await db.transaction(async (tx) => {
+    const result = await db.transaction(async (tx) => {
       let totalArchived = 0;
 
-      // Helper to move reports
-      const archiveFromTable = async (table: any, tableName: string) => {
-        const oldReports = await tx
+      const archiveFromTable = async (table: any, reporterType: string) => {
+        const condition = force 
+          ? eq(table.status, 'closed')
+          : and(lt(table.createdAt, cutoff), eq(table.status, 'closed'));
+
+        const targetReports = await tx
           .select()
           .from(table)
-          .where(and(
-            lt(table.createdAt, cutoff),
-            ne(table.status, 'closed') // Optional: only archive closed or just archive based on age? 
-            // User requested age-based archiving, so we'll archive everything older than X months.
-          ));
+          .where(condition);
 
-        if (oldReports.length === 0) return 0;
+        if (targetReports.length === 0) return 0;
 
+        for (const report of targetReports) {
+          const referenceId = report.referenceId || report.id;
+          const storagePath = await uploadReportToArchive(referenceId, report);
 
-
-        for (const report of oldReports) {
           await tx.insert(archivedReports).values({
-            ...report,
-            originalTable: tableName,
-            originalCreatedAt: report.createdAt,
+            referenceId: referenceId,
+            reporterType: reporterType,
+            storagePath: storagePath,
             archivedAt: new Date(),
           });
           
           await tx.delete(table).where(eq(table.id, report.id));
         }
 
-        return oldReports.length;
+        return targetReports.length;
       };
 
-      totalArchived += await archiveFromTable(patientReports, "patient");
-      totalArchived += await archiveFromTable(hcpReports, "hcp");
-      totalArchived += await archiveFromTable(familyReports, "family");
+      totalArchived += await archiveFromTable(patientReports, "Patient");
+      totalArchived += await archiveFromTable(hcpReports, "HCP");
+      totalArchived += await archiveFromTable(familyReports, "Family");
 
       if (totalArchived > 0) {
-        // Log the event
         await tx.insert(auditLogs).values({
           entity: "system",
           entityId: "cleanup",
           action: "ARCHIVE_OLD_REPORTS",
-          changedBy: "System Cron",
+          changedBy: force ? "Admin (Manual Force)" : "System Cron",
           oldValue: { count: 0 },
-          newValue: { count: totalArchived, policy: settings.clinicalConfig.retention },
+          newValue: { count: totalArchived, force },
         });
+        console.log(`[Archiver] Successfully archived ${totalArchived} reports.`);
+      } else {
+        console.log(`[Archiver] No reports matched the cleanup criteria.`);
       }
+
+      return totalArchived;
     });
 
-  } catch (error) {
-    // Error handling without console.log
+    return result;
+
+  } catch (error: any) {
+    console.error("[Archiver Error]:", error.message || error);
+    throw error;
   }
 }

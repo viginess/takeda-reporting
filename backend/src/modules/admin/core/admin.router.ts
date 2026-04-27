@@ -21,6 +21,8 @@ import {
   getBulkReports,
   regenerateReportFiles,
   revalidateAllReports,
+  getArchivedReports,
+  getArchivedReportDetails,
 } from "../reports/reports.router.js";
 import {
   getSystemSettings,
@@ -53,4 +55,6 @@ export const adminRouter = router({
   toggleTwoFactor,
   regenerateReportFiles,
   revalidateAllReports,
+  getArchivedReports,
+  getArchivedReportDetails,
 });

@@ -166,9 +166,9 @@ export const getSettingsAuditLogs = superAdminProcedure.query(
 
 export const runManualArchiving = superAdminProcedure.mutation(
   async () => {
-    await runArchiver();
+    const count = await runArchiver(true);
 
-    return { success: true };
+    return { success: true, count };
   },
 );
 

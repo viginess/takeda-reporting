@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { SaasProvider } from '@saas-ui/react';
 import { extendTheme } from '@chakra-ui/react';
 import '../assets/styles/global.css';
-import '../i18n';
+import '../translations/i18n';
 import { HelmetProvider } from 'react-helmet-async';
 import App from './App.tsx';
 

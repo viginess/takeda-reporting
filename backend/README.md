@@ -51,6 +51,7 @@ Backend service for Clin Solutions L.L.C. project.js server powered by tRPC and 
 - `src/server.ts`: Entry point with CORS and error handling.
 - `src/trpc/`: Router composition and base tRPC setup.
 - `src/modules/`: Domain-driven routers (Patient, HCP, Family).
+- `src/jobs/`: Background tasks (Archiver) and Archive storage service.
 - `src/db/`: Schema definitions and database initialization.
 
 ## Security & Verification

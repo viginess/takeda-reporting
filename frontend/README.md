@@ -30,6 +30,14 @@ This React application provides the user interface for Clin Solutions L.L.C.'s c
    npm run dev
    ```
 
+## Project Structure
+
+- `src/app/`: Root components, routing, and main styles.
+- `src/features/`: Domain-specific components and logic (Patient, HCP, Admin).
+- `src/translations/`: Multi-language support (i18next config and locale JSONs).
+- `src/shared/`: Generic, reusable UI components.
+- `src/utils/`: Helper functions, TRPC config, and common constants.
+
 ## Development Features
 
 - **Improved Symptoms UX**: High-fidelity, multi-block symptom entry with dynamic PT/LLT MedDRA mapping.
