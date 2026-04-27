@@ -1,4 +1,4 @@
-import { eq, lt, and, or } from "drizzle-orm";
+import { eq, lt, and } from "drizzle-orm";
 import { db } from '../db/core/index.js';
 import { 
   systemSettings, 

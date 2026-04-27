@@ -2,9 +2,7 @@ import {
   pgTable,
   uuid,
   text,
-  boolean,
   timestamp,
-  jsonb,
 } from "drizzle-orm/pg-core";
 
 export const archivedReports = pgTable("archived_reports", {
