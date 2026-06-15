@@ -32,7 +32,7 @@ export const isAuthed = t.middleware(async ({ ctx, next }) => {
 
   // 1. Verify JWT
   try {
-    const payload = jwt.verify(ctx.token, jwtSecret) as any;
+    const payload = jwt.verify(ctx.token, jwtSecret, { algorithms: ['HS256'] }) as any;
     const userId = payload.sub;
     if (!userId) {
       throw new TRPCError({ code: "UNAUTHORIZED", message: "Invalid admin token payload" });

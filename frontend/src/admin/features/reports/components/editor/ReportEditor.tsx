@@ -1,5 +1,5 @@
 import { Box, Heading, VStack, Text, Input } from "@chakra-ui/react";
-import { formatKey } from "./DataDisplay";
+import { formatKey } from "../shared/DataDisplay";
 
 export const EditableSection = ({ title, data, onChange, type = 'input' }: { title: string; data: any; onChange: (val: any) => void, type?: 'input' | 'textarea' }) => {
   if (!data || typeof data !== 'object') return null;

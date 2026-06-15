@@ -4,7 +4,7 @@ import {
 } from "@chakra-ui/react";
 import { motion } from "framer-motion";
 import { FileText, Search } from "lucide-react";
-import { statusOptions } from "../types";
+import { statusOptions } from "../../types";
 
 interface ReportFilterHeaderProps {
   search: string;

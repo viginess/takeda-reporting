@@ -8,15 +8,15 @@ import { trpc } from "../../../../utils/config/trpc";
 
 import type { Report, MedDRATerm, Status, Severity } from "../types";
 import { useReportActions } from "../hooks/useReportActions";
-import { ReportTable } from "../components/ReportTable";
-import { ArchiveTable } from "../components/ArchiveTable";
+import { ReportTable } from "../components/active-list/ReportTable";
+import { ArchiveTable } from "../components/archive/ArchiveTable";
 import { DetailPanel } from "../components/DetailPanel";
-import { MedDRAModal } from "../components/MedDRAModal";
-import { WhodrugModal } from "../components/WhodrugModal";
-import { BulkToolbar } from "../components/BulkToolbar";
-import { ArchiveDetailsModal } from "../components/ArchiveDetailsModal";
-import { ReportFilterHeader } from "../components/ReportFilterHeader";
-import { ImageZoomModal } from "../components/ImageZoomModal";
+import { MedDRAModal } from "../components/coding/MedDRAModal";
+import { WhodrugModal } from "../components/coding/WhodrugModal";
+import { BulkToolbar } from "../components/active-list/BulkToolbar";
+import { ArchiveDetailsModal } from "../components/archive/ArchiveDetailsModal";
+import { ReportFilterHeader } from "../components/active-list/ReportFilterHeader";
+import { ImageZoomModal } from "../components/shared/ImageZoomModal";
 
 export default function ReportManagementPage() {
   const [search, setSearch] = useState("");

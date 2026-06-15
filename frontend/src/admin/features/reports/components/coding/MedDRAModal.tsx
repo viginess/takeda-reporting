@@ -5,7 +5,7 @@ import {
   InputLeftElement, Skeleton, Center, useToast,
   Spinner
 } from "@chakra-ui/react";
-import type { Report, MedDRATerm } from "../types";
+import type { Report, MedDRATerm } from "../../types";
 import { useState } from "react";
 
 interface MedDRAModalProps {

@@ -1,5 +1,5 @@
 import { Flex, Box, Badge } from "@chakra-ui/react";
-import { type Status, type Severity, statusCfg, severityCfg } from "../types";
+import { type Status, type Severity, statusCfg, severityCfg } from "../../types";
 
 export function StatusBadge({ status }: { status: Status }) {
   const cfg = statusCfg[status];

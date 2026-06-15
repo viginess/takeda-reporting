@@ -1,29 +1,30 @@
 import { z } from "zod";
-import { router, publicProcedure } from '../../trpc/core/init.js';
+import { router } from '../../trpc/core/init.js';
+import { viewerProcedure, adminProcedure } from '../../trpc/core/procedures.js';
 import { notificationsService } from "./notifications.service.js";
 
 export const notificationsRouter = router({
-  getAll: publicProcedure.query(async () => {
+  getAll: viewerProcedure.query(async () => {
     return notificationsService.getAll();
   }),
 
-  markAsRead: publicProcedure
+  markAsRead: adminProcedure
     .input(z.object({ id: z.number() }))
     .mutation(async ({ input }) => {
       return notificationsService.markAsRead(input.id);
     }),
 
-  markAllAsRead: publicProcedure.mutation(async () => {
+  markAllAsRead: adminProcedure.mutation(async () => {
     return notificationsService.markAllAsRead();
   }),
 
-  delete: publicProcedure
+  delete: adminProcedure
     .input(z.object({ id: z.number() }))
     .mutation(async ({ input }) => {
       return notificationsService.delete(input.id);
     }),
 
-  clearAll: publicProcedure.mutation(async () => {
+  clearAll: adminProcedure.mutation(async () => {
     return notificationsService.clearAll();
   }),
 });

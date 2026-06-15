@@ -4,6 +4,19 @@ import { systemSettings } from "../../db/admin/settings.schema.js";
 import { admins } from "../../db/admin/admin.schema.js";
 import { TRPCError } from "@trpc/server";
 
+/**
+ * Escapes characters that have special meaning in HTML to prevent XSS
+ * when user-supplied strings are interpolated into email templates.
+ */
+function escapeHtml(raw: string): string {
+  return raw
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#x27;");
+}
+
 export const publicService = {
   /**
    * Fetches global authentication policies (MFA requirement, lockout settings)
@@ -111,7 +124,8 @@ export const publicService = {
   },
 
   /**
-   * Formats and dispatches the website contact inquiry email
+   * Formats and dispatches the website contact inquiry email.
+   * All user inputs are HTML-escaped before template interpolation to prevent XSS.
    */
   async handleContactInquiry(input: {
     title: string;
@@ -126,10 +140,19 @@ export const publicService = {
     const [settings] = await db.select().from(systemSettings).where(eq(systemSettings.id, 1));
     
     const recipient = settings?.clinicalConfig?.smtpFrom || process.env.SMTP_FROM || 'aereporting@viginess.com';
+
+    // Escape all user-supplied values before interpolating into the HTML email body
+    const safeTitle       = escapeHtml(input.title);
+    const safeFirstName   = escapeHtml(input.firstName);
+    const safeLastName    = escapeHtml(input.lastName);
+    const safeEmail       = escapeHtml(input.email);
+    const safeCountry     = escapeHtml(input.country);
+    const safeInquiryType = escapeHtml(input.inquiryType);
+    const safeMessage     = escapeHtml(input.message);
     
     const success = await sendAdminNotificationEmail({
       to: recipient,
-      subject: `New Web Inquiry: ${input.inquiryType} from ${input.firstName} ${input.lastName}`,
+      subject: `New Web Inquiry: ${safeInquiryType} from ${safeFirstName} ${safeLastName}`,
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px; border-radius: 12px;">
           <h2 style="color: #CE0037; border-bottom: 2px solid #CE0037; padding-bottom: 10px;">New Website Inquiry</h2>
@@ -138,25 +161,25 @@ export const publicService = {
           <table style="width: 100%; border-collapse: collapse;">
             <tr>
               <td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold; width: 150px;">Name:</td>
-              <td style="padding: 10px; border-bottom: 1px solid #eee;">${input.title} ${input.firstName} ${input.lastName}</td>
+              <td style="padding: 10px; border-bottom: 1px solid #eee;">${safeTitle} ${safeFirstName} ${safeLastName}</td>
             </tr>
             <tr>
               <td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">Email:</td>
-              <td style="padding: 10px; border-bottom: 1px solid #eee;">${input.email}</td>
+              <td style="padding: 10px; border-bottom: 1px solid #eee;">${safeEmail}</td>
             </tr>
             <tr>
               <td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">Country:</td>
-              <td style="padding: 10px; border-bottom: 1px solid #eee;">${input.country}</td>
+              <td style="padding: 10px; border-bottom: 1px solid #eee;">${safeCountry}</td>
             </tr>
             <tr>
               <td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">Inquiry Type:</td>
-              <td style="padding: 10px; border-bottom: 1px solid #eee;">${input.inquiryType}</td>
+              <td style="padding: 10px; border-bottom: 1px solid #eee;">${safeInquiryType}</td>
             </tr>
           </table>
           
           <div style="margin-top: 20px; padding: 15px; background: #f9f9f9; border-radius: 8px;">
             <p style="margin-top: 0; font-weight: bold;">Message:</p>
-            <p style="white-space: pre-wrap;">${input.message}</p>
+            <p style="white-space: pre-wrap;">${safeMessage}</p>
           </div>
           
           <p style="font-size: 11px; color: #999; margin-top: 30px; text-align: center;">

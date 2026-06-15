@@ -4,6 +4,19 @@ import { t } from "../core/init.js";
 // In-memory store for rate limiting
 const rateLimits = new Map<string, { count: number; resetAt: number }>();
 
+// Purge stale entries every 5 minutes to prevent unbounded Map growth
+const CLEANUP_INTERVAL_MS = 5 * 60 * 1000;
+const cleanupTimer = setInterval(() => {
+  const now = Date.now();
+  for (const [key, state] of rateLimits) {
+    if (now > state.resetAt) {
+      rateLimits.delete(key);
+    }
+  }
+}, CLEANUP_INTERVAL_MS);
+// Don't keep the Node.js process alive solely for this interval
+cleanupTimer.unref();
+
 /**
  * Simple in-memory rate limiter helper
  */

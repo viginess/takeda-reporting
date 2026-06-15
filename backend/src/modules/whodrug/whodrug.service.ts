@@ -143,7 +143,7 @@ export const whodrugService = {
     })
     .from(whodrugIng)
     .where(and(
-      sql`(${whodrugIng.drugRecordNumber}, ${whodrugIng.seq1}) IN ${sql.raw(`(${keys.map(k => `('${k.drn}', '${k.seq1}')`).join(',')})`)}`,
+      sql`(${whodrugIng.drugRecordNumber}, ${whodrugIng.seq1}) IN (VALUES ${sql.join(keys.map(k => sql`(${k.drn}, ${k.seq1})`), sql`, `)})`,
       eq(whodrugIng.versionId, activeVersionId)
     ));
 
@@ -164,7 +164,7 @@ export const whodrugService = {
       eq(whodrugDda.versionId, whodrugIna.versionId)
     ))
     .where(and(
-      sql`(${whodrugDda.drugRecordNumber}, ${whodrugDda.seq1}) IN ${sql.raw(`(${keys.map(k => `('${k.drn}', '${k.seq1}')`).join(',')})`)}`,
+      sql`(${whodrugDda.drugRecordNumber}, ${whodrugDda.seq1}) IN (VALUES ${sql.join(keys.map(k => sql`(${k.drn}, ${k.seq1})`), sql`, `)})`,
       eq(whodrugDda.versionId, activeVersionId)
     ));
 
@@ -189,7 +189,7 @@ export const whodrugService = {
       })
       .from(whodrugDd)
       .where(and(
-        sql`${whodrugDd.drugRecordNumber} IN ${sql.raw(`(${missingDrnsForIng.map(d => `'${d}'`).join(',')})`)}`,
+        sql`${whodrugDd.drugRecordNumber} IN (VALUES ${sql.join(missingDrnsForIng.map(d => sql`(${d})`), sql`, `)})`,
         eq(whodrugDd.seq2, '001')
       ));
       
@@ -214,7 +214,7 @@ export const whodrugService = {
     })
     .from(whodrugDd)
     .leftJoin(whodrugMan, eq(whodrugDd.companyId, whodrugMan.id))
-    .where(sql`(${whodrugDd.drugRecordNumber}, ${whodrugDd.seq1}) IN ${sql.raw(`(${keys.map(k => `('${k.drn}', '${k.seq1}')`).join(',')})`)}`);
+    .where(sql`(${whodrugDd.drugRecordNumber}, ${whodrugDd.seq1}) IN (VALUES ${sql.join(keys.map(k => sql`(${k.drn}, ${k.seq1})`), sql`, `)})`)
 
     coreResults.forEach(r => {
       const code = `${r.drn}${r.seq1}`;

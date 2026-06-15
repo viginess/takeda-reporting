@@ -20,13 +20,22 @@ class InboxMonitorService {
     this.isScanning = true;
     console.log('[InboxMonitor] Starting bounce scan...');
 
+    const smtpUser = process.env.SMTP_USER;
+    const smtpPass = process.env.SMTP_PASS;
+
+    if (!smtpUser || !smtpPass) {
+      console.warn('[InboxMonitor] Imap credentials SMTP_USER or SMTP_PASS missing. Skipping bounce scan.');
+      this.isScanning = false;
+      return;
+    }
+
     const client = new ImapFlow({
       host: 'imap.ionos.com',
       port: 993,
       secure: true,
       auth: {
-        user: process.env.SMTP_USER || 'aereporting@viginess.com',
-        pass: process.env.SMTP_PASS || 'viginess@24'
+        user: smtpUser,
+        pass: smtpPass
       },
       logger: false
     });

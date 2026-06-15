@@ -9,9 +9,9 @@ import {
 } from "@chakra-ui/react";
 import { trpc } from "../../../../utils/config/trpc";
 import type { Report } from "../types";
-import { DataDisplay } from "./DataDisplay";
-import { ReportEditor } from "./ReportEditor";
-import { ValidationBanner } from "./ValidationBanner";
+import { DataDisplay } from "./shared/DataDisplay";
+import { ReportEditor } from "./editor/ReportEditor";
+import { ValidationBanner } from "./shared/ValidationBanner";
 import { DetailPanelHeader } from "./detail-panel/DetailPanelHeader";
 import { StatusSeverityControl } from "./detail-panel/StatusSeverityControl";
 import { MedicalCodingBlock } from "./detail-panel/MedicalCodingBlock";

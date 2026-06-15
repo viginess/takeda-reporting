@@ -13,7 +13,7 @@ const server = createHTTPServer({
 
     if (token && process.env.SUPABASE_JWT_SECRET) {
       try {
-        user = jwt.verify(token, process.env.SUPABASE_JWT_SECRET) as any;
+        user = jwt.verify(token, process.env.SUPABASE_JWT_SECRET, { algorithms: ['HS256'] }) as any;
       } catch (err) {
         // Silently fail, user remains undefined
       }
@@ -42,9 +42,7 @@ const server = createHTTPServer({
     ].filter(Boolean) as string[];
 
     const origin = req.headers.origin ?? "";
-    const isAllowedOrigin =
-      allowedOrigins.includes(origin) ||
-      (process.env.NODE_ENV !== "production");
+    const isAllowedOrigin = allowedOrigins.includes(origin);
 
     if (origin && isAllowedOrigin) {
       res.setHeader("Access-Control-Allow-Origin", origin);

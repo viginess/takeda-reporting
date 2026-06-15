@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { 
   ChevronLeft, Check, RefreshCw, FileCode, DownloadCloud, Edit3, X, Save 
 } from "lucide-react";
-import { StatusBadge } from "../ComparisonBadges";
+import { StatusBadge } from "../shared/ComparisonBadges";
 import type { Report } from "../../types";
 
 interface DetailPanelHeaderProps {

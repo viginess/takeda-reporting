@@ -3,16 +3,32 @@ import { Link } from 'react-router-dom';
 import logo from '../../assets/logo.jpg';
 import { useTranslation } from 'react-i18next';
 import { ChevronLeft } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import ReCAPTCHA from 'react-google-recaptcha';
 import { trpc } from '../../utils/config/trpc';
 import { countries } from '../../utils/common/countries';
+
+const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY as string | undefined;
+
+type InquiryType = "general" | "pv" | "career" | "privacy" | "technical";
+
+interface ContactFormData {
+    title: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    country: string;
+    inquiryType: InquiryType;
+    message: string;
+}
 
 const ContactPage = () => {
     const { t, i18n } = useTranslation();
     const isRTLValue = i18n.dir() === 'rtl';
     const toast = useToast();
+    const recaptchaRef = useRef<ReCAPTCHA>(null);
 
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<ContactFormData>({
         title: 'mr',
         firstName: '',
         lastName: '',
@@ -21,6 +37,8 @@ const ContactPage = () => {
         inquiryType: 'general',
         message: ''
     });
+
+    const [captchaToken, setCaptchaToken] = useState<string | null>(null);
 
     const submitContact = trpc.contact.submitContactForm.useMutation({
         onSuccess: () => {
@@ -41,6 +59,8 @@ const ContactPage = () => {
                 inquiryType: 'general',
                 message: ''
             });
+            setCaptchaToken(null);
+            recaptchaRef.current?.reset();
         },
         onError: (err) => {
             toast({
@@ -51,17 +71,31 @@ const ContactPage = () => {
                 isClosable: true,
                 position: "top-right",
             });
+            setCaptchaToken(null);
+            recaptchaRef.current?.reset();
         }
     });
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        submitContact.mutate(formData);
+        if (RECAPTCHA_SITE_KEY && !captchaToken) {
+            toast({
+                title: "Verification Required",
+                description: "Please complete the reCAPTCHA verification before submitting.",
+                status: "warning",
+                duration: 4000,
+                isClosable: true,
+                position: "top-right",
+            });
+            return;
+        }
+        submitContact.mutate({ ...formData, captchaToken: captchaToken ?? undefined });
     };
 
-    const handleChange = (field: string, value: string) => {
+    const handleChange = <K extends keyof ContactFormData>(field: K, value: ContactFormData[K]) => {
         setFormData(prev => ({ ...prev, [field]: value }));
     };
+
 
     return (
         <Flex direction="column" minH="100vh" bg="gray.50" fontFamily="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">
@@ -173,7 +207,7 @@ const ContactPage = () => {
                                         borderColor="gray.300" 
                                         fontWeight="500"
                                         value={formData.inquiryType}
-                                        onChange={(e) => handleChange('inquiryType', e.target.value)}
+                                        onChange={(e) => handleChange('inquiryType', e.target.value as InquiryType)}
                                     >
                                         <option value="general">General Corporate Inquiry</option>
                                         <option value="pv">Pharmacovigilance / Side Effect Report</option>
@@ -195,6 +229,18 @@ const ContactPage = () => {
                                     />
                                 </FormControl>
 
+                                {/* reCAPTCHA — only shown when site key is configured */}
+                                {RECAPTCHA_SITE_KEY && (
+                                    <Box>
+                                        <ReCAPTCHA
+                                            ref={recaptchaRef}
+                                            sitekey={RECAPTCHA_SITE_KEY}
+                                            onChange={(token) => setCaptchaToken(token)}
+                                            onExpired={() => setCaptchaToken(null)}
+                                        />
+                                    </Box>
+                                )}
+
                                 <Button 
                                     type="submit" 
                                     bg="#CE0037" 
@@ -207,6 +253,7 @@ const ContactPage = () => {
                                     fontWeight="bold"
                                     letterSpacing="wide"
                                     isLoading={submitContact.isPending}
+                                    isDisabled={!!RECAPTCHA_SITE_KEY && !captchaToken}
                                 >
                                     SEND MESSAGE
                                 </Button>

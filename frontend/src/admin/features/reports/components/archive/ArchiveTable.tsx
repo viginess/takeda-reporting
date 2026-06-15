@@ -4,7 +4,7 @@ import {
   Flex
 } from "@chakra-ui/react";
 import { History as HistoryIcon, Eye, AlertCircle } from "lucide-react";
-import { trpc } from "../../../../utils/config/trpc";
+import { trpc } from "../../../../../utils/config/trpc";
 
 interface ArchiveTableProps {
   onViewDetails: (storagePath: string, referenceId: string) => void;

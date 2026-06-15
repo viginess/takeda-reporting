@@ -23,11 +23,13 @@ export const isMfaAuthed = t.middleware(async ({ ctx, next }) => {
           throw new TRPCError({ code: "UNAUTHORIZED", message: "MFA verification required (User Preference)." });
       }
     } catch (err) {
-      console.error("MFA Middleware Error:", err);
-      // If DB check fails, we might want to fail safe or allow? 
-      // Given it's a security check, failing safe (rejecting) is usually better, 
-      // but let's allow it to proceed if DB is down to avoid logout loops 
-      // UNLESS strong auth is already present.
+      if (err instanceof TRPCError) throw err;
+      // DB error during MFA check — fail closed to prevent bypass
+      console.error("MFA Middleware DB Error:", err);
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Could not verify MFA status. Please try again.",
+      });
     }
   }
 

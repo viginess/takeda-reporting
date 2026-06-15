@@ -3,9 +3,9 @@ import {
   Box, SimpleGrid, Text, VStack, Flex, Badge, Checkbox, Skeleton,
   Center, useBreakpointValue
 } from "@chakra-ui/react";
-import type { Report } from "../types";
-import { reporterTypeCfg } from "../types";
-import { StatusBadge, SeverityDot, ValidationBadge } from "./ComparisonBadges";
+import type { Report } from "../../types";
+import { reporterTypeCfg } from "../../types";
+import { StatusBadge, SeverityDot, ValidationBadge } from "../shared/ComparisonBadges";
 
 interface ReportTableProps {
   filtered: Report[];

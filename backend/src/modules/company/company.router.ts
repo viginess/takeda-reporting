@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { router, publicProcedure } from '../../trpc/core/init.js';
+import { router } from '../../trpc/core/init.js';
+import { viewerProcedure, adminProcedure } from '../../trpc/core/procedures.js';
 import { db } from "../../db/core/index.js";
 import { companies, companyNotifications } from "../../db/company/company.schema.js";
 import { eq, desc, ilike, or, sql, and } from "drizzle-orm";
@@ -11,7 +12,7 @@ export const companyRouter = router({
   /**
    * Retrieves a list of all medicinal product manufacturers.
    */
-  getCompanies: publicProcedure
+  getCompanies: viewerProcedure
     .input(z.object({
       search: z.string().optional(),
       missingEmailOnly: z.boolean().optional(),
@@ -72,7 +73,7 @@ export const companyRouter = router({
   /**
    * Updates manufacturer contact details or status.
    */
-  updateCompany: publicProcedure
+  updateCompany: adminProcedure
     .input(z.object({
       id: z.string().uuid(),
       data: z.object({
@@ -94,7 +95,7 @@ export const companyRouter = router({
   /**
    * Retrieves the notification history for specialized auditing.
    */
-  getNotificationLogs: publicProcedure
+  getNotificationLogs: viewerProcedure
     .input(z.object({
       limit: z.number().default(50),
       companyId: z.string().uuid().optional()
@@ -136,7 +137,7 @@ export const companyRouter = router({
   /**
    * Gets quick stats for the manufacturer dashboard.
    */
-  getStats: publicProcedure
+  getStats: viewerProcedure
     .query(async () => {
       const [{ count: total }] = await db.select({ count: sql<number>`count(*)` }).from(companies);
       const [{ count: registered }] = await db.select({ count: sql<number>`count(*)` }).from(companies).where(eq(companies.isRegistered, true));
@@ -160,7 +161,7 @@ export const companyRouter = router({
   /**
    * Re-triggers a specific notification transmission.
    */
-  resendNotification: publicProcedure
+  resendNotification: adminProcedure
     .input(z.object({
       notificationId: z.string().uuid()
     }))
@@ -173,7 +174,7 @@ export const companyRouter = router({
   /**
    * Manually triggers a scan of the IONOS inbox for bounce-backs.
    */
-  syncInboxes: publicProcedure
+  syncInboxes: adminProcedure
     .mutation(async () => {
       const { inboxMonitorService } = await import("../notifications/inbox-monitor.service.js");
       await inboxMonitorService.scanForBounces();
@@ -183,7 +184,7 @@ export const companyRouter = router({
   /**
    * Scans for and resends any missed reports for a specific company
    */
-  resendMissedReports: publicProcedure
+  resendMissedReports: adminProcedure
     .input(z.object({ companyId: z.string().uuid() }))
     .mutation(async ({ input }) => {
       const { db } = await import("../../db/core/index.js");

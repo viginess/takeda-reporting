@@ -42,7 +42,8 @@ export async function sendAdminNotificationEmail({
         connectionTimeout: 30000, // 30 seconds
         greetingTimeout: 30000,   // 30 seconds
         tls: {
-          rejectUnauthorized: false, 
+          // Only disable cert validation in explicit dev/test mode; enforce in production
+          rejectUnauthorized: process.env.NODE_ENV === 'production',
         },
       });
     } else {

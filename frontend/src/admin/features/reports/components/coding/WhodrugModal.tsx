@@ -5,7 +5,7 @@ import {
   Heading, Text, Box, Badge, Flex, VStack, Input, InputGroup,
   InputLeftElement, Skeleton, Center, useToast, Spinner
 } from "@chakra-ui/react";
-import type { Report } from "../types";
+import type { Report } from "../../types";
 
 interface WhodrugModalProps {
   isOpen: boolean;

@@ -1,6 +1,6 @@
 import { Box, SimpleGrid, Flex, Text, Button } from "@chakra-ui/react";
 import { Activity, AlertTriangle } from "lucide-react";
-import { StatusBadge, SeverityDot } from "../ComparisonBadges";
+import { StatusBadge, SeverityDot } from "../shared/ComparisonBadges";
 import { 
   statusOptions, statusCfg, severityOptions, severityCfg
 } from "../../types";

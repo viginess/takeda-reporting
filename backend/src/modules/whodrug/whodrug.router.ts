@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { router, publicProcedure } from '../../trpc/core/init.js';
+import { adminProcedure, superAdminProcedure } from '../../trpc/core/procedures.js';
 import { whodrugService } from "./whodrug.service.js";
 import { whodrugImportService } from "./whodrug-import.service.js";
 import { db } from "../../db/core/index.js";
@@ -80,7 +81,7 @@ export const whodrugRouter = router({
   /**
    * Switches the globally active WHODrug dictionary version.
    */
-  updateActiveVersion: publicProcedure
+  updateActiveVersion: adminProcedure
     .input(z.object({ version: z.string(), versionId: z.number().optional() }))
     .mutation(async ({ input }) => {
       const [settings] = await db.select().from(systemSettings).where(eq(systemSettings.id, 1));
@@ -111,10 +112,10 @@ export const whodrugRouter = router({
   /**
    * Initiates a background dictionary import process.
    */
-  startImport: publicProcedure
+  startImport: adminProcedure
     .input(z.object({ 
       version: z.string().optional(), 
-      zipBase64: z.string(),
+      zipBase64: z.string().max(67108864, "ZIP file too large (max 50MB)"),
       fileName: z.string()
     }))
     .mutation(async ({ input }) => {
@@ -157,7 +158,7 @@ export const whodrugRouter = router({
   /**
    * Checks the progress of an ongoing dictionary import.
    */
-  getImportStatus: publicProcedure
+  getImportStatus: adminProcedure
     .input(z.object({ jobId: z.number() }))
     .query(async ({ input }) => {
       const [job] = await db.select()
@@ -170,7 +171,7 @@ export const whodrugRouter = router({
   /**
    * Lists the most recent import jobs.
    */
-  getImportHistory: publicProcedure
+  getImportHistory: adminProcedure
     .query(async () => {
       return await db.select()
         .from(whodrugImports)
@@ -181,7 +182,7 @@ export const whodrugRouter = router({
   /**
    * Permanently deletes a dictionary version and all of its associated data.
    */
-  deleteVersion: publicProcedure
+  deleteVersion: superAdminProcedure
     .input(z.object({ version: z.string() }))
     .mutation(async ({ input }) => {
       const { version } = input;
