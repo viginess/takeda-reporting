@@ -1,0 +1,29 @@
+name: Keep Alive Render & Supabase
+
+on:
+  schedule:
+    # Run every 10 minutes to prevent the 15-minute inactivity sleep
+    - cron: '*/10 * * * *'
+  workflow_dispatch: # Allow manual triggering
+
+jobs:
+  keep-alive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Vercel Backend
+        env:
+          VERCEL_API_URL: "https://api.viginess.com/trpc"
+        run: |
+          # Replace with your actual Vercel backend URL to help reduce serverless cold starts
+          curl -sSf "${VERCEL_API_URL}/health" > /dev/null || echo "Vercel ping failed but continuing..."
+          echo "Successfully pinged Vercel API!"
+
+      - name: Ping Supabase Database
+        env:
+          SUPABASE_URL: "https://fkmgqshyfbwzddztmxdk.supabase.co"
+          SUPABASE_ANON_KEY: ${{ secrets['SUPABASE_ANON_KEY'] }}
+        run: |
+          # Replace with your actual Supabase URL. The anon key should be set in GitHub Secrets.
+          # Pings the built-in REST API health/settings endpoint to keep the Postgres instance warm.
+          curl -sSf -H "apikey: ${SUPABASE_ANON_KEY}" "${SUPABASE_URL}/rest/v1/" > /dev/null || echo "Supabase ping failed but continuing..."
+          echo "Successfully pinged Supabase Database!"
